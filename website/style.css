@@ -815,74 +815,233 @@ body {
   margin-bottom: 100px;
 }
 
-.benchmark-table-wrapper {
-  overflow-x: auto;
+/* Hero Ring */
+.bench-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 48px;
+  position: relative;
 }
 
-.benchmark-table {
+.bench-hero-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0, 229, 204, 0.12), rgba(124, 58, 237, 0.08) 40%, transparent 70%);
+  pointer-events: none;
+  animation: bench-glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes bench-glow-pulse {
+  0%, 100% { opacity: 0.6; transform: translate(-50%, -60%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); }
+}
+
+.bench-hero-ring {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 20px;
+}
+
+.bench-ring-svg {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
+  height: 100%;
+  filter: drop-shadow(0 0 12px rgba(0, 229, 204, 0.3));
 }
 
-.benchmark-table thead th {
-  text-align: left;
-  padding: 12px 16px;
-  color: var(--text-muted);
+.bench-ring-progress {
+  stroke-dasharray: 327;
+  stroke-dashoffset: 327;
+}
+
+.bench-hero-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bench-hero-num {
+  font-family: var(--font-display);
+  font-size: 3.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.bench-hero-pct {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-left: 2px;
+}
+
+.bench-hero-label {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
   font-weight: 600;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  margin-bottom: 6px;
 }
 
-.benchmark-table tbody tr {
-  border-bottom: 1px solid var(--border-subtle);
-  transition: background 0.15s;
+.bench-hero-sub {
+  font-size: 0.95rem;
+  color: var(--text-muted);
 }
 
-.benchmark-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.benchmark-table td {
-  padding: 14px 16px;
-}
-
-.benchmark-table code {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--cyan);
-}
-
-.num-cell {
-  font-family: var(--font-mono);
+.bench-hero-sub strong {
   color: var(--text-secondary);
 }
 
-.savings-cell {
-  font-family: var(--font-display);
-  font-weight: 700;
+/* Benchmark Cards */
+.bench-cards {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+
+.bench-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.bench-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.bench-card:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 229, 204, 0.1), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.bench-card:hover::before {
+  opacity: 1;
+}
+
+.bench-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.bench-file {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   color: var(--cyan);
-  font-size: 1rem;
 }
 
-.bar-cell {
-  width: 120px;
+.bench-pct {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
 }
 
-.bar {
+.bench-pct small {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Animated bar */
+.bench-bar-track {
   height: 6px;
+  background: rgba(136, 146, 176, 0.08);
+  border-radius: 3px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.bench-bar-fill {
+  height: 100%;
+  width: 0;
   border-radius: 3px;
   background: linear-gradient(90deg, var(--cyan), var(--purple));
-  opacity: 0.7;
+  box-shadow: 0 0 10px rgba(0, 229, 204, 0.4);
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+}
+
+[data-animate].visible .bench-bar-fill {
+  width: calc(var(--pct) * 1%);
+}
+
+/* Stats row inside card */
+.bench-card-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bench-stat-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.bench-stat-val {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bench-stat-0x {
+  color: var(--cyan);
+}
+
+.bench-stat-react {
+  color: var(--text-muted);
+}
+
+.bench-stat-lbl {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.bench-stat-arrow {
+  color: var(--text-muted);
+  opacity: 0.4;
+  flex-shrink: 0;
 }
 
 .benchmark-note {
   text-align: center;
   color: var(--text-muted);
   font-size: 0.8rem;
-  margin-top: 16px;
+  margin-top: 24px;
   font-style: italic;
 }
 
@@ -1176,18 +1335,7 @@ body {
 .hero-subtitle { animation: hero-in 0.6s ease-out 0.2s both; }
 .hero-actions { animation: hero-in 0.6s ease-out 0.3s both; }
 
-/* Benchmark bar animation */
-.bar {
-  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
-}
-
-[data-animate] .bar {
-  width: 0 !important;
-}
-
-[data-animate].visible .bar {
-  /* width restored via inline style */
-}
+/* Benchmark bar animation — bars start at 0, animate to --pct on visible */
 
 /* ---- Ticker / Marquee ---- */
 @keyframes ticker-scroll {
@@ -1451,6 +1599,10 @@ body {
 
   .features-grid {
     grid-template-columns: 1fr;
+  }
+
+  .bench-cards {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .pipeline {
