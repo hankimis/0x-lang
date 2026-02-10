@@ -187,10 +187,12 @@
       </p>
       <div class="hero-actions">
         <a href="#demo" class="btn btn-primary">See it in action</a>
-        <div class="hero-install">
+        <div class="hero-install" id="copy-install">
+          <span class="hero-install-prompt">$</span>
           <code>npm install -g 0x-lang</code>
-          <button class="copy-btn" id="copy-install" aria-label="Copy install command">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          <button class="copy-btn" aria-label="Copy install command">
+            <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" style="display:none"><polyline points="20 6 9 17 4 12"/></svg>
           </button>
           <span class="copy-toast" id="copy-toast">Copied!</span>
         </div>
@@ -824,17 +826,24 @@
       });
     });
 
-    // Copy button with toast
-    const copyBtn = document.getElementById('copy-install');
+    // Copy install command — clicking anywhere on the install bar copies
+    const installBar = document.getElementById('copy-install');
     const copyToast = document.getElementById('copy-toast');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => {
+    if (installBar) {
+      const copyBtn = installBar.querySelector('.copy-btn');
+      const copyIcon = installBar.querySelector('.copy-icon');
+      const checkIcon = installBar.querySelector('.check-icon');
+      installBar.addEventListener('click', () => {
         navigator.clipboard.writeText('npm install -g 0x-lang');
         copyBtn.classList.add('copied');
         copyToast.classList.add('show');
+        copyIcon.style.display = 'none';
+        checkIcon.style.display = '';
         setTimeout(() => {
           copyBtn.classList.remove('copied');
           copyToast.classList.remove('show');
+          copyIcon.style.display = '';
+          checkIcon.style.display = 'none';
         }, 2000);
       });
     }
