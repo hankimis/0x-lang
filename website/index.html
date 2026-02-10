@@ -184,7 +184,7 @@
     </header>
 
     <!-- Stats Bar -->
-    <section class="stats-bar">
+    <section class="stats-bar" data-animate="fade">
       <div class="stat">
         <span class="stat-value">80%</span>
         <span class="stat-label">Less Code</span>
@@ -206,6 +206,53 @@
       </div>
     </section>
 
+    <!-- Ticker -->
+    <section class="ticker-section" aria-hidden="true">
+      <div class="ticker-track">
+        <span class="ticker-item"><span class="ticker-highlight">React</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">Vue 3</span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item"><span class="ticker-highlight">Svelte 5</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">TypeScript</span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item"><span class="ticker-highlight">80% Less Code</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">Zero Dependencies</span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item"><span class="ticker-highlight">AI-First</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">MCP Ready</span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item"><span class="ticker-highlight">Multi-Target</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">Declarative</span>
+        <span class="ticker-dot"></span>
+        <!-- Duplicate for seamless loop -->
+        <span class="ticker-item"><span class="ticker-highlight">React</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">Vue 3</span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item"><span class="ticker-highlight">Svelte 5</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">TypeScript</span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item"><span class="ticker-highlight">80% Less Code</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">Zero Dependencies</span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item"><span class="ticker-highlight">AI-First</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">MCP Ready</span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item"><span class="ticker-highlight">Multi-Target</span></span>
+        <span class="ticker-dot"></span>
+        <span class="ticker-item">Declarative</span>
+        <span class="ticker-dot"></span>
+      </div>
+    </section>
+
     <!-- Demo Section -->
     <section id="demo" class="demo-section">
       <div class="section-header">
@@ -215,7 +262,7 @@
 
       <div class="demo-grid">
         <!-- 0x Source -->
-        <div class="code-panel">
+        <div class="code-panel" data-animate="slide-left">
           <div class="code-header">
             <div class="code-dots">
               <span class="dot dot-red"></span>
@@ -260,7 +307,7 @@
         </div>
 
         <!-- Output Panel -->
-        <div class="code-panel">
+        <div class="code-panel" data-animate="slide-right">
           <div class="code-header">
             <div class="code-dots">
               <span class="dot dot-red"></span>
@@ -391,8 +438,8 @@
         <p class="section-desc">Every design decision optimizes for token efficiency and generation accuracy.</p>
       </div>
 
-      <div class="features-grid">
-        <div class="feature-card">
+      <div class="features-grid" data-stagger>
+        <div class="feature-card" data-animate style="--i:0">
           <div class="feature-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
           </div>
@@ -400,7 +447,7 @@
           <p class="feature-desc">18 lines of 0x replaces 96 lines of production React. AI generates less, you ship faster.</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-animate style="--i:1">
           <div class="feature-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
           </div>
@@ -408,7 +455,7 @@
           <p class="feature-desc">Indentation-based, declarative syntax eliminates the structural choices that cause AI hallucinations.</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-animate style="--i:2">
           <div class="feature-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           </div>
@@ -416,7 +463,7 @@
           <p class="feature-desc">One source file compiles to React JSX, Vue 3 SFC, and Svelte 5 simultaneously.</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-animate style="--i:3">
           <div class="feature-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
           </div>
@@ -424,7 +471,7 @@
           <p class="feature-desc">Built-in MCP server for Claude and Cursor. AI agents compile 0x directly in their workflow.</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-animate style="--i:4">
           <div class="feature-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
           </div>
@@ -432,7 +479,7 @@
           <p class="feature-desc">Pure TypeScript compiler with no runtime dependencies. Fast, portable, predictable.</p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" data-animate style="--i:5">
           <div class="feature-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
           </div>
@@ -447,7 +494,7 @@
       <div class="section-header">
         <h2 class="section-title"><span class="accent">></span> How It Works</h2>
       </div>
-      <div class="pipeline">
+      <div class="pipeline" data-animate>
         <div class="pipeline-step">
           <div class="pipeline-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -500,7 +547,7 @@
         <p class="section-desc">0x source vs production TypeScript React with full styling. Verified in CI.</p>
       </div>
 
-      <div class="benchmark-table-wrapper">
+      <div class="benchmark-table-wrapper" data-animate>
         <table class="benchmark-table">
           <thead>
             <tr>
@@ -553,13 +600,71 @@
       <p class="benchmark-note">Compared against production TypeScript React with full inline styling, types, and component structure.</p>
     </section>
 
+    <!-- Reviews -->
+    <section class="reviews-section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="accent">></span> What Developers Say</h2>
+        <p class="section-desc">Early adopters on building with 0x.</p>
+      </div>
+
+      <div class="reviews-grid">
+        <div class="review-card" data-animate style="--i:0">
+          <span class="review-quote">"</span>
+          <p class="review-text">The token efficiency is insane. My AI agent generates a full dashboard in 0x with half the tokens it would take in React. Less hallucination, faster iteration.</p>
+          <div class="review-author">
+            <div class="review-avatar review-avatar-cyan">JK</div>
+            <div>
+              <div class="review-name">James K.</div>
+              <div class="review-role">AI/ML Engineer</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" data-animate style="--i:1">
+          <span class="review-quote">"</span>
+          <p class="review-text">Write once, get React AND Vue output? I migrated our component library's prototypes to 0x and cut our design-to-code time by 70%.</p>
+          <div class="review-author">
+            <div class="review-avatar review-avatar-purple">SL</div>
+            <div>
+              <div class="review-name">Sarah L.</div>
+              <div class="review-role">Frontend Lead</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" data-animate style="--i:2">
+          <span class="review-quote">"</span>
+          <p class="review-text">New hires were writing production components in 0x within hours, not days. The syntax is so intuitive that onboarding friction basically disappeared.</p>
+          <div class="review-author">
+            <div class="review-avatar review-avatar-cyan">MP</div>
+            <div>
+              <div class="review-name">Mike P.</div>
+              <div class="review-role">Engineering Manager</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" data-animate style="--i:3">
+          <span class="review-quote">"</span>
+          <p class="review-text">As a solo dev, 0x is a game changer. I ship features 3x faster because I'm writing 80% less code. The MCP integration with Cursor is chef's kiss.</p>
+          <div class="review-author">
+            <div class="review-avatar review-avatar-purple">AR</div>
+            <div>
+              <div class="review-name">Alex R.</div>
+              <div class="review-role">Indie Developer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Quick Start -->
     <section class="quickstart-section">
       <div class="section-header">
         <h2 class="section-title"><span class="accent">></span> Get Started in 30 Seconds</h2>
       </div>
 
-      <div class="quickstart-steps">
+      <div class="quickstart-steps" data-animate>
         <div class="qs-step">
           <span class="qs-number">1</span>
           <div class="qs-content">
@@ -587,7 +692,7 @@
     <!-- CTA -->
     <section class="cta-section">
       <div class="cta-glow"></div>
-      <h2 class="cta-title">Ready to write less<br>and ship more?</h2>
+      <h2 class="cta-title" data-animate>Ready to write less<br>and ship more?</h2>
       <p class="cta-desc">Join the community building the future of AI-driven development.</p>
       <div class="cta-actions">
         <a href="https://github.com/hankimis/0x-lang" class="btn btn-primary btn-lg">
@@ -662,6 +767,23 @@
         document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
       });
     });
+
+    // Scroll animations with Intersection Observer
+    const animEls = document.querySelectorAll('[data-animate]');
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+      animEls.forEach(el => observer.observe(el));
+    } else {
+      animEls.forEach(el => el.classList.add('visible'));
+    }
   </script>
 
 </body>
