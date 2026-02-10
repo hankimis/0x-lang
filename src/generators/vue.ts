@@ -129,7 +129,8 @@ function genFunction(node: FnDecl, c: VueContext): string {
 function genOnMount(node: OnMount, c: VueContext): string {
   c.imports.add('onMounted');
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
-  return `onMounted(() => {\n  ${body}\n});`;
+  const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
+  return `onMounted(${asyncKw}() => {\n  ${body}\n});`;
 }
 
 function genOnDestroy(node: OnDestroy, c: VueContext): string {
@@ -141,7 +142,8 @@ function genOnDestroy(node: OnDestroy, c: VueContext): string {
 function genWatch(node: WatchBlock, c: VueContext): string {
   c.imports.add('watch');
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
-  return `watch(${node.variable}, () => {\n  ${body}\n});`;
+  const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
+  return `watch(${node.variable}, ${asyncKw}() => {\n  ${body}\n});`;
 }
 
 function genCheck(node: CheckDecl, c: VueContext): string {
@@ -799,6 +801,39 @@ function extractName(expr: Expression): string {
   if (expr.kind === 'identifier') return expr.name;
   if (expr.kind === 'member') return extractName(expr.object);
   return '';
+}
+
+function bodyContainsAwait(stmts: Statement[]): boolean {
+  return stmts.some(s => stmtHasAwait(s));
+}
+
+function stmtHasAwait(stmt: Statement): boolean {
+  switch (stmt.kind) {
+    case 'expr_stmt': return exprHasAwait(stmt.expression);
+    case 'assignment_stmt': return exprHasAwait(stmt.value);
+    case 'var_decl': return exprHasAwait(stmt.value);
+    case 'return': return stmt.value ? exprHasAwait(stmt.value) : false;
+    case 'if_stmt':
+      return stmt.body.some(s => stmtHasAwait(s))
+        || stmt.elifs.some(e => e.body.some(s => stmtHasAwait(s)))
+        || (stmt.elseBody?.some(s => stmtHasAwait(s)) ?? false);
+    case 'for_stmt': return stmt.body.some(s => stmtHasAwait(s));
+    default: return false;
+  }
+}
+
+function exprHasAwait(expr: Expression): boolean {
+  if (expr.kind === 'await') return true;
+  switch (expr.kind) {
+    case 'binary': return exprHasAwait(expr.left) || exprHasAwait(expr.right);
+    case 'unary': return exprHasAwait(expr.operand);
+    case 'call': return exprHasAwait(expr.callee) || expr.args.some(a => exprHasAwait(a));
+    case 'member': return exprHasAwait(expr.object);
+    case 'index': return exprHasAwait(expr.object) || exprHasAwait(expr.index);
+    case 'ternary': return exprHasAwait(expr.condition) || exprHasAwait(expr.consequent) || exprHasAwait(expr.alternate);
+    case 'assignment': return exprHasAwait(expr.value);
+    default: return false;
+  }
 }
 
 function cssPropToCss(prop: string): string {

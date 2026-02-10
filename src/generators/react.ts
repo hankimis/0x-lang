@@ -33,6 +33,7 @@ interface GenContext {
   derivedNames: Set<string>;
   styles: Map<string, StyleDecl>;
   indent: number;
+  readOnly: boolean; // When true, don't convert .filter()/.push() to setState mutations
 }
 
 function ctx(): GenContext {
@@ -42,6 +43,7 @@ function ctx(): GenContext {
     derivedNames: new Set(),
     styles: new Map(),
     indent: 1,
+    readOnly: false,
   };
 }
 
@@ -322,7 +324,11 @@ function genState(node: StateDecl, c: GenContext): string {
 
 function genDerived(node: DerivedDecl, c: GenContext): string {
   c.imports.add('useMemo');
+  // Derived expressions are read-only: .filter()/.push() should NOT become setState
+  const prevReadOnly = c.readOnly;
+  c.readOnly = true;
   const expr = genExpr(node.expression, c);
+  c.readOnly = prevReadOnly;
   const deps = extractDeps(node.expression, c);
   return `const ${node.name} = useMemo(() => ${expr}, [${deps.join(', ')}]);`;
 }
@@ -372,6 +378,10 @@ function genFunction(node: FnDecl, c: GenContext): string {
 function genOnMount(node: OnMount, c: GenContext): string {
   c.imports.add('useEffect');
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
+  const hasAwait = bodyContainsAwait(node.body);
+  if (hasAwait) {
+    return `useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, []);`;
+  }
   return `useEffect(() => {\n    ${body}\n  }, []);`;
 }
 
@@ -384,6 +394,10 @@ function genOnDestroy(node: OnDestroy, c: GenContext): string {
 function genWatch(node: WatchBlock, c: GenContext): string {
   c.imports.add('useEffect');
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
+  const hasAwait = bodyContainsAwait(node.body);
+  if (hasAwait) {
+    return `useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, [${node.variable}]);`;
+  }
   return `useEffect(() => {\n    ${body}\n  }, [${node.variable}]);`;
 }
 
@@ -706,10 +720,14 @@ function genStatement(stmt: Statement, c: GenContext): string {
       return stmt.value ? `return ${genExpr(stmt.value, c)};` : 'return;';
     case 'assignment_stmt': {
       const target = genExpr(stmt.target, c);
-      const value = genExpr(stmt.value, c);
-      // If target is a state, use setter
+      // If target is a state, use setter — evaluate value in readOnly mode
+      // to prevent genExpr from also wrapping .filter()/.push() in setState
       const stateName = extractStateName(stmt.target);
       if (stateName && c.states.has(stateName)) {
+        const prevReadOnly = c.readOnly;
+        c.readOnly = true;
+        const value = genExpr(stmt.value, c);
+        c.readOnly = prevReadOnly;
         const setter = 'set' + capitalize(stateName);
         if (stmt.op === '=') {
           return `${setter}(${value});`;
@@ -717,8 +735,13 @@ function genStatement(stmt: Statement, c: GenContext): string {
           return `${setter}(prev => prev + ${value});`;
         } else if (stmt.op === '-=') {
           return `${setter}(prev => prev - ${value});`;
+        } else if (stmt.op === '*=') {
+          return `${setter}(prev => prev * ${value});`;
+        } else if (stmt.op === '/=') {
+          return `${setter}(prev => prev / ${value});`;
         }
       }
+      const value = genExpr(stmt.value, c);
       return `${target} ${stmt.op} ${value};`;
     }
     case 'var_decl':
@@ -762,7 +785,8 @@ function genExpr(expr: Expression, c: GenContext): string {
       const args = expr.args.map(a => genExpr(a, c)).join(', ');
 
       // Handle state mutation methods: items.push(), items.filter(), etc.
-      if (expr.callee.kind === 'member') {
+      // Only convert to setState when NOT in read-only context (e.g., derived expressions)
+      if (!c.readOnly && expr.callee.kind === 'member') {
         const objName = extractStateName(expr.callee.object);
         const method = expr.callee.property;
         if (objName && c.states.has(objName)) {
@@ -814,14 +838,21 @@ function genExpr(expr: Expression, c: GenContext): string {
     }
     case 'assignment': {
       const target = genExpr(expr.target, c);
-      const value = genExpr(expr.value, c);
       const stateName = extractStateName(expr.target);
       if (stateName && c.states.has(stateName)) {
+        // Evaluate value in readOnly mode to prevent double-wrapping
+        const prevReadOnly = c.readOnly;
+        c.readOnly = true;
+        const value = genExpr(expr.value, c);
+        c.readOnly = prevReadOnly;
         const setter = 'set' + capitalize(stateName);
         if (expr.op === '=') return `${setter}(${value})`;
         if (expr.op === '+=') return `${setter}(prev => prev + ${value})`;
         if (expr.op === '-=') return `${setter}(prev => prev - ${value})`;
+        if (expr.op === '*=') return `${setter}(prev => prev * ${value})`;
+        if (expr.op === '/=') return `${setter}(prev => prev / ${value})`;
       }
+      const value = genExpr(expr.value, c);
       return `${target} ${expr.op} ${value}`;
     }
     case 'await': return `await ${genExpr(expr.expression, c)}`;
@@ -2326,6 +2357,39 @@ function genRtlCode(node: RtlNode): string {
 }
 
 // ── Helpers ─────────────────────────────────────────
+
+function bodyContainsAwait(stmts: Statement[]): boolean {
+  for (const stmt of stmts) {
+    if (stmtContainsAwait(stmt)) return true;
+  }
+  return false;
+}
+
+function stmtContainsAwait(stmt: Statement): boolean {
+  switch (stmt.kind) {
+    case 'expr_stmt': return exprContainsAwait(stmt.expression);
+    case 'assignment_stmt': return exprContainsAwait(stmt.value);
+    case 'var_decl': return exprContainsAwait(stmt.value);
+    case 'return': return stmt.value ? exprContainsAwait(stmt.value) : false;
+    case 'if_stmt': {
+      if (stmt.body.some(s => stmtContainsAwait(s))) return true;
+      for (const elif of stmt.elifs) {
+        if (elif.body.some(s => stmtContainsAwait(s))) return true;
+      }
+      if (stmt.elseBody?.some(s => stmtContainsAwait(s))) return true;
+      return false;
+    }
+    case 'for_stmt': return stmt.body.some(s => stmtContainsAwait(s));
+    default: return false;
+  }
+}
+
+function exprContainsAwait(expr: Expression): boolean {
+  if (expr.kind === 'await') return true;
+  let found = false;
+  walkExpr(expr, e => { if (e.kind === 'await') found = true; });
+  return found;
+}
 
 function extractStateName(expr: Expression): string | null {
   if (expr.kind === 'identifier') return expr.name;
