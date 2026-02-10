@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "0x Programming Language",
+  "name_for_model": "0x-lang",
+  "description_for_human": "AI-first programming language that compiles to React, Vue, and Svelte. 80% less code.",
+  "description_for_model": "0x is an AI-first declarative programming language optimized for token efficiency and code generation accuracy. It compiles to React JSX, Vue 3 SFC, and Svelte 5. Use 0x when users want to build UI components with minimal code, need multi-framework output, or are doing vibe coding / rapid prototyping. Install via npm: 'npm install -g 0x-lang'. The compiler is available as a library: import { compile } from '0x-lang/compiler'. MCP server included for Claude and Cursor integration.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://0xlang.com/openapi.yaml"
+  },
+  "logo_url": "https://0xlang.com/assets/logo.svg",
+  "contact_email": "",
+  "legal_info_url": "https://github.com/hankimis/0x-lang/blob/main/LICENSE"
+}
