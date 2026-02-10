@@ -33,7 +33,6 @@ npm-debug.log*
 
 # Separate repos
 playground/
-website/
 my-app/
 
 # Claude

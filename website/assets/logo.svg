@@ -1,0 +1,23 @@
+<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5cc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="inner-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5cc" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer hexagon -->
+  <polygon points="60,5 110,30 110,90 60,115 10,90 10,30" fill="url(#inner-grad)" stroke="url(#logo-grad)" stroke-width="2.5"/>
+  <!-- 0x text -->
+  <text x="60" y="72" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="40" fill="url(#logo-grad)">0x</text>
+  <!-- Decorative dots -->
+  <circle cx="60" cy="20" r="3" fill="#00e5cc" opacity="0.8"/>
+  <circle cx="97" cy="38" r="2" fill="#7c3aed" opacity="0.6"/>
+  <circle cx="97" cy="82" r="2" fill="#00e5cc" opacity="0.6"/>
+  <circle cx="60" cy="100" r="3" fill="#7c3aed" opacity="0.8"/>
+  <circle cx="23" cy="82" r="2" fill="#00e5cc" opacity="0.6"/>
+  <circle cx="23" cy="38" r="2" fill="#7c3aed" opacity="0.6"/>
+</svg>

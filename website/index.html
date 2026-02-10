@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="0x — The AI-First Programming Language. 18 lines of 0x replaces 96 lines of React. 80% less code.">
+  <meta name="color-scheme" content="dark">
+
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="0x — The AI-First Programming Language">
+  <meta property="og:description" content="18 lines of 0x replaces 96 lines of React. 80% less code. Multi-target output.">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="0x — The AI-First Programming Language">
+  <meta name="twitter:description" content="18 lines of 0x replaces 96 lines of React. 80% less code. Multi-target output.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600,500&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+
+  <title>0x — The AI-First Programming Language</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="stars"></div>
+  <div class="nebula"></div>
+
+  <main class="container">
+
+    <!-- Nav -->
+    <nav class="nav">
+      <a href="#" class="nav-logo">
+        <img src="assets/logo.svg" alt="0x" width="32" height="32">
+        <span>0x</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#benchmarks">Benchmarks</a>
+        <a href="https://github.com/user/0x-lang" class="nav-github">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero">
+      <div class="hero-badge">AI-First Programming Language</div>
+      <h1 class="hero-title">
+        <span class="hero-title-line">Write <span class="gradient-text">18 lines</span>.</span>
+        <span class="hero-title-line">Get <span class="gradient-text">96 lines</span> of React.</span>
+      </h1>
+      <p class="hero-subtitle">
+        0x is a declarative language that compiles to React, Vue, and Svelte.<br>
+        Designed for AI agents. <strong>80% less code. Zero ambiguity.</strong>
+      </p>
+      <div class="hero-actions">
+        <a href="#demo" class="btn btn-primary">See it in action</a>
+        <div class="hero-install">
+          <code>npm install -g 0x-lang</code>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install -g 0x-lang')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <section class="stats-bar">
+      <div class="stat">
+        <span class="stat-value">80%</span>
+        <span class="stat-label">Less Code</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">3</span>
+        <span class="stat-label">Output Targets</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">0</span>
+        <span class="stat-label">Runtime Dependencies</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value">&lt;1s</span>
+        <span class="stat-label">Compile Time</span>
+      </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo-section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="accent">></span> See the Difference</h2>
+        <p class="section-desc">Write once in 0x. Compile to any framework.</p>
+      </div>
+
+      <div class="demo-grid">
+        <!-- 0x Source -->
+        <div class="code-panel">
+          <div class="code-header">
+            <div class="code-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="code-filename">counter.ai</span>
+            <span class="code-badge badge-0x">0x</span>
+          </div>
+          <pre class="code-block"><code><span class="kw">page</span> <span class="fn">Counter</span>:
+  <span class="kw">state</span> count: <span class="type">int</span> = <span class="num">0</span>
+  <span class="kw">derived</span> doubled = count * <span class="num">2</span>
+
+  <span class="kw">fn</span> <span class="fn">increment</span>():
+    count += <span class="num">1</span>
+
+  <span class="kw">fn</span> <span class="fn">decrement</span>():
+    count -= <span class="num">1</span>
+
+  <span class="kw">layout</span> col gap=<span class="num">16</span> padding=<span class="num">24</span> center:
+    <span class="el">text</span> <span class="str">"Counter"</span> size=2xl bold
+    <span class="el">text</span> <span class="str">"{count}"</span> size=3xl bold
+    <span class="el">text</span> <span class="str">"Doubled: {doubled}"</span>
+
+    <span class="kw">layout</span> row gap=<span class="num">8</span>:
+      <span class="el">button</span> <span class="str">"-1"</span> style=danger -> decrement()
+      <span class="el">button</span> <span class="str">"Reset"</span> -> count = <span class="num">0</span>
+      <span class="el">button</span> <span class="str">"+1"</span> style=primary -> increment()</code></pre>
+          <div class="code-footer">
+            <span class="token-count">18 lines</span>
+            <span class="line-count">364 chars</span>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div class="demo-arrow">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="url(#arrow-grad)" stroke-width="2" stroke-linecap="round">
+            <defs><linearGradient id="arrow-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00e5cc"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          <span class="demo-arrow-label">compiles to</span>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="code-panel">
+          <div class="code-header">
+            <div class="code-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="code-filename" id="output-filename">Counter.jsx</span>
+            <span class="code-badge" id="output-badge">React</span>
+          </div>
+
+          <!-- React Output -->
+          <pre class="code-block code-block-sm output-code" id="output-react"><code><span class="kw">import</span> React, { useState, useMemo } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">export default function</span> <span class="fn">Counter</span>() {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="num">0</span>);
+  <span class="kw">const</span> doubled = <span class="fn">useMemo</span>(
+    () =&gt; count * <span class="num">2</span>, [count]
+  );
+  <span class="kw">const</span> increment = () =&gt; {
+    <span class="fn">setCount</span>(prev =&gt; prev + <span class="num">1</span>);
+  };
+  <span class="kw">const</span> decrement = () =&gt; {
+    <span class="fn">setCount</span>(prev =&gt; prev - <span class="num">1</span>);
+  };
+
+  <span class="kw">return</span> (
+    &lt;<span class="el">div</span> style=&#123;&#123;
+      display: <span class="str">'flex'</span>,
+      flexDirection: <span class="str">'column'</span>,
+      gap: <span class="str">'16px'</span>,
+      padding: <span class="str">'24px'</span>,
+      alignItems: <span class="str">'center'</span>,
+    &#125;&#125;&gt;
+      &lt;<span class="el">span</span> style=&#123;&#123;
+        fontSize: <span class="str">'32px'</span>,
+        fontWeight: <span class="str">'bold'</span>,
+      &#125;&#125;&gt;Counter&lt;/<span class="el">span</span>&gt;
+      &lt;<span class="el">span</span> style=&#123;&#123;
+        fontSize: <span class="str">'40px'</span>,
+        fontWeight: <span class="str">'bold'</span>,
+      &#125;&#125;&gt;&#123;count&#125;&lt;/<span class="el">span</span>&gt;
+      <span class="cm">/* ... styles, buttons, handlers ... */</span>
+    &lt;/<span class="el">div</span>&gt;
+  );
+}</code></pre>
+
+          <!-- Vue Output -->
+          <pre class="code-block code-block-sm output-code" id="output-vue" style="display:none"><code>&lt;<span class="kw">script</span> setup&gt;
+<span class="kw">import</span> { computed, ref } <span class="kw">from</span> <span class="str">'vue'</span>;
+
+<span class="kw">const</span> count = <span class="fn">ref</span>(<span class="num">0</span>);
+<span class="kw">const</span> doubled = <span class="fn">computed</span>(
+  () =&gt; count.value * <span class="num">2</span>
+);
+<span class="kw">function</span> <span class="fn">increment</span>() {
+  count.value += <span class="num">1</span>;
+}
+<span class="kw">function</span> <span class="fn">decrement</span>() {
+  count.value -= <span class="num">1</span>;
+}
+&lt;/<span class="kw">script</span>&gt;
+
+&lt;<span class="kw">template</span>&gt;
+  &lt;<span class="el">div</span> style=<span class="str">"display: flex;
+    flex-direction: column;
+    gap: 16px; padding: 24px;
+    align-items: center"</span>&gt;
+    &lt;<span class="el">span</span> style=<span class="str">"font-size: 32px;
+      font-weight: bold"</span>&gt;
+      Counter
+    &lt;/<span class="el">span</span>&gt;
+    &lt;<span class="el">span</span> style=<span class="str">"font-size: 40px;
+      font-weight: bold"</span>&gt;
+      &#123;&#123; count &#125;&#125;
+    &lt;/<span class="el">span</span>&gt;
+    <span class="cm">&lt;!-- ... buttons, bindings ... --&gt;</span>
+  &lt;/<span class="el">div</span>&gt;
+&lt;/<span class="kw">template</span>&gt;</code></pre>
+
+          <!-- Svelte Output -->
+          <pre class="code-block code-block-sm output-code" id="output-svelte" style="display:none"><code>&lt;<span class="kw">script</span>&gt;
+  <span class="kw">let</span> count = <span class="fn">$state</span>(<span class="num">0</span>);
+  <span class="kw">let</span> doubled = <span class="fn">$derived</span>(
+    count * <span class="num">2</span>
+  );
+  <span class="kw">function</span> <span class="fn">increment</span>() {
+    count += <span class="num">1</span>;
+  }
+  <span class="kw">function</span> <span class="fn">decrement</span>() {
+    count -= <span class="num">1</span>;
+  }
+&lt;/<span class="kw">script</span>&gt;
+
+&lt;<span class="el">div</span> style=<span class="str">"display: flex;
+  flex-direction: column;
+  gap: 16px; padding: 24px;
+  align-items: center"</span>&gt;
+  &lt;<span class="el">span</span> style=<span class="str">"font-size: 32px;
+    font-weight: bold"</span>&gt;
+    Counter
+  &lt;/<span class="el">span</span>&gt;
+  &lt;<span class="el">span</span> style=<span class="str">"font-size: 40px;
+    font-weight: bold"</span>&gt;
+    &#123;count&#125;
+  &lt;/<span class="el">span</span>&gt;
+  <span class="cm">&lt;!-- ... buttons, events ... --&gt;</span>
+&lt;/<span class="el">div</span>&gt;</code></pre>
+
+          <div class="code-footer">
+            <span class="token-count" id="output-lines">96 lines</span>
+            <span class="line-count" id="output-chars">1,359 chars</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Target Tabs -->
+      <div class="target-tabs">
+        <span class="target-tab active" data-target="react" data-filename="Counter.jsx" data-badge="React" data-badge-class="badge-react" data-lines="96 lines" data-chars="1,359 chars">React JSX</span>
+        <span class="target-tab" data-target="vue" data-filename="Counter.vue" data-badge="Vue" data-badge-class="badge-vue" data-lines="30 lines" data-chars="730 chars">Vue 3 SFC</span>
+        <span class="target-tab" data-target="svelte" data-filename="Counter.svelte" data-badge="Svelte" data-badge-class="badge-svelte" data-lines="27 lines" data-chars="650 chars">Svelte 5</span>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="features-section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="accent">></span> Built for AI</h2>
+        <p class="section-desc">Every design decision optimizes for token efficiency and generation accuracy.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <h3 class="feature-title">80% Less Code</h3>
+          <p class="feature-desc">18 lines of 0x replaces 96 lines of production React. AI generates less, you ship faster.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+          </div>
+          <h3 class="feature-title">Zero Ambiguity</h3>
+          <p class="feature-desc">Indentation-based, declarative syntax eliminates the structural choices that cause AI hallucinations.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <h3 class="feature-title">Multi-Target</h3>
+          <p class="feature-desc">One source file compiles to React JSX, Vue 3 SFC, and Svelte 5 simultaneously.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          </div>
+          <h3 class="feature-title">MCP Integration</h3>
+          <p class="feature-desc">Built-in MCP server for Claude and Cursor. AI agents compile 0x directly in their workflow.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <h3 class="feature-title">Zero Dependencies</h3>
+          <p class="feature-desc">Pure TypeScript compiler with no runtime dependencies. Fast, portable, predictable.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          </div>
+          <h3 class="feature-title">Full Language</h3>
+          <p class="feature-desc">State, derived values, types, functions, layouts, control flow, lifecycle hooks, APIs, and validation.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="pipeline-section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="accent">></span> How It Works</h2>
+      </div>
+      <div class="pipeline">
+        <div class="pipeline-step">
+          <div class="pipeline-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <span class="pipeline-label">.ai Source</span>
+        </div>
+        <div class="pipeline-arrow-inline"></div>
+        <div class="pipeline-step">
+          <div class="pipeline-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7V4a2 2 0 012-2h8.5L20 7.5V20a2 2 0 01-2 2H6a2 2 0 01-2-2v-3"/><polyline points="14 2 14 8 20 8"/><path d="M2 15h10M8 11l4 4-4 4"/></svg>
+          </div>
+          <span class="pipeline-label">Tokenizer</span>
+        </div>
+        <div class="pipeline-arrow-inline"></div>
+        <div class="pipeline-step">
+          <div class="pipeline-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          </div>
+          <span class="pipeline-label">Parser</span>
+        </div>
+        <div class="pipeline-arrow-inline"></div>
+        <div class="pipeline-step">
+          <div class="pipeline-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </div>
+          <span class="pipeline-label">AST</span>
+        </div>
+        <div class="pipeline-arrow-inline"></div>
+        <div class="pipeline-step">
+          <div class="pipeline-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </div>
+          <span class="pipeline-label">Validator</span>
+        </div>
+        <div class="pipeline-arrow-inline"></div>
+        <div class="pipeline-step pipeline-step-final">
+          <div class="pipeline-outputs">
+            <span class="pipeline-output react">React</span>
+            <span class="pipeline-output vue">Vue</span>
+            <span class="pipeline-output svelte">Svelte</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benchmarks -->
+    <section id="benchmarks" class="benchmarks-section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="accent">></span> Benchmarks</h2>
+        <p class="section-desc">0x source vs production TypeScript React with full styling. Verified in CI.</p>
+      </div>
+
+      <div class="benchmark-table-wrapper">
+        <table class="benchmark-table">
+          <thead>
+            <tr>
+              <th>Example</th>
+              <th>0x</th>
+              <th>React</th>
+              <th>Savings</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>counter.ai</code></td>
+              <td class="num-cell">18 lines</td>
+              <td class="num-cell">96 lines</td>
+              <td class="savings-cell">81%</td>
+              <td><div class="bar-cell"><div class="bar" style="width: 81%"></div></div></td>
+            </tr>
+            <tr>
+              <td><code>todo.ai</code></td>
+              <td class="num-cell">24 lines</td>
+              <td class="num-cell">136 lines</td>
+              <td class="savings-cell">82%</td>
+              <td><div class="bar-cell"><div class="bar" style="width: 82%"></div></div></td>
+            </tr>
+            <tr>
+              <td><code>dashboard.ai</code></td>
+              <td class="num-cell">37 lines</td>
+              <td class="num-cell">~185 lines</td>
+              <td class="savings-cell">80%</td>
+              <td><div class="bar-cell"><div class="bar" style="width: 80%"></div></div></td>
+            </tr>
+            <tr>
+              <td><code>chat.ai</code></td>
+              <td class="num-cell">31 lines</td>
+              <td class="num-cell">~155 lines</td>
+              <td class="savings-cell">80%</td>
+              <td><div class="bar-cell"><div class="bar" style="width: 80%"></div></div></td>
+            </tr>
+            <tr>
+              <td><code>ecommerce.ai</code></td>
+              <td class="num-cell">44 lines</td>
+              <td class="num-cell">~210 lines</td>
+              <td class="savings-cell">79%</td>
+              <td><div class="bar-cell"><div class="bar" style="width: 79%"></div></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="benchmark-note">Compared against production TypeScript React with full inline styling, types, and component structure.</p>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="quickstart-section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="accent">></span> Get Started in 30 Seconds</h2>
+      </div>
+
+      <div class="quickstart-steps">
+        <div class="qs-step">
+          <span class="qs-number">1</span>
+          <div class="qs-content">
+            <h4>Install</h4>
+            <pre class="qs-code"><code>npm install -g 0x-lang</code></pre>
+          </div>
+        </div>
+        <div class="qs-step">
+          <span class="qs-number">2</span>
+          <div class="qs-content">
+            <h4>Create</h4>
+            <pre class="qs-code"><code>0x init my-app && cd my-app</code></pre>
+          </div>
+        </div>
+        <div class="qs-step">
+          <span class="qs-number">3</span>
+          <div class="qs-content">
+            <h4>Compile</h4>
+            <pre class="qs-code"><code>0x build src/counter.ai --target react</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="cta-glow"></div>
+      <h2 class="cta-title">Ready to write less<br>and ship more?</h2>
+      <p class="cta-desc">Join the community building the future of AI-driven development.</p>
+      <div class="cta-actions">
+        <a href="https://github.com/user/0x-lang" class="btn btn-primary btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          Star on GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/0x-lang" class="btn btn-outline btn-lg">View on npm</a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <img src="assets/logo.svg" alt="0x" width="24" height="24">
+          <span>0x</span>
+          <span class="footer-sep">|</span>
+          <span class="footer-tagline">The AI-First Programming Language</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/user/0x-lang">GitHub</a>
+          <a href="https://www.npmjs.com/package/0x-lang">npm</a>
+          <a href="https://github.com/user/0x-lang/blob/main/CONTRIBUTING.md">Contribute</a>
+        </div>
+      </div>
+      <p class="footer-copy">ISC License. Free for personal and commercial use.</p>
+    </footer>
+
+  </main>
+
+  <script>
+    // Tab switching
+    const tabs = document.querySelectorAll('.target-tab');
+    const outputs = document.querySelectorAll('.output-code');
+    const filename = document.getElementById('output-filename');
+    const badge = document.getElementById('output-badge');
+    const linesEl = document.getElementById('output-lines');
+    const charsEl = document.getElementById('output-chars');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Show correct output
+        const target = tab.dataset.target;
+        outputs.forEach(o => o.style.display = 'none');
+        document.getElementById('output-' + target).style.display = '';
+
+        // Update header
+        filename.textContent = tab.dataset.filename;
+        badge.textContent = tab.dataset.badge;
+        badge.className = 'code-badge ' + tab.dataset.badgeClass;
+        linesEl.textContent = tab.dataset.lines;
+        charsEl.textContent = tab.dataset.chars;
+      });
+    });
+
+    // Copy button feedback
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.style.color = '#00e5cc';
+        setTimeout(() => btn.style.color = '', 1500);
+      });
+    });
+
+    // Smooth scroll for nav
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+
+</body>
+</html>
