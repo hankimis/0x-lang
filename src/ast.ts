@@ -694,6 +694,19 @@ export interface BreadcrumbNode extends BaseNode {
   props: Record<string, Expression>;
 }
 
+// Divider
+export interface DividerNode extends BaseNode {
+  type: 'Divider';
+  props: Record<string, Expression>;
+}
+
+// Progress bar
+export interface ProgressNode extends BaseNode {
+  type: 'Progress';
+  value: Expression;
+  props: Record<string, Expression>;
+}
+
 // Stats grid
 export interface StatsGridNode extends BaseNode {
   type: 'StatsGrid';
@@ -984,6 +997,8 @@ export type UINode =
   | ResponsiveNode
   | BreadcrumbNode
   | StatsGridNode
+  | DividerNode
+  | ProgressNode
   // Phase 4: Error/Loading
   | ErrorNode
   | LoadingNode
