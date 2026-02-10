@@ -528,6 +528,7 @@ function genText(node: TextNode, c: GenContext): string {
       case 'size': { const uv = unquote(v); style['fontSize'] = SIZE_MAP[uv] || `${uv}px`; break; }
       case 'bold': style['fontWeight'] = 'bold'; break;
       case 'italic': style['fontStyle'] = 'italic'; break;
+      case 'underline': style['textDecoration'] = 'underline'; break;
       case 'color': style['color'] = v; if (isDynamic) dynamicKeys.add('color'); break;
       case 'bg': style['backgroundColor'] = v; if (isDynamic) dynamicKeys.add('backgroundColor'); break;
       case 'gradient': { const g = parseGradient(v); style['background'] = g; style['WebkitBackgroundClip'] = 'text'; style['WebkitTextFillColor'] = 'transparent'; break; }
@@ -634,23 +635,17 @@ function genSelect(node: SelectNode, c: GenContext): string {
 }
 
 function genComponentCall(node: ComponentCall, c: GenContext): string {
-  const props = Object.entries(node.args)
-    .map(([key, val]) => {
-      if (key.startsWith('_arg')) {
-        // Positional arg — use as spread or first prop
-        return genExpr(val, c);
-      }
-      return `${key}={${genExpr(val, c)}}`;
-    });
+  const parts: string[] = [];
 
-  // If positional args, treat first one as spread prop
-  const posArgs = Object.entries(node.args).filter(([k]) => k.startsWith('_arg'));
-  if (posArgs.length > 0) {
-    const propsStr = posArgs.map(([, v]) => `{...${genExpr(v, c)}}`).join(' ');
-    return `<${node.name} ${propsStr} />`;
+  for (const [key, val] of Object.entries(node.args)) {
+    if (key.startsWith('_arg')) {
+      parts.push(`{...${genExpr(val, c)}}`);
+    } else {
+      parts.push(`${key}={${genExpr(val, c)}}`);
+    }
   }
 
-  return `<${node.name} ${props.join(' ')} />`;
+  return `<${node.name} ${parts.join(' ')} />`;
 }
 
 // ── Control Flow ────────────────────────────────────

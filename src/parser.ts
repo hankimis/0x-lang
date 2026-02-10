@@ -3543,7 +3543,7 @@ class Parser {
     return [
       'page', 'component', 'app', 'state', 'derived', 'prop', 'type',
       'fn', 'async', 'layout', 'if', 'elif', 'else', 'for',
-      'show', 'hide', 'on', 'watch', 'check', 'requires', 'ensures',
+      'on', 'watch', 'check', 'requires', 'ensures',
       'store', 'use', 'js', 'import', 'from', 'return',
       'model', 'form', 'field', 'table', 'column', 'submit',
       'validate', 'permission',

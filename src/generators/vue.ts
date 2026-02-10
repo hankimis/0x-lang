@@ -267,6 +267,18 @@ function genLayout(node: LayoutNode, c: VueContext): string {
     }
   }
 
+  // Apply style class
+  if (node.styleClass && c.styles.has(node.styleClass)) {
+    const styleDecl = c.styles.get(node.styleClass)!;
+    for (const prop of styleDecl.properties) {
+      if (!prop.responsive) {
+        const val = genExpr(prop.value, c);
+        const cssVal = formatCssValue(prop.name, val);
+        style.push(`${cssPropToCss(prop.name)}: ${cssVal}`);
+      }
+    }
+  }
+
   const styleStr = style.join('; ');
   let attrs = `style="${styleStr}"`;
   if (dynamicEntries.length > 0) {
@@ -292,7 +304,21 @@ function genText(node: TextNode, c: VueContext): string {
 function genButton(node: ButtonNode, c: VueContext): string {
   const label = genTextContent(node.label, c);
   const action = genActionExpr(node.action, c);
-  return `<button @click="${action}">${label}</button>`;
+  const attrs: string[] = [];
+  for (const [key, val] of Object.entries(node.props)) {
+    const v = genExpr(val, c);
+    switch (key) {
+      case 'style': {
+        const uv = unquote(v);
+        if (uv === 'primary') attrs.push('style="background-color: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
+        else if (uv === 'danger') attrs.push('style="background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
+        break;
+      }
+      case 'disabled': attrs.push(`:disabled="${v}"`); break;
+    }
+  }
+  const attrStr = attrs.length > 0 ? ' ' + attrs.join(' ') : '';
+  return `<button @click="${action}"${attrStr}>${label}</button>`;
 }
 
 function genInput(node: InputNode, c: VueContext): string {
@@ -301,6 +327,8 @@ function genInput(node: InputNode, c: VueContext): string {
     const v = genExpr(val, c);
     if (key === 'placeholder') props.push(`placeholder="${unquote(v)}"`);
     if (key === 'type') props.push(`type="${unquote(v)}"`);
+    if (key === '@keypress') props.push(`@keypress="e => ${v}(e.key)"`);
+    if (key === 'grow') props.push(`style="flex-grow: ${v}"`);
   }
   return `<input ${props.join(' ')} />`;
 }
@@ -729,6 +757,7 @@ function genTextStyle(node: TextNode, c: VueContext): { staticStyle: string; dyn
     if (key === 'gradient') { const g = parseGradient(v); staticParts.push(`background: ${g}; -webkit-background-clip: text; -webkit-text-fill-color: transparent`); }
     if (key === 'center') staticParts.push('text-align: center');
     if (key === 'italic') staticParts.push('font-style: italic');
+    if (key === 'underline') staticParts.push('text-decoration: underline');
     if (key === 'strike') {
       if (isDynamic) {
         hasDynamic = true;
@@ -770,5 +799,24 @@ function extractName(expr: Expression): string {
   if (expr.kind === 'identifier') return expr.name;
   if (expr.kind === 'member') return extractName(expr.object);
   return '';
+}
+
+function cssPropToCss(prop: string): string {
+  const map: Record<string, string> = {
+    'padding': 'padding', 'margin': 'margin', 'radius': 'border-radius',
+    'shadow': 'box-shadow', 'bg': 'background-color', 'color': 'color',
+  };
+  return map[prop] || prop;
+}
+
+function formatCssValue(prop: string, val: string): string {
+  const v = unquote(val);
+  if (['padding', 'margin', 'radius', 'gap'].includes(prop)) return `${v}px`;
+  if (prop === 'shadow') {
+    if (v === 'sm') return '0 1px 2px rgba(0,0,0,0.1)';
+    if (v === 'md') return '0 4px 6px rgba(0,0,0,0.1)';
+    if (v === 'lg') return '0 10px 15px rgba(0,0,0,0.1)';
+  }
+  return v;
 }
 
