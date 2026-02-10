@@ -239,8 +239,23 @@ function genLayout(node: LayoutNode, c: VueContext): string {
     switch (key) {
       case 'gap': style.push(`gap: ${v}px`); break;
       case 'padding': style.push(`padding: ${v}px`); break;
+      case 'margin': style.push(`margin: ${unquote(v)}`); break;
+      case 'maxWidth': style.push(`max-width: ${v}px`); break;
+      case 'height': style.push(`height: ${unquote(v)}`); break;
       case 'center': style.push('align-items: center'); break;
+      case 'middle': style.push('justify-content: center'); break;
       case 'between': style.push('justify-content: space-between'); break;
+      case 'end': style.push('justify-content: flex-end'); break;
+      case 'grow': style.push(`flex-grow: ${v}`); break;
+      case 'scroll': style.push(`overflow-${unquote(v) === 'y' ? 'y' : 'x'}: auto`); break;
+      case 'radius': style.push(`border-radius: ${v}px`); break;
+      case 'shadow': {
+        const sv = unquote(v);
+        if (sv === 'sm') style.push('box-shadow: 0 1px 2px rgba(0,0,0,0.1)');
+        else if (sv === 'md') style.push('box-shadow: 0 4px 6px rgba(0,0,0,0.1)');
+        else if (sv === 'lg') style.push('box-shadow: 0 10px 15px rgba(0,0,0,0.1)');
+        break;
+      }
       case 'bg':
         if (isDynamic) {
           dynamicEntries.push(`backgroundColor: ${v}`);
