@@ -664,6 +664,16 @@ function genComponentCall(node: ComponentCall, c: GenContext): string {
 
 // ── Control Flow ────────────────────────────────────
 
+// Wrap ternary branch body in fragment if it contains JS expressions ({...})
+// which aren't valid directly inside JSX ternary parentheses
+function wrapBranch(body: string): string {
+  const trimmed = body.trim();
+  if (trimmed.startsWith('{')) {
+    return `<>\n${body}\n</>`;
+  }
+  return body;
+}
+
 function genIf(node: IfBlock, c: GenContext): string {
   const cond = genExpr(node.condition, c);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n');
@@ -672,20 +682,20 @@ function genIf(node: IfBlock, c: GenContext): string {
     const elseBody = node.elseBody.map(ch => genUINode(ch, c)).join('\n');
 
     if (node.elifs.length > 0) {
-      let result = `{${cond} ? (\n${body}\n)`;
+      let result = `{${cond} ? (\n${wrapBranch(body)}\n)`;
       for (const elif of node.elifs) {
         const elifCond = genExpr(elif.condition, c);
         const elifBody = elif.body.map(ch => genUINode(ch, c)).join('\n');
-        result += ` : ${elifCond} ? (\n${elifBody}\n)`;
+        result += ` : ${elifCond} ? (\n${wrapBranch(elifBody)}\n)`;
       }
-      result += ` : (\n${elseBody}\n)}`;
+      result += ` : (\n${wrapBranch(elseBody)}\n)}`;
       return result;
     }
 
-    return `{${cond} ? (\n${body}\n) : (\n${elseBody}\n)}`;
+    return `{${cond} ? (\n${wrapBranch(body)}\n) : (\n${wrapBranch(elseBody)}\n)}`;
   }
 
-  return `{${cond} && (\n${body}\n)}`;
+  return `{${cond} && (\n${wrapBranch(body)}\n)}`;
 }
 
 function genFor(node: ForBlock, c: GenContext): string {

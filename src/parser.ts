@@ -1722,6 +1722,22 @@ class Parser {
           continue;
         }
 
+        // "Label" -> "/path" shorthand syntax
+        if (this.match('STRING')) {
+          const label = this.advance().value;
+          let href = '#';
+          let icon: string | null = null;
+
+          if (this.match('OPERATOR', '->')) {
+            this.advance();
+            href = this.expect('STRING').value;
+          }
+
+          items.push({ label, href, icon });
+          this.skipNewlines();
+          continue;
+        }
+
         this.advance();
         this.skipNewlines();
       }
