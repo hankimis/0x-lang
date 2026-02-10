@@ -124,7 +124,8 @@ function genFunction(node: FnDecl, c: SvelteContext): string {
 function genOnMount(node: OnMount, c: SvelteContext): string {
   c.needsOnMount = true;
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
-  return `onMount(() => {\n  ${body}\n});`;
+  const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
+  return `onMount(${asyncKw}() => {\n  ${body}\n});`;
 }
 
 function genOnDestroy(node: OnDestroy, c: SvelteContext): string {
@@ -134,6 +135,10 @@ function genOnDestroy(node: OnDestroy, c: SvelteContext): string {
 
 function genWatch(node: WatchBlock, c: SvelteContext): string {
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
+  const hasAwait = bodyContainsAwait(node.body);
+  if (hasAwait) {
+    return `$effect(() => {\n  ${node.variable};\n  (async () => {\n    ${body}\n  })();\n});`;
+  }
   return `$effect(() => {\n  ${node.variable};\n  ${body}\n});`;
 }
 
@@ -739,5 +744,41 @@ function formatCssValue(prop: string, val: string): string {
     if (v === 'lg') return '0 10px 15px rgba(0,0,0,0.1)';
   }
   return v;
+}
+
+// ── Await Detection Helpers ─────────────────────────
+
+function bodyContainsAwait(body: Statement[]): boolean {
+  return body.some(s => stmtHasAwait(s));
+}
+
+function stmtHasAwait(s: Statement): boolean {
+  switch (s.kind) {
+    case 'expr_stmt': return exprHasAwait(s.expression);
+    case 'assignment_stmt': return exprHasAwait(s.value) || exprHasAwait(s.target);
+    case 'if_stmt':
+      return exprHasAwait(s.condition)
+        || s.body.some(st => stmtHasAwait(st))
+        || (s.elseBody ? s.elseBody.some(st => stmtHasAwait(st)) : false);
+    case 'for_stmt': return exprHasAwait(s.iterable) || s.body.some(st => stmtHasAwait(st));
+    case 'return': return s.value ? exprHasAwait(s.value) : false;
+    default: return false;
+  }
+}
+
+function exprHasAwait(e: Expression): boolean {
+  switch (e.kind) {
+    case 'await': return true;
+    case 'call': return exprHasAwait(e.callee) || e.args.some(a => exprHasAwait(a));
+    case 'binary': return exprHasAwait(e.left) || exprHasAwait(e.right);
+    case 'unary': return exprHasAwait(e.operand);
+    case 'member': return exprHasAwait(e.object);
+    case 'ternary': return exprHasAwait(e.condition) || exprHasAwait(e.consequent) || exprHasAwait(e.alternate);
+    case 'template': return e.parts.some(p => typeof p !== 'string' && exprHasAwait(p));
+    case 'assignment': return exprHasAwait(e.value);
+    case 'array': return e.elements.some(el => exprHasAwait(el));
+    case 'object_expr': return e.properties.some(p => exprHasAwait(p.value));
+    default: return false;
+  }
 }
 
