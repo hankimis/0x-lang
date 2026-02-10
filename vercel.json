@@ -1,6 +1,13 @@
 {
   "framework": null,
-  "installCommand": "true",
-  "buildCommand": "true",
-  "outputDirectory": "website"
+  "buildCommand": "npm run build",
+  "outputDirectory": "website",
+  "functions": {
+    "api/mcp.ts": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    { "source": "/mcp", "destination": "/api/mcp" }
+  ]
 }
