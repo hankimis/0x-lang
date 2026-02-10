@@ -772,7 +772,7 @@ class Parser {
       this.advance();
       const expr = this.parseExpression();
       // Check for assignment in action: count += 1, items.push(x), etc.
-      if (this.match('OPERATOR', '=') || this.match('OPERATOR', '+=') || this.match('OPERATOR', '-=')) {
+      if (this.match('OPERATOR', '=') || this.match('OPERATOR', '+=') || this.match('OPERATOR', '-=') || this.match('OPERATOR', '*=') || this.match('OPERATOR', '/=')) {
         const op = this.advance().value;
         const value = this.parseExpression();
         action = { kind: 'assignment', target: expr, op, value };
@@ -2453,7 +2453,7 @@ class Parser {
     const expr = this.parseExpression();
 
     // Check for assignment
-    if (this.match('OPERATOR', '=') || this.match('OPERATOR', '+=') || this.match('OPERATOR', '-=')) {
+    if (this.match('OPERATOR', '=') || this.match('OPERATOR', '+=') || this.match('OPERATOR', '-=') || this.match('OPERATOR', '*=') || this.match('OPERATOR', '/=')) {
       const op = this.advance().value;
       const value = this.parseExpression();
       return { kind: 'assignment_stmt', target: expr, op, value };
@@ -2898,11 +2898,18 @@ class Parser {
     if (tok.type === 'IDENTIFIER' || (tok.type === 'KEYWORD' && !this.isStructuralKeyword(tok.value))) {
       this.advance();
       let expr: Expression = { kind: 'identifier', name: tok.value };
-      // Allow member access
-      while (this.match('PUNCTUATION', '.')) {
-        this.advance();
-        const prop = this.advance().value;
-        expr = { kind: 'member', object: expr, property: prop };
+      // Allow member access and index access
+      while (this.match('PUNCTUATION', '.') || this.match('PUNCTUATION', '[')) {
+        if (this.match('PUNCTUATION', '.')) {
+          this.advance();
+          const prop = this.advance().value;
+          expr = { kind: 'member', object: expr, property: prop };
+        } else if (this.match('PUNCTUATION', '[')) {
+          this.advance();
+          const index = this.parseExpression();
+          this.expect('PUNCTUATION', ']');
+          expr = { kind: 'index', object: expr, index };
+        }
       }
       return expr;
     }

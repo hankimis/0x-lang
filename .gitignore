@@ -37,3 +37,4 @@ my-app/
 
 # Claude
 .claude/
+.vercel

@@ -309,11 +309,11 @@ export function tokenize(source: string): Token[] {
         continue;
       }
 
-      // Identifier or keyword
-      if (/[a-zA-Z_]/.test(ch)) {
+      // Identifier or keyword (supports Unicode letters for i18n identifiers)
+      if (/[a-zA-Z_\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u0500-\u052F\u1100-\u11FF\u3040-\u309F\u30A0-\u30FF\u3130-\u318F\uAC00-\uD7AF\u4E00-\u9FFF]/.test(ch)) {
         let word = '';
         let j = col;
-        while (j < lineContent.length && /[a-zA-Z0-9_]/.test(lineContent[j])) {
+        while (j < lineContent.length && /[a-zA-Z0-9_\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u0500-\u052F\u1100-\u11FF\u3040-\u309F\u30A0-\u30FF\u3130-\u318F\uAC00-\uD7AF\u4E00-\u9FFF]/.test(lineContent[j])) {
           word += lineContent[j];
           j++;
         }
