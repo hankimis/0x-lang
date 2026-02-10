@@ -458,6 +458,7 @@ function genUINode(node: UINode, c: GenContext): string {
 
 function genLayout(node: LayoutNode, c: GenContext): string {
   const style: Record<string, string> = {};
+  const dynamicKeys = new Set<string>();
 
   if (node.direction === 'grid') {
     style['display'] = 'grid';
@@ -475,13 +476,14 @@ function genLayout(node: LayoutNode, c: GenContext): string {
   // Process layout props
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
+    const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
     switch (key) {
       case 'gap': style['gap'] = `${v}px`; break;
       case 'padding': style['padding'] = `${v}px`; break;
       case 'margin': style['margin'] = v; break;
       case 'maxWidth': style['maxWidth'] = `${v}px`; break;
-      case 'height': style['height'] = v; break;
-      case 'bg': style['backgroundColor'] = v; break;
+      case 'height': style['height'] = v; if (isDynamic) dynamicKeys.add('height'); break;
+      case 'bg': style['backgroundColor'] = v; if (isDynamic) dynamicKeys.add('backgroundColor'); break;
       case 'gradient': { const g = parseGradient(v); style['background'] = g; break; }
       case 'center': style['alignItems'] = 'center'; break;
       case 'middle': style['justifyContent'] = 'center'; break;
@@ -510,21 +512,23 @@ function genLayout(node: LayoutNode, c: GenContext): string {
     }
   }
 
-  const styleStr = genStyleObj(style);
+  const styleStr = genStyleObj(style, dynamicKeys);
   const children = node.children.map(ch => genUINode(ch, c)).join('\n');
   return `<div style={${styleStr}}>\n${children}\n</div>`;
 }
 
 function genText(node: TextNode, c: GenContext): string {
   const style: Record<string, string> = {};
+  const dynamicKeys = new Set<string>();
 
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
+    const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
     switch (key) {
       case 'size': { const uv = unquote(v); style['fontSize'] = SIZE_MAP[uv] || `${uv}px`; break; }
       case 'bold': style['fontWeight'] = 'bold'; break;
-      case 'color': style['color'] = v; break;
-      case 'bg': style['backgroundColor'] = v; break;
+      case 'color': style['color'] = v; if (isDynamic) dynamicKeys.add('color'); break;
+      case 'bg': style['backgroundColor'] = v; if (isDynamic) dynamicKeys.add('backgroundColor'); break;
       case 'gradient': { const g = parseGradient(v); style['background'] = g; style['WebkitBackgroundClip'] = 'text'; style['WebkitTextFillColor'] = 'transparent'; break; }
       case 'center': style['textAlign'] = 'center'; break;
       case 'end': style['textAlign'] = 'right'; break;
@@ -538,7 +542,7 @@ function genText(node: TextNode, c: GenContext): string {
   }
 
   const content = genTextContent(node.content, c);
-  const styleStr = Object.keys(style).length > 0 ? ` style={${genStyleObj(style)}}` : '';
+  const styleStr = Object.keys(style).length > 0 ? ` style={${genStyleObj(style, dynamicKeys)}}` : '';
   return `<span${styleStr}>${content}</span>`;
 }
 
@@ -825,6 +829,7 @@ function genExpr(expr: Expression, c: GenContext): string {
     }
     case 'await': return `await ${genExpr(expr.expression, c)}`;
     case 'old': return genExpr(expr.expression, c); // old() is for contracts, simplified
+    case 'braced': return genExpr(expr.expression, c);
   }
 }
 
@@ -2367,9 +2372,11 @@ function walkExpr(expr: Expression, fn: (e: Expression) => void): void {
 }
 
 
-function genStyleObj(style: Record<string, string>): string {
+function genStyleObj(style: Record<string, string>, dynamicKeys?: Set<string>): string {
   if (Object.keys(style).length === 0) return '{}';
   const entries = Object.entries(style).map(([k, v]) => {
+    // Dynamic JS expression — use as-is, no quoting
+    if (dynamicKeys?.has(k)) return `${k}: ${v}`;
     // Template literal — use as-is
     if (v.startsWith('${') || v.startsWith('`')) return `${k}: ${v}`;
     // Already quoted from genExpr (e.g. '#fff', "red") — use as-is

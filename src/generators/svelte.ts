@@ -231,7 +231,15 @@ function genLayout(node: LayoutNode, c: SvelteContext): string {
       case 'padding': style.push(`padding: ${v}px`); break;
       case 'center': style.push('align-items: center'); break;
       case 'between': style.push('justify-content: space-between'); break;
-      case 'bg': style.push(`background-color: ${unquote(v)}`); break;
+      case 'bg': {
+        const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
+        if (isDynamic) {
+          style.push(`background-color: {${v}}`);
+        } else {
+          style.push(`background-color: ${unquote(v)}`);
+        }
+        break;
+      }
       case 'gradient': style.push(`background: ${parseGradient(v)}`); break;
     }
   }
@@ -605,6 +613,7 @@ function genExpr(expr: Expression, c: SvelteContext): string {
     }
     case 'await': return `await ${genExpr(expr.expression, c)}`;
     case 'old': return genExpr(expr.expression, c);
+    case 'braced': return genExpr(expr.expression, c);
   }
 }
 
@@ -644,11 +653,27 @@ function genTextStyle(node: TextNode, c: SvelteContext): string {
   const parts: string[] = [];
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
+    const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
     if (key === 'size') { const uv = unquote(v); parts.push(`font-size: ${SIZE_MAP[uv] || uv}`); }
     if (key === 'bold') parts.push('font-weight: bold');
-    if (key === 'color') parts.push(`color: ${unquote(v)}`);
+    if (key === 'color') {
+      if (isDynamic) {
+        parts.push(`color: {${v}}`);
+      } else {
+        parts.push(`color: ${unquote(v)}`);
+      }
+    }
     if (key === 'gradient') { const g = parseGradient(v); parts.push(`background: ${g}; -webkit-background-clip: text; -webkit-text-fill-color: transparent`); }
     if (key === 'center') parts.push('text-align: center');
+    if (key === 'italic') parts.push('font-style: italic');
+    if (key === 'strike') {
+      if (isDynamic) {
+        parts.push(`text-decoration: {${v} ? 'line-through' : 'none'}`);
+      } else {
+        parts.push('text-decoration: line-through');
+      }
+    }
+    if (key === 'end') parts.push('text-align: right');
   }
   return parts.join('; ');
 }

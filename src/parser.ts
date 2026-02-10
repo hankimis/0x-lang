@@ -846,10 +846,19 @@ class Parser {
       this.advance();
       let idx = 0;
       while (!this.match('PUNCTUATION', ')') && !this.match('EOF')) {
-        // Positional args stored with index as key
-        const expr = this.parseExpression();
-        args[`_arg${idx}`] = expr;
-        idx++;
+        // Check for named arg: name=value
+        if ((this.current().type === 'IDENTIFIER' || this.current().type === 'KEYWORD') &&
+            this.peek(1).type === 'OPERATOR' && this.peek(1).value === '=') {
+          const argName = this.advance().value;
+          this.advance(); // consume =
+          const value = this.parseAtomicExpression();
+          args[argName] = value;
+        } else {
+          // Positional args stored with index as key
+          const expr = this.parseExpression();
+          args[`_arg${idx}`] = expr;
+          idx++;
+        }
         if (this.match('PUNCTUATION', ',')) this.advance();
       }
       this.expect('PUNCTUATION', ')');
@@ -2910,7 +2919,10 @@ class Parser {
     }
 
     if (tok.type === 'PUNCTUATION' && tok.value === '{') {
-      return this.parseExpression();
+      this.advance(); // consume {
+      const inner = this.parseExpression();
+      this.expect('PUNCTUATION', '}');
+      return { kind: 'braced' as const, expression: inner };
     }
 
     return this.parseExpression();
@@ -3533,7 +3545,7 @@ class Parser {
       'fn', 'async', 'layout', 'if', 'elif', 'else', 'for',
       'show', 'hide', 'on', 'watch', 'check', 'requires', 'ensures',
       'store', 'use', 'js', 'import', 'from', 'return',
-      'model', 'data', 'form', 'field', 'table', 'column', 'submit',
+      'model', 'form', 'field', 'table', 'column', 'submit',
       'validate', 'permission',
       'auth', 'guard', 'role',
       'chart', 'stat', 'realtime',

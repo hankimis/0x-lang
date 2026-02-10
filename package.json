@@ -1,6 +1,6 @@
 {
   "name": "0x-lang",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "0x — AI-First Programming Language Compiler",
   "type": "module",
   "main": "./dist/index.js",

@@ -268,7 +268,8 @@ export type Expression =
   | { kind: 'template'; parts: (string | Expression)[] }
   | { kind: 'assignment'; target: Expression; op: string; value: Expression }
   | { kind: 'await'; expression: Expression }
-  | { kind: 'old'; expression: Expression };
+  | { kind: 'old'; expression: Expression }
+  | { kind: 'braced'; expression: Expression };
 
 // Statement types
 export type Statement =

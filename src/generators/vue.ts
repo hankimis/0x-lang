@@ -221,6 +221,8 @@ function genUINode(node: UINode, c: VueContext): string {
 
 function genLayout(node: LayoutNode, c: VueContext): string {
   const style: string[] = [];
+  const dynamicEntries: string[] = [];
+
   if (node.direction === 'grid') {
     style.push('display: grid');
     if (node.props['cols']) style.push(`grid-template-columns: repeat(${genExpr(node.props['cols'], c)}, 1fr)`);
@@ -233,24 +235,41 @@ function genLayout(node: LayoutNode, c: VueContext): string {
 
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
+    const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
     switch (key) {
       case 'gap': style.push(`gap: ${v}px`); break;
       case 'padding': style.push(`padding: ${v}px`); break;
       case 'center': style.push('align-items: center'); break;
       case 'between': style.push('justify-content: space-between'); break;
-      case 'bg': style.push(`background-color: ${unquote(v)}`); break;
+      case 'bg':
+        if (isDynamic) {
+          dynamicEntries.push(`backgroundColor: ${v}`);
+        } else {
+          style.push(`background-color: ${unquote(v)}`);
+        }
+        break;
       case 'gradient': style.push(`background: ${parseGradient(v)}`); break;
     }
   }
 
   const styleStr = style.join('; ');
+  let attrs = `style="${styleStr}"`;
+  if (dynamicEntries.length > 0) {
+    attrs += ` :style="{ ${dynamicEntries.join(', ')} }"`;
+  }
   const children = node.children.map(ch => genUINode(ch, c)).join('\n  ');
-  return `<div style="${styleStr}">\n  ${children}\n</div>`;
+  return `<div ${attrs}>\n  ${children}\n</div>`;
 }
 
 function genText(node: TextNode, c: VueContext): string {
-  const style = genTextStyle(node, c);
-  const styleAttr = style ? ` style="${style}"` : '';
+  const { staticStyle, dynamicStyle } = genTextStyle(node, c);
+  let styleAttr = '';
+  if (dynamicStyle) {
+    // Has dynamic values — use :style binding with JS object
+    styleAttr = ` :style="${dynamicStyle}"`;
+  } else if (staticStyle) {
+    styleAttr = ` style="${staticStyle}"`;
+  }
   const content = genTextContent(node.content, c);
   return `<span${styleAttr}>${content}</span>`;
 }
@@ -624,6 +643,7 @@ function genExpr(expr: Expression, c: VueContext, useValue: boolean = false): st
     }
     case 'await': return `await ${genExpr(expr.expression, c, useValue)}`;
     case 'old': return genExpr(expr.expression, c, useValue);
+    case 'braced': return genExpr(expr.expression, c, useValue);
   }
 }
 
@@ -673,17 +693,51 @@ function genTextContent(expr: Expression, c: VueContext): string {
   return `{{ ${genExpr(expr, c)} }}`;
 }
 
-function genTextStyle(node: TextNode, c: VueContext): string {
-  const parts: string[] = [];
+function genTextStyle(node: TextNode, c: VueContext): { staticStyle: string; dynamicStyle: string } {
+  const staticParts: string[] = [];
+  const dynamicEntries: string[] = [];
+  let hasDynamic = false;
+
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
-    if (key === 'size') { const uv = unquote(v); parts.push(`font-size: ${SIZE_MAP[uv] || uv}`); }
-    if (key === 'bold') parts.push('font-weight: bold');
-    if (key === 'color') parts.push(`color: ${unquote(v)}`);
-    if (key === 'gradient') { const g = parseGradient(v); parts.push(`background: ${g}; -webkit-background-clip: text; -webkit-text-fill-color: transparent`); }
-    if (key === 'center') parts.push('text-align: center');
+    const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
+    if (key === 'size') { const uv = unquote(v); staticParts.push(`font-size: ${SIZE_MAP[uv] || uv}`); }
+    if (key === 'bold') staticParts.push('font-weight: bold');
+    if (key === 'color') {
+      if (isDynamic) {
+        hasDynamic = true;
+        dynamicEntries.push(`color: ${v}`);
+      } else {
+        staticParts.push(`color: ${unquote(v)}`);
+      }
+    }
+    if (key === 'gradient') { const g = parseGradient(v); staticParts.push(`background: ${g}; -webkit-background-clip: text; -webkit-text-fill-color: transparent`); }
+    if (key === 'center') staticParts.push('text-align: center');
+    if (key === 'italic') staticParts.push('font-style: italic');
+    if (key === 'strike') {
+      if (isDynamic) {
+        hasDynamic = true;
+        dynamicEntries.push(`textDecoration: ${v} ? 'line-through' : 'none'`);
+      } else {
+        staticParts.push('text-decoration: line-through');
+      }
+    }
+    if (key === 'end') staticParts.push('text-align: right');
   }
-  return parts.join('; ');
+
+  if (hasDynamic) {
+    // Merge static and dynamic into a JS object for :style binding
+    const allEntries: string[] = [];
+    for (const part of staticParts) {
+      const [prop, ...rest] = part.split(':');
+      const jsKey = prop.trim().replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+      allEntries.push(`${jsKey}: '${rest.join(':').trim()}'`);
+    }
+    allEntries.push(...dynamicEntries);
+    return { staticStyle: '', dynamicStyle: `{ ${allEntries.join(', ')} }` };
+  }
+
+  return { staticStyle: staticParts.join('; '), dynamicStyle: '' };
 }
 
 function mapType(t: { kind: string; name?: string }): string {
