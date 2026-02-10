@@ -551,7 +551,8 @@ function genText(node: TextNode, c: GenContext): string {
       case 'strike': {
         // strike={condition} → conditional textDecoration
         const cond = genExpr(val, c);
-        style['textDecoration'] = `\${${cond} ? 'line-through' : 'none'}`;
+        style['textDecoration'] = `${cond} ? 'line-through' : 'none'`;
+        dynamicKeys.add('textDecoration');
         break;
       }
     }
@@ -909,7 +910,18 @@ function genActionExpr(expr: Expression | Statement[], c: GenContext): string {
     const stateName = extractStateName(expr.target);
     if (stateName && c.states.has(stateName)) {
       const setter = 'set' + capitalize(stateName);
+      // Evaluate value in readOnly mode to prevent double setState wrapping
+      const prevReadOnly = c.readOnly;
+      c.readOnly = true;
       const value = genExpr(expr.value, c);
+      c.readOnly = prevReadOnly;
+      const memberPath = extractMemberPath(expr.target);
+      if (memberPath.length > 0) {
+        if (expr.op === '=') return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, value)})`;
+        const opChar = expr.op.charAt(0);
+        const prevAccess = 'prev.' + memberPath.join('.');
+        return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, `${prevAccess} ${opChar} ${value}`)})`;
+      }
       if (expr.op === '+=') return `${setter}(prev => prev + ${value})`;
       if (expr.op === '-=') return `${setter}(prev => prev - ${value})`;
       if (expr.op === '=') return `${setter}(${value})`;

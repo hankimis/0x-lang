@@ -669,7 +669,8 @@ function genExpr(expr: Expression, c: SvelteContext): string {
       return `{ ${ps} }`;
     }
     case 'template': {
-      return expr.parts.map(p => typeof p === 'string' ? p : `\${${genExpr(p, c)}}`).join('');
+      const inner = expr.parts.map(p => typeof p === 'string' ? p : `\${${genExpr(p, c)}}`).join('');
+      return `\`${inner}\``;
     }
     case 'assignment': {
       return `${genExpr(expr.target, c)} ${expr.op} ${genExpr(expr.value, c)}`;

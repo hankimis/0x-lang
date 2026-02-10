@@ -695,7 +695,8 @@ function genExpr(expr: Expression, c: VueContext, useValue: boolean = false): st
       return `{ ${ps} }`;
     }
     case 'template': {
-      return expr.parts.map(p => typeof p === 'string' ? p : `\${${genExpr(p, c, useValue)}}`).join('');
+      const inner = expr.parts.map(p => typeof p === 'string' ? p : `\${${genExpr(p, c, useValue)}}`).join('');
+      return `\`${inner}\``;
     }
     case 'assignment': {
       const target = genExpr(expr.target, c);
