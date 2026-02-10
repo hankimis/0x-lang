@@ -143,28 +143,40 @@
 
   <div class="stars"></div>
   <div class="nebula"></div>
+  <div class="particles" aria-hidden="true">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
 
   <main class="container">
 
     <!-- Nav -->
-    <nav class="nav" aria-label="Main navigation">
-      <a href="#" class="nav-logo">
-        <img src="assets/logo.svg" alt="0x programming language logo" width="32" height="32">
-        <span>0x</span>
-      </a>
-      <div class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#demo">Demo</a>
-        <a href="#benchmarks">Benchmarks</a>
-        <a href="https://github.com/hankimis/0x-lang" class="nav-github" aria-label="View 0x-lang on GitHub" rel="noopener">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+    <div class="nav-wrapper">
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#" class="nav-logo">
+          <img src="assets/logo.svg" alt="0x programming language logo" width="32" height="32">
+          <span>0x</span>
         </a>
-      </div>
-    </nav>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#demo">Demo</a>
+          <a href="#benchmarks">Benchmarks</a>
+          <a href="https://github.com/hankimis/0x-lang" class="nav-github" aria-label="View 0x-lang on GitHub" rel="noopener">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </a>
+        </div>
+      </nav>
+    </div>
 
     <!-- Hero -->
     <header class="hero">
-      <div class="hero-badge">AI-First Programming Language</div>
+      <div class="hero-badge">AI-First Programming Language <span style="opacity:0.5;margin-left:4px">v0.1.5</span></div>
       <h1 class="hero-title">
         <span class="hero-title-line">Write <span class="gradient-text">18 lines</span>.</span>
         <span class="hero-title-line">Get <span class="gradient-text">96 lines</span> of React.</span>
@@ -177,9 +189,10 @@
         <a href="#demo" class="btn btn-primary">See it in action</a>
         <div class="hero-install">
           <code>npm install -g 0x-lang</code>
-          <button class="copy-btn" onclick="navigator.clipboard.writeText('npm install -g 0x-lang')" aria-label="Copy install command">
+          <button class="copy-btn" id="copy-install" aria-label="Copy install command">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           </button>
+          <span class="copy-toast" id="copy-toast">Copied!</span>
         </div>
       </div>
     </header>
@@ -206,6 +219,26 @@
         <span class="stat-label">Compile Time</span>
       </div>
     </section>
+
+    <!-- Framework Logos -->
+    <div class="frameworks-row" data-animate="fade">
+      <div class="framework-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#61dafb"><circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="12" rx="11" ry="4.2" fill="none" stroke="#61dafb" stroke-width="1"/><ellipse cx="12" cy="12" rx="11" ry="4.2" fill="none" stroke="#61dafb" stroke-width="1" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="11" ry="4.2" fill="none" stroke="#61dafb" stroke-width="1" transform="rotate(120 12 12)"/></svg>
+        React
+      </div>
+      <div class="framework-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" fill="none" stroke="#42b883" stroke-width="1.5"/><polygon points="12,6 18,18 6,18" fill="none" stroke="#42b883" stroke-width="1.5" opacity="0.6"/></svg>
+        Vue 3
+      </div>
+      <div class="framework-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24"><path d="M10.5 2.5L3.5 18.5h3.5L10.5 9l3.5 9.5h3.5z" fill="#ff3e00" opacity="0.9"/><path d="M13.5 5.5c2-1.5 5-0.5 5.5 2s-1 4-3 5l-3 2" fill="none" stroke="#ff3e00" stroke-width="1.5"/></svg>
+        Svelte 5
+      </div>
+      <div class="framework-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3178c6" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><text x="8" y="17" font-size="12" font-weight="bold" fill="#3178c6" stroke="none">TS</text></svg>
+        TypeScript
+      </div>
+    </div>
 
     <!-- Ticker -->
     <section class="ticker-section" aria-hidden="true">
@@ -432,6 +465,8 @@
       </div>
     </section>
 
+    <div class="section-divider"></div>
+
     <!-- Features -->
     <section id="features" class="features-section">
       <div class="section-header">
@@ -540,6 +575,8 @@
         </div>
       </div>
     </section>
+
+    <div class="section-divider"></div>
 
     <!-- Benchmarks -->
     <section id="benchmarks" class="benchmarks-section">
@@ -690,6 +727,8 @@
       </div>
     </section>
 
+    <div class="section-divider"></div>
+
     <!-- Quick Start -->
     <section class="quickstart-section">
       <div class="section-header">
@@ -784,13 +823,53 @@
       });
     });
 
-    // Copy button feedback
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        btn.style.color = '#00e5cc';
-        setTimeout(() => btn.style.color = '', 1500);
+    // Copy button with toast
+    const copyBtn = document.getElementById('copy-install');
+    const copyToast = document.getElementById('copy-toast');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText('npm install -g 0x-lang');
+        copyBtn.classList.add('copied');
+        copyToast.classList.add('show');
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyToast.classList.remove('show');
+        }, 2000);
       });
-    });
+    }
+
+    // Animated number counter for stats
+    function animateValue(el, start, end, duration, suffix) {
+      const range = end - start;
+      const startTime = performance.now();
+      function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(start + range * eased);
+        el.textContent = current + (suffix || '');
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+
+    // Observe stats bar for counter animation
+    const statsBar = document.querySelector('.stats-bar');
+    if (statsBar) {
+      const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const values = statsBar.querySelectorAll('.stat-value');
+            if (values[0]) animateValue(values[0], 0, 80, 1200, '%');
+            if (values[1]) animateValue(values[1], 0, 3, 800, '');
+            if (values[2]) animateValue(values[2], 0, 0, 400, '');
+            if (values[3]) values[3].textContent = '<1s';
+            statsObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      statsObserver.observe(statsBar);
+    }
 
     // Smooth scroll for nav
     document.querySelectorAll('a[href^="#"]').forEach(a => {
