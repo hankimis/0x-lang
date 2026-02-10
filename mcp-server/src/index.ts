@@ -153,7 +153,7 @@ page Todo:
 
 const server = new McpServer({
   name: '0x',
-  version: '0.1.0',
+  version: '0.1.5',
 });
 
 // Tool 1: Compile 0x code

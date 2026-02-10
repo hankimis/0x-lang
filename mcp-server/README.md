@@ -1,16 +1,23 @@
 # 0x MCP Server
 
-AI 에이전트가 내부적으로 0x를 사용하여 React/Vue/Svelte 코드를 효율적으로 생성하는 MCP 서버.
+MCP server that lets AI agents compile 0x to React/Vue/Svelte with 80% fewer tokens.
 
-## 설치
+[![npm](https://img.shields.io/npm/v/0x-lang-mcp-server)](https://www.npmjs.com/package/0x-lang-mcp-server)
+[![Smithery](https://smithery.ai/badge/0x)](https://smithery.ai/server/0x)
+
+## Install
 
 ```bash
-cd mcp-server
-npm install
-npm run build
+npm install -g 0x-lang-mcp-server
 ```
 
-## Claude Desktop 설정
+Or run directly with npx:
+
+```bash
+npx 0x-lang-mcp-server
+```
+
+## Claude Desktop
 
 `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
@@ -18,14 +25,14 @@ npm run build
 {
   "mcpServers": {
     "0x": {
-      "command": "node",
-      "args": ["/Users/hankim/AILANG/mcp-server/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "0x-lang-mcp-server"]
     }
   }
 }
 ```
 
-## Cursor 설정
+## Cursor
 
 `.cursor/mcp.json`:
 
@@ -33,27 +40,33 @@ npm run build
 {
   "mcpServers": {
     "0x": {
-      "command": "node",
-      "args": ["/Users/hankim/AILANG/mcp-server/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "0x-lang-mcp-server"]
     }
   }
 }
 ```
 
-## 제공 도구
+## Smithery
 
-| 도구 | 설명 |
-|------|------|
-| `0x_compile` | 0x 소스를 React/Vue/Svelte로 컴파일 |
-| `0x_reference` | 0x 문법 레퍼런스 조회 |
-| `0x_examples` | 예제 코드 조회 (counter, todo, chat, dashboard, ecommerce) |
-
-## 사용 흐름
-
-```
-사용자: "투두앱 만들어줘"
-AI: [0x_reference 호출 → 0x 코드 작성 → 0x_compile 호출 → React 코드 반환]
-사용자: 완성된 React 코드를 받음
+```bash
+npx @smithery/cli install 0x
 ```
 
-사용자는 0x의 존재를 모름. AI가 내부적으로 80토큰만 생성하고 컴파일러가 200줄 React를 만들어냄.
+## Tools
+
+| Tool | Description |
+|------|-------------|
+| `0x_compile` | Compile 0x source to React/Vue/Svelte |
+| `0x_reference` | Get 0x language syntax reference |
+| `0x_examples` | Browse example code (counter, todo, chat, dashboard, ecommerce) |
+
+## How It Works
+
+```
+User: "Build me a todo app"
+AI: [calls 0x_reference → writes 0x code → calls 0x_compile → returns React code]
+User: Gets production-ready React code
+```
+
+The user never sees 0x. The AI generates 80 tokens of 0x internally, and the compiler outputs 200 lines of React/Vue/Svelte.

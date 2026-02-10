@@ -1,18 +1,46 @@
 {
-  "name": "@0x-lang/mcp-server",
-  "version": "0.1.0",
-  "description": "0x MCP Server — AI가 내부적으로 0x를 사용하여 React/Vue/Svelte 코드를 효율적으로 생성",
+  "name": "0x-lang-mcp-server",
+  "version": "0.1.5",
+  "description": "0x MCP Server — AI agents compile 0x to React/Vue/Svelte with 80% fewer tokens",
   "type": "module",
+  "main": "./dist/index.js",
   "bin": {
     "0x-mcp": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "smithery.yaml",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js"
   },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "0x",
+    "compiler",
+    "react",
+    "vue",
+    "svelte",
+    "ai",
+    "code-generation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hankimis/0x-lang.git",
+    "directory": "mcp-server"
+  },
+  "homepage": "https://0x-lang.dev",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "0x-lang": "file:.."
+    "0x-lang": "^0.1.5"
   },
   "devDependencies": {
     "typescript": "^5.5.0",
