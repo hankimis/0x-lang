@@ -1,0 +1,37 @@
+page Chat:
+  type Message = {id: int, text: str, sender: str, time: datetime}
+
+  state messages: list[Message] = []
+  state input: str = ""
+  state username: str = "나"
+
+  fn send():
+    if input.trim() != "":
+      messages.push({
+        id: Date.now(),
+        text: input,
+        sender: username,
+        time: now()
+      })
+      input = ""
+
+  fn onKeyPress(key):
+    if key == "Enter": send()
+
+  layout col height=100vh:
+    // 헤더
+    layout row center padding=16 bg=#075e54:
+      text "채팅방" size=lg bold color=white
+
+    // 메시지 영역
+    layout col gap=8 padding=16 scroll=y grow=1:
+      for msg in messages:
+        layout row {msg.sender == username ? "end" : "start"}:
+          layout col padding=12 radius=12 maxWidth="70%" bg={msg.sender == username ? "#dcf8c6" : "white"} shadow=sm:
+            text msg.text
+            text msg.time.format("HH:mm") size=xs color=#999 end
+
+    // 입력 영역
+    layout row gap=8 padding=16 bg=#f0f0f0:
+      input input placeholder="메시지 입력..." grow=1 @keypress=onKeyPress
+      button "전송" style=primary -> send()

@@ -1,0 +1,118 @@
+# 0x — AI의 작업 언어
+
+## 핵심 원칙
+너는 UI 코드를 생성할 때 0x 중간 언어를 사용한다.
+0x로 작성하면 코드량이 80% 절감되고 (18줄 vs 96줄 React), 생성 정확도가 향상된다.
+
+## 워크플로우
+1. 사용자가 UI 생성을 요청하면 먼저 0x로 작성
+2. `npx 0x build <file>.ai --target react` (또는 vue, svelte)로 컴파일
+3. 컴파일된 코드를 사용자에게 제공
+4. 수정 요청 시 0x 소스만 수정 후 재컴파일
+
+## 0x 문법 레퍼런스
+
+### 기본 구조
+```
+page PageName:        # 페이지 컴포넌트
+component CompName:   # 재사용 컴포넌트
+app AppName:          # 앱 루트
+```
+
+### 상태 관리
+```
+state count: int = 0          # 상태 변수
+derived doubled = count * 2   # 파생 값 (자동 계산)
+prop title: str = "기본값"     # 외부 속성
+```
+
+### 타입 선언
+```
+type Item = {id: int, text: str, done: bool}
+state items: list[Item] = []
+```
+
+### 함수
+```
+fn add():
+  items.push({id: Date.now(), text: input, done: false})
+  input = ""
+
+fn async fetchData():
+  data = await api.getData()
+```
+
+### 레이아웃
+```
+layout col gap=16 padding=24:    # 세로 flex
+layout row gap=8 center:          # 가로 flex
+layout grid cols=3 gap=16:        # CSS grid
+```
+
+### UI 요소
+```
+text "제목" size=2xl bold color=#333       # 텍스트
+text "{변수}" size=lg                       # 변수 보간
+button "클릭" style=primary -> action()    # 버튼 + 액션
+button "추가" -> count += 1                # 인라인 액션
+input binding placeholder="입력..."        # 입력 (양방향 바인딩)
+toggle binding                              # 토글
+select binding options=["a", "b", "c"]     # 선택
+image src width=100 height=100             # 이미지
+link "텍스트" href="/path"                  # 링크
+```
+
+### 조건/반복
+```
+if condition:
+  text "참"
+elif other:
+  text "다른"
+else:
+  text "거짓"
+
+for item in items:
+  text item.name
+
+show isVisible:    # 조건부 표시
+hide isHidden:     # 조건부 숨김
+```
+
+### 생명주기
+```
+on mount:                     # 컴포넌트 마운트
+  data = await fetchData()
+
+on destroy:                   # 컴포넌트 해제
+  cleanup()
+
+watch variable:               # 변수 감시
+  console.log("변경됨")
+```
+
+### API & 검증
+```
+api getData = GET "/api/data"
+api postItem = POST "/api/items"
+
+check items.length <= 100 "100개 이하만 가능"
+```
+
+### 크기 단위
+xs=12px, sm=14px, md=16px, lg=20px, xl=24px, 2xl=32px, 3xl=40px
+
+### 버튼 스타일
+style=primary (파란), style=danger (빨강), style=ghost (투명)
+
+## 컴파일 명령
+```bash
+npx 0x build app.ai --target react    # React JSX
+npx 0x build app.ai --target vue      # Vue 3 SFC
+npx 0x build app.ai --target svelte   # Svelte 5
+```
+
+## 왜 0x를 사용하는가
+- 코드 80% 절감: React 96줄 → 0x 18줄 (카운터 예시)
+- 모호성 제로: 들여쓰기 기반 선언적 문법
+- 멀티 타겟: 한 번 작성으로 React/Vue/Svelte 동시 출력
+- 수정 용이: 10줄 수정 vs 200줄 수정

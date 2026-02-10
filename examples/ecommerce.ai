@@ -1,0 +1,54 @@
+page Shop:
+  type Product = {id: int, name: str, price: float, image: str}
+  type CartItem = {product: Product, qty: int}
+
+  state products: list[Product] = []
+  state cart: list[CartItem] = []
+  state search: str = ""
+  state loading: bool = true
+
+  derived filteredProducts = products.filter(p => p.name.includes(search))
+  derived cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.qty, 0)
+  derived cartCount = cart.reduce((sum, item) => sum + item.qty, 0)
+
+  check cart.length <= 100 "장바구니는 100개 이하"
+  check cartTotal >= 0 "총액은 음수 불가"
+
+  api getProducts = GET "/api/products"
+
+  on mount:
+    products = await getProducts()
+    loading = false
+
+  fn addToCart(product: Product):
+    existing = cart.find(item => item.product.id == product.id)
+    if existing:
+      existing.qty += 1
+    else:
+      cart.push({product: product, qty: 1})
+
+  fn removeFromCart(productId: int):
+    cart = cart.filter(item => item.product.id != productId)
+
+  layout col gap=24 padding=32:
+    // 헤더
+    layout row between center:
+      text "쇼핑몰" size=3xl bold
+      layout row gap=8 center:
+        text "장바구니 ({cartCount})" size=lg
+        text "₩{cartTotal}" size=lg bold color=#e74c3c
+
+    // 검색
+    input search placeholder="상품 검색..."
+
+    // 상품 목록
+    if loading:
+      text "로딩 중..." center
+    else:
+      layout grid cols=3 gap=16:
+        for product in filteredProducts:
+          layout col gap=8 padding=16 radius=12 shadow=md bg=white:
+            image product.image width="100%" height=200
+            text product.name size=lg bold
+            text "₩{product.price}" size=md color=#e74c3c
+            button "장바구니 담기" style=primary -> addToCart(product)

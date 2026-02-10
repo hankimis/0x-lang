@@ -1,0 +1,63 @@
+{
+  "name": "0x-lang",
+  "version": "0.1.0",
+  "description": "0x — AI-First Programming Language Compiler",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./compiler": "./dist/compiler.js",
+    "./tokenizer": "./dist/tokenizer.js",
+    "./parser": "./dist/parser.js",
+    "./validator": "./dist/validator.js",
+    "./generators/react": "./dist/generators/react.js",
+    "./generators/vue": "./dist/generators/vue.js",
+    "./generators/svelte": "./dist/generators/svelte.js"
+  },
+  "bin": {
+    "0x": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "compile": "node --loader ts-node/esm src/cli.ts",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "0x",
+    "compiler",
+    "ai",
+    "react",
+    "vue",
+    "svelte",
+    "code-generation",
+    "dsl",
+    "ui",
+    "frontend"
+  ],
+  "author": "0x-lang contributors",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/0x-lang.git"
+  },
+  "homepage": "https://0x-lang.dev",
+  "bugs": {
+    "url": "https://github.com/user/0x-lang/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

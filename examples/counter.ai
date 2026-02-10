@@ -1,0 +1,23 @@
+page Counter:
+  state count: int = 0
+  derived doubled = count * 2
+  derived isPositive = count > 0
+
+  fn increment():
+    count += 1
+
+  fn decrement():
+    count -= 1
+
+  fn reset():
+    count = 0
+
+  layout col gap=16 padding=24 center:
+    text "카운터" size=2xl bold
+    text "{count}" size=3xl bold color=#333
+    text "두 배: {doubled}" size=lg color=#666
+
+    layout row gap=8:
+      button "-1" style=danger -> decrement()
+      button "리셋" -> reset()
+      button "+1" style=primary -> increment()

@@ -1,0 +1,32 @@
+page Todo:
+  type Item = {id: int, text: str, done: bool}
+
+  state items: list[Item] = []
+  state input: str = ""
+  derived remaining = items.filter(i => !i.done).length
+
+  check items.length <= 500 "할일은 500개 이하"
+
+  fn add():
+    if input.trim() != "":
+      items.push({id: Date.now(), text: input, done: false})
+      input = ""
+
+  fn remove(id: int):
+    items = items.filter(i => i.id != id)
+
+  layout col gap=16 padding=24 maxWidth=600 margin=auto:
+    text "할 일 ({remaining}개 남음)" size=2xl bold
+
+    layout row gap=8:
+      input input placeholder="할 일을 입력하세요"
+      button "추가" style=primary -> add()
+
+    for item in items:
+      layout row gap=8 center:
+        toggle item.done
+        text item.text strike={item.done} color={item.done ? "#999" : "#333"}
+        button "삭제" style=danger size=sm -> remove(item.id)
+
+    if items.length == 0:
+      text "할 일이 없습니다" color=#999 center

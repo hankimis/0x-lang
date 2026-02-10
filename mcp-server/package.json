@@ -1,0 +1,21 @@
+{
+  "name": "@0x-lang/mcp-server",
+  "version": "0.1.0",
+  "description": "0x MCP Server — AI가 내부적으로 0x를 사용하여 React/Vue/Svelte 코드를 효율적으로 생성",
+  "type": "module",
+  "bin": {
+    "0x-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "0x-lang": "file:.."
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.0.0"
+  }
+}

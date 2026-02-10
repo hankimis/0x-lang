@@ -1,0 +1,47 @@
+page Dashboard:
+  type Metric = {label: str, value: float, change: float}
+
+  state metrics: list[Metric] = []
+  state period: str = "week"
+  state loading: bool = true
+
+  api getMetrics = GET "/api/metrics"
+
+  on mount:
+    metrics = await getMetrics(period: period)
+    loading = false
+
+  watch period:
+    loading = true
+    metrics = await getMetrics(period: period)
+    loading = false
+
+  layout col gap=24 padding=32:
+    layout row between center:
+      text "대시보드" size=3xl bold
+      select period options=["day", "week", "month", "year"]
+
+    if loading:
+      text "로딩 중..." center
+    else:
+      layout grid cols=3 gap=16:
+        for metric in metrics:
+          component MetricCard(metric)
+
+component MetricCard:
+  prop metric: Metric
+
+  derived isPositive = metric.change >= 0
+  derived arrow = isPositive ? "↑" : "↓"
+  derived changeColor = isPositive ? "green" : "red"
+
+  style card:
+    padding: 24
+    radius: 12
+    shadow: md
+    bg: white
+
+  layout col gap=8 .card:
+    text metric.label size=sm color=#666
+    text "{metric.value}" size=2xl bold
+    text "{arrow} {metric.change}%" size=sm color={changeColor}
