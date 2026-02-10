@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/0x-lang"><img src="https://img.shields.io/npm/v/0x-lang.svg?style=flat-square&color=FF4D4D" alt="npm version" /></a>
-  <a href="https://github.com/user/0x-lang/actions"><img src="https://img.shields.io/github/actions/workflow/status/user/0x-lang/ci.yml?style=flat-square" alt="CI" /></a>
+  <a href="https://github.com/hankimis/0x-lang/actions"><img src="https://img.shields.io/github/actions/workflow/status/user/0x-lang/ci.yml?style=flat-square" alt="CI" /></a>
   <a href="https://opensource.org/licenses/ISC"><img src="https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square" alt="License" /></a>
 </p>
 
@@ -326,13 +326,51 @@ The compiler follows a clean pipeline architecture:
 3. **Validator** — Static analysis (circular deps, unused state, type checks)
 4. **Generators** — Target-specific code generation (React/Vue/Svelte)
 
+## AI & Vibe Coding
+
+0x is purpose-built for AI-assisted development ("vibe coding"). When AI agents use 0x instead of writing raw React/Vue/Svelte:
+
+- **80% fewer tokens** — AI generates less code, reducing cost and latency
+- **Zero structural decisions** — No hallucination-prone choices (hooks vs classes, CSS-in-JS vs Tailwind, etc.)
+- **Multi-framework output** — One generation covers React, Vue, AND Svelte users
+- **MCP integration** — Claude and Cursor can compile 0x directly via the built-in MCP server
+- **Deterministic output** — Same 0x input always produces the same framework output
+
+If you're building AI coding tools, agents, or workflows — consider using 0x as the intermediate representation for UI code generation.
+
+```typescript
+// AI agent workflow example
+import { compile } from '0x-lang/compiler';
+
+const aiGeneratedCode = `
+page Dashboard:
+  state metrics: list[object] = []
+
+  on mount:
+    metrics = await api.getMetrics()
+
+  layout col gap=24 padding=32:
+    text "Dashboard" size=3xl bold
+    layout grid cols=3 gap=16:
+      each metrics as m:
+        layout col padding=20 bg=white rounded=lg shadow:
+          text "{m.label}" size=sm color=gray
+          text "{m.value}" size=2xl bold
+`;
+
+// Compile to any framework
+const react = compile(aiGeneratedCode, { target: 'react' });
+const vue = compile(aiGeneratedCode, { target: 'vue' });
+const svelte = compile(aiGeneratedCode, { target: 'svelte' });
+```
+
 ## Contributing
 
 We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ```bash
 # Clone the repo
-git clone https://github.com/user/0x-lang.git
+git clone https://github.com/hankimis/0x-lang.git
 cd 0x-lang
 
 # Install dependencies
@@ -353,5 +391,5 @@ npm run build
 
 <p align="center">
   <strong>0x</strong> — Write less. Compile more. Ship everywhere.<br/>
-  <a href="https://0x-lang.dev">Website</a> · <a href="https://github.com/user/0x-lang">GitHub</a> · <a href="https://www.npmjs.com/package/0x-lang">npm</a>
+  <a href="https://0xlang.com">Website</a> · <a href="https://github.com/hankimis/0x-lang">GitHub</a> · <a href="https://www.npmjs.com/package/0x-lang">npm</a>
 </p>

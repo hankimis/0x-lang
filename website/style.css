@@ -1010,6 +1010,85 @@ body {
   color: var(--cyan);
 }
 
+/* ---- Comparison Section ---- */
+.comparison-section {
+  margin-bottom: 100px;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.comparison-card {
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+}
+
+.comparison-card-highlight {
+  border-color: var(--cyan);
+  background: rgba(0, 229, 204, 0.03);
+  box-shadow: 0 0 40px rgba(0, 229, 204, 0.08);
+}
+
+.comparison-header {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.comparison-header-old {
+  background: rgba(248, 81, 73, 0.1);
+  color: #f85149;
+}
+
+.comparison-header-new {
+  background: rgba(0, 229, 204, 0.1);
+  color: var(--cyan);
+}
+
+.comparison-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comparison-list li {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding-left: 24px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.comparison-card:not(.comparison-card-highlight) .comparison-list li::before {
+  content: '✕';
+  position: absolute;
+  left: 0;
+  color: #f85149;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.comparison-card-highlight .comparison-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--cyan);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
 /* ---- Reviews / Social Proof ---- */
 .reviews-section {
   margin-bottom: 100px;
@@ -1143,6 +1222,10 @@ body {
 
   .nav-links a:not(.nav-github) {
     display: none;
+  }
+
+  .comparison-grid {
+    grid-template-columns: 1fr;
   }
 
   .reviews-grid {
