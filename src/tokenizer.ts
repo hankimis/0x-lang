@@ -60,7 +60,7 @@ const KEYWORDS = new Set([
   'breadcrumb',
   'admin',
   'drawer', 'command',
-  'stats',
+  'stats', 'divider', 'progress',
   // Phase 4: Infrastructure keywords
   'deploy', 'env', 'docker', 'ci', 'domain', 'cdn', 'monitor', 'backup',
   // Phase 4: Backend/API keywords

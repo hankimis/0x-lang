@@ -16,7 +16,7 @@ import type {
   SearchNode, FilterNode, SocialNode, ProfileNode,
   HeroNode, FeaturesNode, PricingNode, FaqNode, TestimonialNode, FooterNode,
   AdminNode, SeoNode, A11yNode, AnimateNode, GestureNode, AiNode,
-  AutomationNode, DevNode, EmitNode, ResponsiveNode, BreadcrumbNode, StatsGridNode,
+  AutomationNode, DevNode, EmitNode, ResponsiveNode, BreadcrumbNode, StatsGridNode, DividerNode, ProgressNode,
   // Phase 4
   DeployNode, EnvNode, DockerNode, CiNode, DomainNode, CdnNode, MonitorNode, BackupNode,
   EndpointNode, MiddlewareNode, QueueNode, CronNode, CacheNode, MigrateNode, SeedNode, WebhookNode, StorageNode,
@@ -466,6 +466,13 @@ function genUINode(node: UINode, c: GenContext): string {
     case 'Offline': return genOfflineUI(node as OfflineNode, c);
     case 'Retry': return `{/* retry: max=${genExpr((node as RetryNode).maxRetries, c)} */}`;
     case 'Log': return `{/* log: ${genExpr((node as LogNode).message, c)} */}`;
+    case 'Divider': return `<hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '16px 0' }} />`;
+    case 'Progress': {
+      const pn = node as ProgressNode;
+      const val = genExpr(pn.value, c);
+      const max = pn.props['max'] ? genExpr(pn.props['max'], c) : '100';
+      return `<div style={{ width: '100%', backgroundColor: '#e2e8f0', borderRadius: '9999px', height: '8px', overflow: 'hidden' }}>\n<div style={{ width: \`\${(${val} / ${max}) * 100}%\`, backgroundColor: '#3b82f6', height: '100%', borderRadius: '9999px', transition: 'width 0.3s' }} />\n</div>`;
+    }
     default: return `{/* unsupported: ${(node as any).type} */}`;
   }
 }
@@ -560,7 +567,23 @@ function genText(node: TextNode, c: GenContext): string {
 
   const content = genTextContent(node.content, c);
   const styleStr = Object.keys(style).length > 0 ? ` style={${genStyleObj(style, dynamicKeys)}}` : '';
-  return `<span${styleStr}>${content}</span>`;
+
+  // Badge prop: render a badge indicator next to content
+  const badgeExpr = node.props['badge'];
+  const tooltipExpr = node.props['tooltip'];
+  let result = `<span${styleStr}>${content}</span>`;
+
+  if (badgeExpr) {
+    const badge = genExpr(badgeExpr, c);
+    result = `<span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>\n<span${styleStr}>${content}</span>\n<span style={{ marginLeft: '6px', padding: '2px 6px', fontSize: '12px', fontWeight: 'bold', borderRadius: '9999px', backgroundColor: '#ef4444', color: '#fff', minWidth: '20px', textAlign: 'center' }}>{${badge}}</span>\n</span>`;
+  }
+
+  if (tooltipExpr) {
+    const tooltip = genExpr(tooltipExpr, c);
+    result = `<span title={${tooltip}}>${badgeExpr ? result.replace(/^<span/, '<span') : `<span${styleStr}>${content}</span>`}</span>`;
+  }
+
+  return result;
 }
 
 function genButton(node: ButtonNode, c: GenContext): string {
@@ -610,6 +633,7 @@ function genInput(node: InputNode, c: GenContext): string {
 function genImage(node: ImageNode, c: GenContext): string {
   const src = genExpr(node.src, c);
   const props: string[] = [`src={${src}}`];
+  const style: Record<string, string> = {};
 
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
@@ -617,7 +641,15 @@ function genImage(node: ImageNode, c: GenContext): string {
       case 'width': props.push(`width="${v}"`); break;
       case 'height': props.push(`height="${v}"`); break;
       case 'alt': props.push(`alt=${quoteJsx(v)}`); break;
+      case 'round': style['borderRadius'] = "'50%'"; break;
+      case 'radius': style['borderRadius'] = `'${addPx(v)}'`; break;
+      case 'size': { const px = `'${addPx(v)}'`; style['width'] = px; style['height'] = px; break; }
     }
+  }
+
+  if (Object.keys(style).length > 0) {
+    const entries = Object.entries(style).map(([k, v]) => `${k}: ${v}`).join(', ');
+    props.push(`style={{ ${entries} }}`);
   }
 
   return `<img ${props.join(' ')} />`;
@@ -813,13 +845,26 @@ function genExpr(expr: Expression, c: GenContext): string {
         const method = expr.callee.property;
         if (objName && c.states.has(objName)) {
           const setter = 'set' + capitalize(objName);
+          const memberPath = extractMemberPath(expr.callee.object);
           if (method === 'push') {
+            if (memberPath.length > 0) {
+              const arrayPath = 'prev.' + memberPath.join('.');
+              return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, `[...${arrayPath}, ${args}]`)})`;
+            }
             return `${setter}(prev => [...prev, ${args}])`;
           }
           if (method === 'filter') {
+            if (memberPath.length > 0) {
+              const arrayPath = 'prev.' + memberPath.join('.');
+              return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, `${arrayPath}.filter(${args})`)})`;
+            }
             return `${setter}(prev => prev.filter(${args}))`;
           }
           if (method === 'remove') {
+            if (memberPath.length > 0) {
+              const arrayPath = 'prev.' + memberPath.join('.');
+              return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, `${arrayPath}.filter(item => item.id !== ${args})`)})`;
+            }
             return `${setter}(prev => prev.filter(item => item.id !== ${args}))`;
           }
         }

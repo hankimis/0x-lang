@@ -12,7 +12,7 @@ import type {
   PayNode, CartNode, MediaNode, NotificationNode, SearchNode, FilterNode,
   SocialNode, ProfileNode, FeaturesNode, PricingNode, FaqNode,
   TestimonialNode, FooterNode, AdminNode, SeoNode, AnimateNode,
-  GestureNode, AiNode, EmitNode, ResponsiveNode, BreadcrumbNode, StatsGridNode,
+  GestureNode, AiNode, EmitNode, ResponsiveNode, BreadcrumbNode, StatsGridNode, ProgressNode,
   LayoutShellNode, SlideOverNode,
   ErrorNode, LoadingNode, OfflineNode, RetryNode, LogNode,
   Expression, Statement, UINode, GeneratedCode,
@@ -232,6 +232,13 @@ function genUINode(node: UINode, c: VueContext): string {
     case 'Offline': return genOfflineUI(node as OfflineNode, c);
     case 'Retry': return `<!-- retry: max=${genExpr((node as RetryNode).maxRetries, c)} -->`;
     case 'Log': return `<!-- log: ${genExpr((node as LogNode).message, c)} -->`;
+    case 'Divider': return `<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 16px 0" />`;
+    case 'Progress': {
+      const pn = node as ProgressNode;
+      const val = genExpr(pn.value, c);
+      const max = pn.props['max'] ? genExpr(pn.props['max'], c) : '100';
+      return `<div style="width: 100%; background-color: #e2e8f0; border-radius: 9999px; height: 8px; overflow: hidden">\n<div :style="{ width: (${val} / ${max}) * 100 + '%', backgroundColor: '#3b82f6', height: '100%', borderRadius: '9999px', transition: 'width 0.3s' }" />\n</div>`;
+    }
     case 'Comment': return `<!-- ${(node as CommentNode).text} -->`;
     default: return `<!-- unsupported: ${(node as UINode).type} -->`;
   }
@@ -316,7 +323,22 @@ function genText(node: TextNode, c: VueContext): string {
     styleAttr = ` style="${staticStyle}"`;
   }
   const content = genTextContent(node.content, c);
-  return `<span${styleAttr}>${content}</span>`;
+
+  const badgeExpr = node.props['badge'];
+  const tooltipExpr = node.props['tooltip'];
+  let result = `<span${styleAttr}>${content}</span>`;
+
+  if (badgeExpr) {
+    const badge = genExpr(badgeExpr, c);
+    result = `<span style="position: relative; display: inline-flex; align-items: center">\n<span${styleAttr}>${content}</span>\n<span style="margin-left: 6px; padding: 2px 6px; font-size: 12px; font-weight: bold; border-radius: 9999px; background-color: #ef4444; color: #fff; min-width: 20px; text-align: center">{{ ${badge} }}</span>\n</span>`;
+  }
+
+  if (tooltipExpr) {
+    const tooltip = genExpr(tooltipExpr, c);
+    result = `<span title="${unquote(tooltip)}">${badgeExpr ? result : `<span${styleAttr}>${content}</span>`}</span>`;
+  }
+
+  return result;
 }
 
 function genButton(node: ButtonNode, c: VueContext): string {
@@ -353,7 +375,18 @@ function genInput(node: InputNode, c: VueContext): string {
 
 function genImage(node: ImageNode, c: VueContext): string {
   const src = genExpr(node.src, c);
-  return `<img :src="${src}" />`;
+  const style: string[] = [];
+  for (const [key, val] of Object.entries(node.props)) {
+    const v = genExpr(val, c);
+    switch (key) {
+      case 'round': style.push('border-radius: 50%'); break;
+      case 'radius': style.push(`border-radius: ${addPx(unquote(v))}`); break;
+      case 'size': style.push(`width: ${addPx(unquote(v))}; height: ${addPx(unquote(v))}`); break;
+    }
+  }
+  const alt = node.props['alt'] ? ` alt="${unquote(genExpr(node.props['alt'], c))}"` : '';
+  const styleAttr = style.length > 0 ? ` style="${style.join('; ')}"` : '';
+  return `<img :src="${src}"${alt}${styleAttr} />`;
 }
 
 function genLink(node: LinkNode, c: VueContext): string {

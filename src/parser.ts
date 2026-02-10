@@ -18,7 +18,7 @@ import type {
   SearchNode, FilterNode, SocialNode, ProfileNode,
   HeroNode, FeaturesNode, PricingNode, FaqNode, TestimonialNode, FooterNode,
   AdminNode, SeoNode, A11yNode, AnimateNode, GestureNode, AiNode,
-  AutomationNode, DevNode, EmitNode, ResponsiveNode, BreadcrumbNode, StatsGridNode,
+  AutomationNode, DevNode, EmitNode, ResponsiveNode, BreadcrumbNode, StatsGridNode, DividerNode, ProgressNode,
   // Phase 4
   DeployNode, EnvNode, DockerNode, CiNode, DomainNode, CdnNode, MonitorNode, BackupNode,
   EndpointNode, MiddlewareNode, QueueNode, CronNode, CacheNode, MigrateNode, SeedNode, WebhookNode, StorageNode,
@@ -372,6 +372,8 @@ class Parser {
       case 'breadcrumb': return this.parseBreadcrumb();
       case 'responsive': return this.parseResponsive();
       case 'mobile': return this.parseResponsive();
+      case 'divider': return this.parseDivider();
+      case 'progress': return this.parseProgress();
       default: return null;
     }
   }
@@ -2380,6 +2382,35 @@ class Parser {
       } else break;
     }
     return { type: 'Breadcrumb', props, loc: location };
+  }
+
+  private parseDivider(): DividerNode {
+    const location = this.loc();
+    this.expect('KEYWORD', 'divider');
+    const props: Record<string, Expression> = {};
+    while (!this.match('NEWLINE') && !this.match('EOF') && !this.match('DEDENT')) {
+      if (this.match('IDENTIFIER') || this.match('KEYWORD')) {
+        const key = this.advance().value;
+        if (this.match('OPERATOR', '=')) { this.advance(); props[key] = this.parseAtomicExpression(); }
+        else props[key] = { kind: 'boolean', value: true };
+      } else break;
+    }
+    return { type: 'Divider', props, loc: location };
+  }
+
+  private parseProgress(): ProgressNode {
+    const location = this.loc();
+    this.expect('KEYWORD', 'progress');
+    const value = this.parseAtomicExpression();
+    const props: Record<string, Expression> = {};
+    while (!this.match('NEWLINE') && !this.match('EOF') && !this.match('DEDENT')) {
+      if (this.match('IDENTIFIER') || this.match('KEYWORD')) {
+        const key = this.advance().value;
+        if (this.match('OPERATOR', '=')) { this.advance(); props[key] = this.parseAtomicExpression(); }
+        else props[key] = { kind: 'boolean', value: true };
+      } else break;
+    }
+    return { type: 'Progress', value, props, loc: location };
   }
 
   private parseResponsive(): ResponsiveNode {
