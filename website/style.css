@@ -238,60 +238,124 @@ body {
 }
 
 .hero-install {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  gap: 12px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, rgba(0, 229, 204, 0.06), rgba(124, 58, 237, 0.06));
+  border: 1px solid rgba(0, 229, 204, 0.2);
+  border-radius: 12px;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  color: var(--text-secondary);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.hero-install::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 229, 204, 0.4), transparent 40%, transparent 60%, rgba(124, 58, 237, 0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.hero-install:hover::before {
+  opacity: 1;
+}
+
+.hero-install:hover {
+  border-color: rgba(0, 229, 204, 0.35);
+  background: linear-gradient(135deg, rgba(0, 229, 204, 0.1), rgba(124, 58, 237, 0.08));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 24px rgba(0, 229, 204, 0.12), 0 0 0 1px rgba(0, 229, 204, 0.08);
+}
+
+.hero-install:active {
+  transform: translateY(0);
+}
+
+.hero-install-prompt {
+  color: var(--cyan);
+  font-weight: 700;
+  font-size: 1rem;
+  user-select: none;
+  opacity: 0.8;
+}
+
+.hero-install code {
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  flex: 1;
 }
 
 .copy-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
-  transition: color 0.2s;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
 }
 
 .copy-btn:hover {
-  color: var(--text-primary);
+  color: var(--cyan);
+  background: rgba(0, 229, 204, 0.1);
+  border-color: rgba(0, 229, 204, 0.2);
 }
 
 .copy-btn.copied {
   color: var(--cyan) !important;
-}
-
-.hero-install {
-  position: relative;
+  background: rgba(0, 229, 204, 0.15) !important;
+  border-color: rgba(0, 229, 204, 0.3) !important;
 }
 
 .copy-toast {
   position: absolute;
-  top: -32px;
-  right: 0;
-  padding: 4px 12px;
+  top: -36px;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 6px 16px;
   background: var(--cyan);
   color: var(--bg-deep);
   font-size: 0.75rem;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 8px;
   opacity: 0;
-  transform: translateY(4px);
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 229, 204, 0.3);
+}
+
+.copy-toast::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: var(--cyan);
 }
 
 .copy-toast.show {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ---- Buttons ---- */
@@ -1442,6 +1506,12 @@ body {
 
   .hero-title {
     font-size: 2rem;
+  }
+
+  .hero-install {
+    font-size: 0.82rem;
+    padding: 12px 16px;
+    gap: 8px;
   }
 
   .code-block {
