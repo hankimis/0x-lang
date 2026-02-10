@@ -18,7 +18,7 @@ import type {
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
 
-import { SIZE_MAP, unquote, capitalize } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient } from './shared.js';
 import { generateBackendCode } from './react.js';
 
 interface VueContext {
@@ -238,7 +238,8 @@ function genLayout(node: LayoutNode, c: VueContext): string {
       case 'padding': style.push(`padding: ${v}px`); break;
       case 'center': style.push('align-items: center'); break;
       case 'between': style.push('justify-content: space-between'); break;
-      case 'bg': style.push(`background-color: ${v}`); break;
+      case 'bg': style.push(`background-color: ${unquote(v)}`); break;
+      case 'gradient': style.push(`background: ${parseGradient(v)}`); break;
     }
   }
 
@@ -679,6 +680,7 @@ function genTextStyle(node: TextNode, c: VueContext): string {
     if (key === 'size') { const uv = unquote(v); parts.push(`font-size: ${SIZE_MAP[uv] || uv}`); }
     if (key === 'bold') parts.push('font-weight: bold');
     if (key === 'color') parts.push(`color: ${unquote(v)}`);
+    if (key === 'gradient') { const g = parseGradient(v); parts.push(`background: ${g}; -webkit-background-clip: text; -webkit-text-fill-color: transparent`); }
     if (key === 'center') parts.push('text-align: center');
   }
   return parts.join('; ');

@@ -25,7 +25,7 @@ import type {
   I18nNode, LocaleNode, RtlNode,
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
-import { SIZE_MAP, unquote, capitalize } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient } from './shared.js';
 
 interface GenContext {
   imports: Set<string>; // React hooks to import
@@ -482,6 +482,7 @@ function genLayout(node: LayoutNode, c: GenContext): string {
       case 'maxWidth': style['maxWidth'] = `${v}px`; break;
       case 'height': style['height'] = v; break;
       case 'bg': style['backgroundColor'] = v; break;
+      case 'gradient': { const g = parseGradient(v); style['background'] = g; break; }
       case 'center': style['alignItems'] = 'center'; break;
       case 'middle': style['justifyContent'] = 'center'; break;
       case 'between': style['justifyContent'] = 'space-between'; break;
@@ -524,6 +525,7 @@ function genText(node: TextNode, c: GenContext): string {
       case 'bold': style['fontWeight'] = 'bold'; break;
       case 'color': style['color'] = v; break;
       case 'bg': style['backgroundColor'] = v; break;
+      case 'gradient': { const g = parseGradient(v); style['background'] = g; style['WebkitBackgroundClip'] = 'text'; style['WebkitTextFillColor'] = 'transparent'; break; }
       case 'center': style['textAlign'] = 'center'; break;
       case 'end': style['textAlign'] = 'right'; break;
       case 'strike': {
@@ -2368,10 +2370,13 @@ function walkExpr(expr: Expression, fn: (e: Expression) => void): void {
 function genStyleObj(style: Record<string, string>): string {
   if (Object.keys(style).length === 0) return '{}';
   const entries = Object.entries(style).map(([k, v]) => {
-    // If value contains template literal, don't quote
+    // Template literal — use as-is
     if (v.startsWith('${') || v.startsWith('`')) return `${k}: ${v}`;
-    // If value is a number-like
-    if (/^\d+$/.test(v)) return `${k}: ${v}`;
+    // Already quoted from genExpr (e.g. '#fff', "red") — use as-is
+    if ((v.startsWith("'") && v.endsWith("'")) || (v.startsWith('"') && v.endsWith('"'))) return `${k}: ${v}`;
+    // Pure number
+    if (/^\d+(\.\d+)?$/.test(v)) return `${k}: ${v}`;
+    // Default: quote it (for constructed values like '16px', 'bold', etc.)
     return `${k}: '${v}'`;
   });
   return `{ ${entries.join(', ')} }`;
