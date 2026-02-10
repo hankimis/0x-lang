@@ -37,6 +37,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -102,6 +103,7 @@ body {
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 24px;
+  overflow-x: hidden;
 }
 
 /* ---- Nav ---- */
@@ -878,6 +880,214 @@ body {
   font-size: 0.8rem;
 }
 
+/* ---- Scroll Animations ---- */
+[data-animate] {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-animate].visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-animate="fade"] {
+  transform: none;
+}
+
+[data-animate="slide-left"] {
+  transform: translateX(-40px);
+}
+[data-animate="slide-left"].visible {
+  transform: translateX(0);
+}
+
+[data-animate="slide-right"] {
+  transform: translateX(40px);
+}
+[data-animate="slide-right"].visible {
+  transform: translateX(0);
+}
+
+/* Stagger children */
+[data-stagger] > * { transition-delay: calc(var(--i, 0) * 0.1s); }
+
+/* Hero loads immediately with CSS animation */
+@keyframes hero-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-badge { animation: hero-in 0.6s ease-out both; }
+.hero-title { animation: hero-in 0.6s ease-out 0.1s both; }
+.hero-subtitle { animation: hero-in 0.6s ease-out 0.2s both; }
+.hero-actions { animation: hero-in 0.6s ease-out 0.3s both; }
+
+/* Benchmark bar animation */
+.bar {
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+}
+
+[data-animate] .bar {
+  width: 0 !important;
+}
+
+[data-animate].visible .bar {
+  /* width restored via inline style */
+}
+
+/* ---- Ticker / Marquee ---- */
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-section {
+  padding: 32px 0;
+  margin-bottom: 80px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ticker-section::before,
+.ticker-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ticker-section::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--bg-deep), transparent);
+}
+
+.ticker-section::after {
+  right: 0;
+  background: linear-gradient(270deg, var(--bg-deep), transparent);
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 30s linear infinite;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 32px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+
+.ticker-item:hover {
+  color: var(--text-secondary);
+}
+
+.ticker-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.ticker-item .ticker-highlight {
+  color: var(--cyan);
+}
+
+/* ---- Reviews / Social Proof ---- */
+.reviews-section {
+  margin-bottom: 100px;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.review-card {
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.review-card:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+}
+
+.review-quote {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-size: 2.5rem;
+  font-family: var(--font-display);
+  color: var(--border-subtle);
+  line-height: 1;
+}
+
+.review-text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.review-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--bg-deep);
+  flex-shrink: 0;
+}
+
+.review-avatar-cyan { background: var(--cyan); }
+.review-avatar-purple { background: var(--purple); }
+
+.review-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.review-role {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
   .hero {
@@ -934,6 +1144,14 @@ body {
   .nav-links a:not(.nav-github) {
     display: none;
   }
+
+  .reviews-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ticker-track {
+    animation-duration: 20s;
+  }
 }
 
 @media (max-width: 480px) {
@@ -947,5 +1165,26 @@ body {
 
   .code-block {
     font-size: 0.72rem;
+  }
+}
+
+/* ---- Reduced Motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  [data-animate] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .hero-badge, .hero-title, .hero-subtitle, .hero-actions {
+    animation: none;
+  }
+
+  .ticker-track {
+    animation: none;
+  }
+
+  .bar {
+    transition: none;
   }
 }
