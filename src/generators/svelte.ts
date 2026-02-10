@@ -18,17 +18,19 @@ import type {
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
 
-import { SIZE_MAP, unquote, capitalize, parseGradient } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx } from './shared.js';
 import { generateBackendCode } from './react.js';
 
 interface SvelteContext {
   states: Map<string, StateDecl>;
   styles: Map<string, StyleDecl>;
   needsOnMount: boolean;
+  extraScriptLines: string[];
+  props: PropDecl[];
 }
 
 function newCtx(): SvelteContext {
-  return { states: new Map(), styles: new Map(), needsOnMount: false };
+  return { states: new Map(), styles: new Map(), needsOnMount: false, extraScriptLines: [], props: [] };
 }
 
 export function generateSvelte(ast: ASTNode[]): GeneratedCode {
@@ -66,7 +68,7 @@ function generateSvelteComponent(node: PageNode | ComponentNode | AppNode): stri
     switch (child.type) {
       case 'StateDecl': scriptLines.push(genState(child, c)); break;
       case 'DerivedDecl': scriptLines.push(genDerived(child, c)); break;
-      case 'PropDecl': scriptLines.push(genProp(child, c)); break;
+      case 'PropDecl': c.props.push(child); break;
       case 'FnDecl': scriptLines.push(genFunction(child, c)); break;
       case 'OnMount': scriptLines.push(genOnMount(child, c)); break;
       case 'OnDestroy': scriptLines.push(genOnDestroy(child, c)); break;
@@ -82,6 +84,15 @@ function generateSvelteComponent(node: PageNode | ComponentNode | AppNode): stri
     }
   }
 
+  // Generate merged props declaration
+  if (c.props.length > 0) {
+    const propEntries = c.props.map(p => {
+      if (p.defaultValue) return `${p.name} = ${genExpr(p.defaultValue, c)}`;
+      return p.name;
+    }).join(', ');
+    scriptLines.unshift(`let { ${propEntries} } = $props();`);
+  }
+
   const imports: string[] = [];
   if (c.needsOnMount) imports.push("import { onMount } from 'svelte';");
 
@@ -91,6 +102,7 @@ function generateSvelteComponent(node: PageNode | ComponentNode | AppNode): stri
     ...imports,
     '',
     ...scriptLines,
+    ...c.extraScriptLines,
     '</script>',
     '',
     ...templateParts,
@@ -107,12 +119,7 @@ function genDerived(node: DerivedDecl, c: SvelteContext): string {
   return `let ${node.name} = $derived(${genExpr(node.expression, c)});`;
 }
 
-function genProp(node: PropDecl, c: SvelteContext): string {
-  if (node.defaultValue) {
-    return `let { ${node.name} = ${genExpr(node.defaultValue, c)} } = $props();`;
-  }
-  return `let { ${node.name} } = $props();`;
-}
+// genProp is now handled by merged declaration in generateSvelteComponent
 
 function genFunction(node: FnDecl, c: SvelteContext): string {
   const params = node.params.map(p => p.name).join(', ');
@@ -232,10 +239,10 @@ function genLayout(node: LayoutNode, c: SvelteContext): string {
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     switch (key) {
-      case 'gap': style.push(`gap: ${v}px`); break;
-      case 'padding': style.push(`padding: ${v}px`); break;
+      case 'gap': style.push(`gap: ${addPx(v)}`); break;
+      case 'padding': style.push(`padding: ${addPx(v)}`); break;
       case 'margin': style.push(`margin: ${unquote(v)}`); break;
-      case 'maxWidth': style.push(`max-width: ${v}px`); break;
+      case 'maxWidth': style.push(`max-width: ${addPx(v)}`); break;
       case 'height': style.push(`height: ${unquote(v)}`); break;
       case 'center': style.push('align-items: center'); break;
       case 'middle': style.push('justify-content: center'); break;
@@ -243,7 +250,7 @@ function genLayout(node: LayoutNode, c: SvelteContext): string {
       case 'end': style.push('justify-content: flex-end'); break;
       case 'grow': style.push(`flex-grow: ${v}`); break;
       case 'scroll': style.push(`overflow-${unquote(v) === 'y' ? 'y' : 'x'}: auto`); break;
-      case 'radius': style.push(`border-radius: ${v}px`); break;
+      case 'radius': style.push(`border-radius: ${addPx(v)}`); break;
       case 'shadow': {
         const sv = unquote(v);
         if (sv === 'sm') style.push('box-shadow: 0 1px 2px rgba(0,0,0,0.1)');
@@ -452,6 +459,7 @@ function genUploadUI(node: UploadNode, c: SvelteContext): string {
 
 function genModalUI(node: ModalNode, c: SvelteContext): string {
   const showVar = `show${capitalize(node.name)}`;
+  c.extraScriptLines.push(`let ${showVar} = $state(false);`);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n    ');
   const lines: string[] = [];
   if (node.trigger) {
@@ -461,7 +469,7 @@ function genModalUI(node: ModalNode, c: SvelteContext): string {
   lines.push(`<div style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000" onclick={() => ${showVar} = false}>`);
   lines.push(`  <div style="background-color: #fff; border-radius: 12px; padding: 24px; min-width: 400px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.15)" onclick={e => e.stopPropagation()}>`);
   lines.push(`    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">`);
-  lines.push(`      <h2 style="margin: 0; font-size: 20px">${node.title}</h2>`);
+  lines.push(`      <h2 style="margin: 0; font-size: 20px">${capitalize(node.title)}</h2>`);
   lines.push(`      <button onclick={() => ${showVar} = false} style="border: none; background: none; font-size: 20px; cursor: pointer; padding: 4px">&times;</button>`);
   lines.push(`    </div>`);
   lines.push(`    ${body}`);
@@ -492,6 +500,7 @@ function genListUI(node: ListNode, c: SvelteContext): string {
 
 function genDrawerUI(node: DrawerNode, c: SvelteContext): string {
   const showVar = `show${capitalize(node.name)}`;
+  c.extraScriptLines.push(`let ${showVar} = $state(false);`);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n    ');
   return `{#if ${showVar}}<div style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 1000" onclick={() => ${showVar} = false}><div style="position: fixed; top: 0; right: 0; bottom: 0; width: 320px; background-color: #fff; padding: 24px; box-shadow: -2px 0 8px rgba(0,0,0,0.1); overflow-y: auto" onclick={e => e.stopPropagation()}>\n    ${body}\n  </div></div>{/if}`;
 }
@@ -629,7 +638,7 @@ function genOfflineUI(node: OfflineNode, c: SvelteContext): string {
 function genExpr(expr: Expression, c: SvelteContext): string {
   switch (expr.kind) {
     case 'number': return String(expr.value);
-    case 'string': return `'${expr.value}'`;
+    case 'string': return `'${expr.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
     case 'boolean': return String(expr.value);
     case 'null': return 'null';
     case 'identifier': return expr.name;
@@ -645,8 +654,9 @@ function genExpr(expr: Expression, c: SvelteContext): string {
     case 'ternary': return `${genExpr(expr.condition, c)} ? ${genExpr(expr.consequent, c)} : ${genExpr(expr.alternate, c)}`;
     case 'arrow': {
       const params = expr.params.join(', ');
-      if (!Array.isArray(expr.body)) return `${params} => ${genExpr(expr.body as Expression, c)}`;
-      return `(${params}) => { }`;
+      if (!Array.isArray(expr.body)) return `(${params}) => ${genExpr(expr.body as Expression, c)}`;
+      const body = (expr.body as Statement[]).map(s => genStmt(s, c)).join('\n');
+      return `(${params}) => { ${body} }`;
     }
     case 'array': return `[${expr.elements.map(e => genExpr(e, c)).join(', ')}]`;
     case 'object_expr': {
@@ -737,7 +747,7 @@ function cssPropToCss(prop: string): string {
 
 function formatCssValue(prop: string, val: string): string {
   const v = unquote(val);
-  if (['padding', 'margin', 'radius', 'gap'].includes(prop)) return `${v}px`;
+  if (['padding', 'margin', 'radius', 'gap'].includes(prop)) return addPx(v);
   if (prop === 'shadow') {
     if (v === 'sm') return '0 1px 2px rgba(0,0,0,0.1)';
     if (v === 'md') return '0 4px 6px rgba(0,0,0,0.1)';

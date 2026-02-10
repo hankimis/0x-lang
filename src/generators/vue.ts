@@ -18,17 +18,20 @@ import type {
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
 
-import { SIZE_MAP, unquote, capitalize, parseGradient } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx } from './shared.js';
 import { generateBackendCode } from './react.js';
 
 interface VueContext {
   imports: Set<string>;
   states: Map<string, StateDecl>;
+  derivedNames: Set<string>;
   styles: Map<string, StyleDecl>;
+  extraScriptLines: string[];
+  props: PropDecl[];
 }
 
 function newCtx(): VueContext {
-  return { imports: new Set(), states: new Map(), styles: new Map() };
+  return { imports: new Set(), states: new Map(), derivedNames: new Set(), styles: new Map(), extraScriptLines: [], props: [] };
 }
 
 export function generateVue(ast: ASTNode[]): GeneratedCode {
@@ -56,6 +59,7 @@ function generateVueComponent(node: PageNode | ComponentNode | AppNode): string 
 
   for (const child of node.body) {
     if (child.type === 'StateDecl') c.states.set(child.name, child);
+    if (child.type === 'DerivedDecl') c.derivedNames.add(child.name);
     if (child.type === 'StyleDecl') c.styles.set(child.name, child);
   }
 
@@ -67,7 +71,7 @@ function generateVueComponent(node: PageNode | ComponentNode | AppNode): string 
     switch (child.type) {
       case 'StateDecl': scriptLines.push(genState(child, c)); break;
       case 'DerivedDecl': scriptLines.push(genDerived(child, c)); break;
-      case 'PropDecl': scriptLines.push(genProp(child, c)); break;
+      case 'PropDecl': c.props.push(child); break;
       case 'FnDecl': scriptLines.push(genFunction(child, c)); break;
       case 'OnMount': scriptLines.push(genOnMount(child, c)); break;
       case 'OnDestroy': scriptLines.push(genOnDestroy(child, c)); break;
@@ -83,6 +87,15 @@ function generateVueComponent(node: PageNode | ComponentNode | AppNode): string 
     }
   }
 
+  // Generate merged props declaration
+  if (c.props.length > 0) {
+    const propEntries = c.props.map(p => {
+      const defaultStr = p.defaultValue ? `, default: ${genExpr(p.defaultValue, c)}` : '';
+      return `${p.name}: { type: ${mapType(p.valueType)}${defaultStr} }`;
+    }).join(', ');
+    scriptLines.unshift(`const props = defineProps({ ${propEntries} });`);
+  }
+
   const importItems = Array.from(c.imports).sort();
   const importLine = importItems.length > 0
     ? `import { ${importItems.join(', ')} } from 'vue';`
@@ -94,6 +107,7 @@ function generateVueComponent(node: PageNode | ComponentNode | AppNode): string 
     importLine,
     '',
     ...scriptLines,
+    ...c.extraScriptLines,
     '</script>',
     '',
     '<template>',
@@ -114,10 +128,7 @@ function genDerived(node: DerivedDecl, c: VueContext): string {
   return `const ${node.name} = computed(() => ${genExpr(node.expression, c, true)});`;
 }
 
-function genProp(node: PropDecl, c: VueContext): string {
-  const defaultStr = node.defaultValue ? `, default: ${genExpr(node.defaultValue, c)}` : '';
-  return `const props = defineProps({ ${node.name}: { type: ${mapType(node.valueType)}${defaultStr} } });`;
-}
+// genProp is now handled by merged declaration in generateVueComponent
 
 function genFunction(node: FnDecl, c: VueContext): string {
   const params = node.params.map(p => p.name).join(', ');
@@ -239,10 +250,10 @@ function genLayout(node: LayoutNode, c: VueContext): string {
     const v = genExpr(val, c);
     const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
     switch (key) {
-      case 'gap': style.push(`gap: ${v}px`); break;
-      case 'padding': style.push(`padding: ${v}px`); break;
+      case 'gap': style.push(`gap: ${addPx(v)}`); break;
+      case 'padding': style.push(`padding: ${addPx(v)}`); break;
       case 'margin': style.push(`margin: ${unquote(v)}`); break;
-      case 'maxWidth': style.push(`max-width: ${v}px`); break;
+      case 'maxWidth': style.push(`max-width: ${addPx(v)}`); break;
       case 'height': style.push(`height: ${unquote(v)}`); break;
       case 'center': style.push('align-items: center'); break;
       case 'middle': style.push('justify-content: center'); break;
@@ -250,7 +261,7 @@ function genLayout(node: LayoutNode, c: VueContext): string {
       case 'end': style.push('justify-content: flex-end'); break;
       case 'grow': style.push(`flex-grow: ${v}`); break;
       case 'scroll': style.push(`overflow-${unquote(v) === 'y' ? 'y' : 'x'}: auto`); break;
-      case 'radius': style.push(`border-radius: ${v}px`); break;
+      case 'radius': style.push(`border-radius: ${addPx(v)}`); break;
       case 'shadow': {
         const sv = unquote(v);
         if (sv === 'sm') style.push('box-shadow: 0 1px 2px rgba(0,0,0,0.1)');
@@ -469,6 +480,7 @@ function genUploadUI(node: UploadNode, c: VueContext): string {
 function genModalUI(node: ModalNode, c: VueContext): string {
   c.imports.add('ref');
   const showVar = `show${capitalize(node.name)}`;
+  c.extraScriptLines.push(`const ${showVar} = ref(false);`);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n    ');
   const lines: string[] = [];
   if (node.trigger) {
@@ -478,7 +490,7 @@ function genModalUI(node: ModalNode, c: VueContext): string {
   lines.push(`<div v-if="${showVar}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000" @click="${showVar} = false">`);
   lines.push(`  <div style="background-color: #fff; border-radius: 12px; padding: 24px; min-width: 400px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.15)" @click.stop>`);
   lines.push(`    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">`);
-  lines.push(`      <h2 style="margin: 0; font-size: 20px">${node.title}</h2>`);
+  lines.push(`      <h2 style="margin: 0; font-size: 20px">${capitalize(node.title)}</h2>`);
   lines.push(`      <button @click="${showVar} = false" style="border: none; background: none; font-size: 20px; cursor: pointer; padding: 4px">&times;</button>`);
   lines.push(`    </div>`);
   lines.push(`    ${body}`);
@@ -510,6 +522,7 @@ function genListUI(node: ListNode, c: VueContext): string {
 function genDrawerUI(node: DrawerNode, c: VueContext): string {
   c.imports.add('ref');
   const showVar = `show${capitalize(node.name)}`;
+  c.extraScriptLines.push(`const ${showVar} = ref(false);`);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n    ');
   return `<Teleport to="body"><div v-if="${showVar}" style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 1000" @click="${showVar} = false"><div style="position: fixed; top: 0; right: 0; bottom: 0; width: 320px; background-color: #fff; padding: 24px; box-shadow: -2px 0 8px rgba(0,0,0,0.1); overflow-y: auto" @click.stop>\n    ${body}\n  </div></div></Teleport>`;
 }
@@ -649,11 +662,11 @@ function genExpr(expr: Expression, c: VueContext, useValue: boolean = false): st
   const suffix = useValue ? '.value' : '';
   switch (expr.kind) {
     case 'number': return String(expr.value);
-    case 'string': return `'${expr.value}'`;
+    case 'string': return `'${expr.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
     case 'boolean': return String(expr.value);
     case 'null': return 'null';
     case 'identifier':
-      if (useValue && c.states.has(expr.name)) return `${expr.name}.value`;
+      if (useValue && (c.states.has(expr.name) || c.derivedNames.has(expr.name))) return `${expr.name}.value`;
       return expr.name;
     case 'member': return `${genExpr(expr.object, c, useValue)}.${expr.property}`;
     case 'index': return `${genExpr(expr.object, c, useValue)}[${genExpr(expr.index, c, useValue)}]`;
@@ -667,8 +680,9 @@ function genExpr(expr: Expression, c: VueContext, useValue: boolean = false): st
     case 'ternary': return `${genExpr(expr.condition, c, useValue)} ? ${genExpr(expr.consequent, c, useValue)} : ${genExpr(expr.alternate, c, useValue)}`;
     case 'arrow': {
       const params = expr.params.join(', ');
-      if (!Array.isArray(expr.body)) return `${params} => ${genExpr(expr.body as Expression, c, useValue)}`;
-      return `(${params}) => { }`;
+      if (!Array.isArray(expr.body)) return `(${params}) => ${genExpr(expr.body as Expression, c, useValue)}`;
+      const body = (expr.body as Statement[]).map(s => genStmt(s, c)).join('\n');
+      return `(${params}) => { ${body} }`;
     }
     case 'array': return `[${expr.elements.map(e => genExpr(e, c, useValue)).join(', ')}]`;
     case 'object_expr': {
@@ -699,8 +713,9 @@ function genStmt(stmt: Statement, c: VueContext): string {
     case 'assignment_stmt': {
       const name = extractName(stmt.target);
       if (c.states.has(name)) {
+        const target = genExpr(stmt.target, c, true);
         const value = genExpr(stmt.value, c, true);
-        return `${name}.value ${stmt.op} ${value};`;
+        return `${target} ${stmt.op} ${value};`;
       }
       return `${genExpr(stmt.target, c)} ${stmt.op} ${genExpr(stmt.value, c)};`;
     }
@@ -723,7 +738,8 @@ function genActionExpr(expr: Expression | Statement[], c: VueContext): string {
   if (expr.kind === 'assignment') {
     const name = extractName(expr.target);
     if (c.states.has(name)) {
-      return `${name} ${expr.op} ${genExpr(expr.value, c)}`;
+      // In templates, refs auto-unwrap — use full target path without .value
+      return `${genExpr(expr.target, c)} ${expr.op} ${genExpr(expr.value, c)}`;
     }
   }
   if (expr.kind === 'call') return genExpr(expr, c);
@@ -846,7 +862,7 @@ function cssPropToCss(prop: string): string {
 
 function formatCssValue(prop: string, val: string): string {
   const v = unquote(val);
-  if (['padding', 'margin', 'radius', 'gap'].includes(prop)) return `${v}px`;
+  if (['padding', 'margin', 'radius', 'gap'].includes(prop)) return addPx(v);
   if (prop === 'shadow') {
     if (v === 'sm') return '0 1px 2px rgba(0,0,0,0.1)';
     if (v === 'md') return '0 4px 6px rgba(0,0,0,0.1)';
