@@ -1240,20 +1240,48 @@ class Parser {
         if (this.match('NEWLINE')) { this.advance(); continue; }
         if (this.match('COMMENT')) { this.advance(); this.skipNewlines(); continue; }
 
-        if (this.match('KEYWORD', 'column')) {
+        if (this.match('KEYWORD', 'column') || this.match('KEYWORD', 'col')) {
           this.advance();
-          const label = this.expect('STRING').value;
-          const field = this.expectName();
 
-          // Parse column modifiers
+          // col actions: edit, delete
+          if (this.match('IDENTIFIER', 'actions') || this.match('KEYWORD', 'actions')) {
+            this.advance();
+            this.expect('PUNCTUATION', ':');
+            const actionsExpr = this.parseExpression();
+            const actions: string[] = [];
+            if (actionsExpr.kind === 'array') {
+              for (const el of actionsExpr.elements) {
+                if (el.kind === 'identifier') actions.push(el.name);
+                else if (el.kind === 'string') actions.push(el.value);
+              }
+            } else if (actionsExpr.kind === 'identifier') {
+              actions.push(actionsExpr.name);
+              while (this.match('PUNCTUATION', ',')) {
+                this.advance();
+                actions.push(this.expectName());
+              }
+            }
+            columns.push({ kind: 'actions', actions });
+            this.skipNewlines();
+            continue;
+          }
+
+          const label = this.expect('STRING').value;
+          let field = '';
+
+          // Parse column props and modifiers
           let sortable = false;
           let searchable = false;
           let filterable = false;
           let format: string | undefined;
 
           while (!this.match('NEWLINE') && !this.match('EOF') && !this.match('DEDENT')) {
-            const mod = this.expectName();
-            if (mod === 'sortable') sortable = true;
+            if (!this.match('IDENTIFIER') && !this.match('KEYWORD')) break;
+            const mod = this.advance().value;
+            if (mod === 'field' && this.match('OPERATOR', '=')) {
+              this.advance();
+              field = this.expectName();
+            } else if (mod === 'sortable') sortable = true;
             else if (mod === 'searchable') searchable = true;
             else if (mod === 'filterable') filterable = true;
             else if (mod === 'format') {
@@ -1265,9 +1293,13 @@ class Parser {
                 format += '(' + this.expectName() + ')';
                 this.expect('PUNCTUATION', ')');
               }
+            } else if (!field) {
+              // Bare identifier after label = field name
+              field = mod;
             }
           }
 
+          if (!field) field = label.toLowerCase();
           columns.push({ kind: 'field', field, label, sortable, searchable, filterable, format });
           this.skipNewlines();
           continue;
@@ -1805,6 +1837,11 @@ class Parser {
     let title = name;
     let trigger: string | null = null;
 
+    // Accept title string directly after name: modal myModal "My Title" trigger="Open":
+    if (this.match('STRING')) {
+      title = this.advance().value;
+    }
+
     // Parse optional inline props
     while (!this.match('PUNCTUATION', ':') && !this.match('NEWLINE') && !this.match('EOF')) {
       if (this.match('IDENTIFIER') || this.match('KEYWORD')) {
@@ -2093,6 +2130,8 @@ class Parser {
     const location = this.loc();
     this.expect('KEYWORD', 'drawer');
     const name = this.expectName();
+    // Skip optional title string: drawer sidebar "Menu":
+    if (this.match('STRING')) this.advance();
     const { props, body } = this.parseGenericBlock();
     return { type: 'Drawer', name, props, body, loc: location };
   }
@@ -2765,7 +2804,13 @@ class Parser {
       if (expr.kind === 'identifier') {
         params.push(expr.name);
       }
-      const body = this.parseExpression();
+      let body = this.parseExpression();
+      // Support assignment in arrow body: x => x += 1
+      if (this.match('OPERATOR', '=') || this.match('OPERATOR', '+=') || this.match('OPERATOR', '-=') || this.match('OPERATOR', '*=') || this.match('OPERATOR', '/=')) {
+        const op = this.advance().value;
+        const value = this.parseExpression();
+        body = { kind: 'assignment', target: body, op, value } as Expression;
+      }
       return { kind: 'arrow', params, body };
     }
 
