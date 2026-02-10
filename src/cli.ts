@@ -102,7 +102,7 @@ function buildCommand(args: string[]): void {
   const source = readFileSync(filePath, 'utf-8');
   const name = basename(file, '.ai');
 
-  console.log(`\n0x Compiler v0.1.4`);
+  console.log(`\n0x Compiler v0.1.5`);
   console.log(`Compiling: ${file}\n`);
 
   for (const target of targets) {
