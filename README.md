@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://0xlang.com">Website</a> · <a href="#quick-start">Quick Start</a> · <a href="#language-reference">Docs</a> · <a href="https://www.npmjs.com/package/0x-lang">npm</a> · <a href="mcp-server/">MCP Server</a>
+  <a href="https://0xlang.com">Website</a> · <a href="#quick-start">Quick Start</a> · <a href="#language-reference">Docs</a> · <a href="https://www.npmjs.com/package/0x-lang">npm</a> · <a href="mcp-server/">MCP Server</a> · <a href="https://server.smithery.ai/hankim/ox-lang">Smithery Server</a>
 </p>
 
 ---
@@ -513,6 +513,8 @@ Add to `.cursor/mcp.json`:
 npx @smithery/cli install 0x
 ```
 
+Or use the hosted server directly: https://server.smithery.ai/hankim/ox-lang
+
 </details>
 
 ### Tools
@@ -640,5 +642,5 @@ Tests cover tokenizer, parser, validator, all three generators, benchmarks, and 
 ---
 
 <p align="center">
-  <a href="https://0xlang.com">0xlang.com</a> · <a href="https://github.com/hankimis/0x-lang">GitHub</a> · <a href="https://www.npmjs.com/package/0x-lang">npm</a> · <a href="https://smithery.ai/server/0x">Smithery</a>
+  <a href="https://0xlang.com">0xlang.com</a> · <a href="https://github.com/hankimis/0x-lang">GitHub</a> · <a href="https://www.npmjs.com/package/0x-lang">npm</a> · <a href="https://smithery.ai/server/0x">Smithery</a> · <a href="https://server.smithery.ai/hankim/ox-lang">Smithery Server</a>
 </p>
