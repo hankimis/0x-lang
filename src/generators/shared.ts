@@ -16,6 +16,11 @@ export function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+export function addPx(v: string): string {
+  if (/\d$/.test(v)) return `${v}px`;
+  return v;
+}
+
 /**
  * Convert 0x gradient shorthand to CSS linear-gradient.
  * Supported formats:

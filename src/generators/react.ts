@@ -25,7 +25,7 @@ import type {
   I18nNode, LocaleNode, RtlNode,
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
-import { SIZE_MAP, unquote, capitalize, parseGradient } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx } from './shared.js';
 
 interface GenContext {
   imports: Set<string>; // React hooks to import
@@ -492,10 +492,10 @@ function genLayout(node: LayoutNode, c: GenContext): string {
     const v = genExpr(val, c);
     const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
     switch (key) {
-      case 'gap': style['gap'] = `${v}px`; break;
-      case 'padding': style['padding'] = `${v}px`; break;
+      case 'gap': style['gap'] = addPx(v); break;
+      case 'padding': style['padding'] = addPx(v); break;
       case 'margin': style['margin'] = v; break;
-      case 'maxWidth': style['maxWidth'] = `${v}px`; break;
+      case 'maxWidth': style['maxWidth'] = addPx(v); break;
       case 'height': style['height'] = v; if (isDynamic) dynamicKeys.add('height'); break;
       case 'bg': style['backgroundColor'] = v; if (isDynamic) dynamicKeys.add('backgroundColor'); break;
       case 'gradient': { const g = parseGradient(v); style['background'] = g; break; }
@@ -505,7 +505,7 @@ function genLayout(node: LayoutNode, c: GenContext): string {
       case 'end': style['justifyContent'] = 'flex-end'; break;
       case 'grow': style['flexGrow'] = v; break;
       case 'scroll': style['overflow' + (v === 'y' ? 'Y' : 'X')] = 'auto'; break;
-      case 'radius': style['borderRadius'] = `${v}px`; break;
+      case 'radius': style['borderRadius'] = addPx(v); break;
       case 'shadow':
         if (v === 'sm') style['boxShadow'] = '0 1px 2px rgba(0,0,0,0.1)';
         else if (v === 'md') style['boxShadow'] = '0 4px 6px rgba(0,0,0,0.1)';
@@ -729,6 +729,17 @@ function genStatement(stmt: Statement, c: GenContext): string {
         const value = genExpr(stmt.value, c);
         c.readOnly = prevReadOnly;
         const setter = 'set' + capitalize(stateName);
+        const memberPath = extractMemberPath(stmt.target);
+        if (memberPath.length > 0) {
+          // Nested state assignment: user.name = "Bob" → setUser(prev => ({...prev, name: 'Bob'}))
+          if (stmt.op === '=') {
+            return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, value)});`;
+          } else {
+            const opChar = stmt.op.charAt(0);
+            const prevAccess = 'prev.' + memberPath.join('.');
+            return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, `${prevAccess} ${opChar} ${value}`)});`;
+          }
+        }
         if (stmt.op === '=') {
           return `${setter}(${value});`;
         } else if (stmt.op === '+=') {
@@ -774,7 +785,7 @@ function genStatement(stmt: Statement, c: GenContext): string {
 function genExpr(expr: Expression, c: GenContext): string {
   switch (expr.kind) {
     case 'number': return String(expr.value);
-    case 'string': return `'${expr.value}'`;
+    case 'string': return `'${expr.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
     case 'boolean': return String(expr.value);
     case 'null': return 'null';
     case 'identifier': return expr.name;
@@ -814,7 +825,7 @@ function genExpr(expr: Expression, c: GenContext): string {
         const body = (expr.body as Statement[]).map(s => genStatement(s, c)).join('\n');
         return `(${params}) => { ${body} }`;
       }
-      return `${params} => ${genExpr(expr.body as Expression, c)}`;
+      return `(${params}) => ${genExpr(expr.body as Expression, c)}`;
     }
     case 'array': {
       const els = expr.elements.map(e => genExpr(e, c)).join(', ');
@@ -846,6 +857,13 @@ function genExpr(expr: Expression, c: GenContext): string {
         const value = genExpr(expr.value, c);
         c.readOnly = prevReadOnly;
         const setter = 'set' + capitalize(stateName);
+        const memberPath = extractMemberPath(expr.target);
+        if (memberPath.length > 0) {
+          if (expr.op === '=') return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, value)})`;
+          const opChar = expr.op.charAt(0);
+          const prevAccess = 'prev.' + memberPath.join('.');
+          return `${setter}(prev => ${buildSpreadUpdate('prev', memberPath, `${prevAccess} ${opChar} ${value}`)})`;
+        }
         if (expr.op === '=') return `${setter}(${value})`;
         if (expr.op === '+=') return `${setter}(prev => prev + ${value})`;
         if (expr.op === '-=') return `${setter}(prev => prev - ${value})`;
@@ -1164,7 +1182,7 @@ function genTableUI(node: TableNode, c: GenContext): string {
   // Body
   lines.push(`<tbody>`);
   lines.push(`{${data}.map((row, idx) => (`);
-  lines.push(`<tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>`);
+  lines.push(`<tr key={row.id ?? idx} style={{ borderBottom: '1px solid #e2e8f0' }}>`);
 
   for (const col of node.columns) {
     if (col.kind === 'select') {
@@ -1336,7 +1354,7 @@ function genChartUI(node: ChartNode, c: GenContext): string {
     lines.push(`  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100%', padding: '20px 0' }}>`);
     lines.push(`    <span style={{ fontSize: '14px', fontWeight: 'bold', position: 'absolute', top: 0 }}>{${title}}</span>`);
     lines.push(`    {${data}.map((item, i) => (`);
-    lines.push(`      <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>`);
+    lines.push(`      <div key={item?.id ?? i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>`);
     lines.push(`        <span style={{ fontSize: '12px', marginBottom: '4px' }}>{item[${y}]}</span>`);
     lines.push(`        <div style={{ width: '100%', backgroundColor: ${color ? `item[${color}] || '#3182ce'` : "'#3182ce'"}, height: \`\${(item[${y}] / Math.max(...${data}.map(d => d[${y}]))) * 100}%\`, borderRadius: '4px 4px 0 0', minHeight: '4px' }} />`);
     lines.push(`        <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>{item[${x}]}</span>`);
@@ -1348,7 +1366,7 @@ function genChartUI(node: ChartNode, c: GenContext): string {
     lines.push(`    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{${title}}</span>`);
     lines.push(`    {/* Pie chart - use recharts/chart.js for production */}`);
     lines.push(`    {${data}.map((item, i) => (`);
-    lines.push(`      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>`);
+    lines.push(`      <div key={item?.id ?? i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>`);
     lines.push(`        <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: ['#3182ce','#38a169','#d69e2e','#e53e3e','#805ad5'][i % 5] }} />`);
     lines.push(`        <span>{item[${x}]}: {item[${y}]}</span>`);
     lines.push(`      </div>`);
@@ -1360,7 +1378,7 @@ function genChartUI(node: ChartNode, c: GenContext): string {
     lines.push(`    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{${title}}</span>`);
     lines.push(`    <div style={{ marginTop: '12px', color: '#666' }}>`);
     lines.push(`      {${data}.map((item, i) => (`);
-    lines.push(`        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #eee' }}>`);
+    lines.push(`        <div key={item?.id ?? i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #eee' }}>`);
     lines.push(`          <span>{item[${x}]}</span>`);
     lines.push(`          <span style={{ fontWeight: 600 }}>{item[${y}]}</span>`);
     lines.push(`        </div>`);
@@ -1570,7 +1588,7 @@ function genModalUI(node: ModalNode, c: GenContext): string {
   lines.push(`          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '24px', minWidth: '400px', maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}`);
   lines.push(`            onClick={e => e.stopPropagation()}>`);
   lines.push(`            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>`);
-  lines.push(`              <h2 style={{ margin: 0, fontSize: '20px' }}>${node.title}</h2>`);
+  lines.push(`              <h2 style={{ margin: 0, fontSize: '20px' }}>${capitalize(node.title)}</h2>`);
   lines.push(`              <button onClick={() => set${capitalize(showVar)}(false)} style={{ border: 'none', background: 'none', fontSize: '20px', cursor: 'pointer', padding: '4px' }}>&times;</button>`);
   lines.push(`            </div>`);
 
@@ -1678,9 +1696,9 @@ function genListUI(node: ListNode, c: GenContext): string {
   const data = genExpr(node.dataSource, c);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n');
   if (node.listType === 'grid') {
-    return `<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>\n  {${data}.map((item, i) => (\n    <div key={i}>\n      ${body}\n    </div>\n  ))}\n</div>`;
+    return `<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>\n  {${data}.map((item, i) => (\n    <div key={item?.id ?? i}>\n      ${body}\n    </div>\n  ))}\n</div>`;
   }
-  return `<div className="list-${node.listType}">\n  {${data}.map((item, i) => (\n    <div key={i}>${body}</div>\n  ))}\n</div>`;
+  return `<div className="list-${node.listType}">\n  {${data}.map((item, i) => (\n    <div key={item?.id ?? i}>${body}</div>\n  ))}\n</div>`;
 }
 
 function genDrawerUI(node: DrawerNode, c: GenContext): string {
@@ -2395,6 +2413,29 @@ function extractStateName(expr: Expression): string | null {
   if (expr.kind === 'identifier') return expr.name;
   if (expr.kind === 'member') return extractStateName(expr.object);
   return null;
+}
+
+/** Extract property path from a member expression, excluding the root state name.
+ *  e.g., user.name → ['name'], user.profile.name → ['profile', 'name'] */
+function extractMemberPath(expr: Expression): string[] {
+  const path: string[] = [];
+  let current = expr;
+  while (current.kind === 'member') {
+    path.unshift(current.property);
+    current = current.object;
+  }
+  return path;
+}
+
+/** Build nested spread update: buildSpreadUpdate('prev', ['profile', 'name'], '"Bob"')
+ *  → ({...prev, profile: {...prev.profile, name: "Bob"}}) */
+function buildSpreadUpdate(prevVar: string, path: string[], value: string): string {
+  if (path.length === 1) {
+    return `({...${prevVar}, ${path[0]}: ${value}})`;
+  }
+  const [head, ...rest] = path;
+  const inner = buildSpreadUpdate(`${prevVar}.${head}`, rest, value);
+  return `({...${prevVar}, ${head}: ${inner}})`;
 }
 
 function extractDeps(expr: Expression, c: GenContext): string[] {

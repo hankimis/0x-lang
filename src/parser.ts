@@ -2956,8 +2956,9 @@ class Parser {
           i++;
         }
         i++; // skip closing }
-        // Parse the expression string
-        parts.push({ kind: 'identifier', name: exprStr.trim() });
+        // Parse the expression string — handle member access and index access
+        const trimmed = exprStr.trim();
+        parts.push(this.parseTemplateExpr(trimmed));
       } else {
         current += template[i];
         i++;
@@ -2965,6 +2966,31 @@ class Parser {
     }
     if (current) parts.push(current);
     return parts;
+  }
+
+  private parseTemplateExpr(str: string): Expression {
+    // Handle member access: "obj.prop.sub"
+    // Handle index access: "arr[0]"
+    // Handle simple identifiers: "name"
+    // Fallback: treat as identifier for complex expressions like "x + 1"
+    const parts = str.split('.');
+    if (parts.length > 1 && parts.every(p => /^[a-zA-Z_]\w*(\[\w+\])?$/.test(p))) {
+      let expr: Expression = { kind: 'identifier', name: parts[0] };
+      for (let i = 1; i < parts.length; i++) {
+        const bracketMatch = parts[i].match(/^(\w+)\[(\w+)\]$/);
+        if (bracketMatch) {
+          expr = { kind: 'member', object: expr, property: bracketMatch[1] };
+          const idx = /^\d+$/.test(bracketMatch[2])
+            ? { kind: 'number' as const, value: Number(bracketMatch[2]) }
+            : { kind: 'identifier' as const, name: bracketMatch[2] };
+          expr = { kind: 'index', object: expr, index: idx };
+        } else {
+          expr = { kind: 'member', object: expr, property: parts[i] };
+        }
+      }
+      return expr;
+    }
+    return { kind: 'identifier', name: str };
   }
 
   // ── Phase 4: Infrastructure parsers ─────────────────
