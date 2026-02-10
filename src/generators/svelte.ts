@@ -259,6 +259,18 @@ function genLayout(node: LayoutNode, c: SvelteContext): string {
     }
   }
 
+  // Apply style class
+  if (node.styleClass && c.styles.has(node.styleClass)) {
+    const styleDecl = c.styles.get(node.styleClass)!;
+    for (const prop of styleDecl.properties) {
+      if (!prop.responsive) {
+        const val = genExpr(prop.value, c);
+        const cssVal = formatCssValue(prop.name, val);
+        style.push(`${cssPropToCss(prop.name)}: ${cssVal}`);
+      }
+    }
+  }
+
   const children = node.children.map(ch => genUINode(ch, c)).join('\n  ');
   return `<div style="${style.join('; ')}">\n  ${children}\n</div>`;
 }
@@ -273,7 +285,21 @@ function genText(node: TextNode, c: SvelteContext): string {
 function genButton(node: ButtonNode, c: SvelteContext): string {
   const label = genTextContent(node.label, c);
   const action = genActionExpr(node.action, c);
-  return `<button onclick={() => ${action}}>${label}</button>`;
+  const attrs: string[] = [];
+  for (const [key, val] of Object.entries(node.props)) {
+    const v = genExpr(val, c);
+    switch (key) {
+      case 'style': {
+        const uv = unquote(v);
+        if (uv === 'primary') attrs.push('style="background-color: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
+        else if (uv === 'danger') attrs.push('style="background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
+        break;
+      }
+      case 'disabled': attrs.push(`disabled={${v}}`); break;
+    }
+  }
+  const attrStr = attrs.length > 0 ? ' ' + attrs.join(' ') : '';
+  return `<button onclick={() => ${action}}${attrStr}>${label}</button>`;
 }
 
 function genInput(node: InputNode, c: SvelteContext): string {
@@ -282,6 +308,8 @@ function genInput(node: InputNode, c: SvelteContext): string {
     const v = genExpr(val, c);
     if (key === 'placeholder') props.push(`placeholder="${unquote(v)}"`);
     if (key === 'type') props.push(`type="${unquote(v)}"`);
+    if (key === '@keypress') props.push(`onkeypress={e => ${v}(e.key)}`);
+    if (key === 'grow') props.push(`style="flex-grow: ${v}"`);
   }
   return `<input ${props.join(' ')} />`;
 }
@@ -681,6 +709,7 @@ function genTextStyle(node: TextNode, c: SvelteContext): string {
     if (key === 'gradient') { const g = parseGradient(v); parts.push(`background: ${g}; -webkit-background-clip: text; -webkit-text-fill-color: transparent`); }
     if (key === 'center') parts.push('text-align: center');
     if (key === 'italic') parts.push('font-style: italic');
+    if (key === 'underline') parts.push('text-decoration: underline');
     if (key === 'strike') {
       if (isDynamic) {
         parts.push(`text-decoration: {${v} ? 'line-through' : 'none'}`);
@@ -691,5 +720,24 @@ function genTextStyle(node: TextNode, c: SvelteContext): string {
     if (key === 'end') parts.push('text-align: right');
   }
   return parts.join('; ');
+}
+
+function cssPropToCss(prop: string): string {
+  const map: Record<string, string> = {
+    'padding': 'padding', 'margin': 'margin', 'radius': 'border-radius',
+    'shadow': 'box-shadow', 'bg': 'background-color', 'color': 'color',
+  };
+  return map[prop] || prop;
+}
+
+function formatCssValue(prop: string, val: string): string {
+  const v = unquote(val);
+  if (['padding', 'margin', 'radius', 'gap'].includes(prop)) return `${v}px`;
+  if (prop === 'shadow') {
+    if (v === 'sm') return '0 1px 2px rgba(0,0,0,0.1)';
+    if (v === 'md') return '0 4px 6px rgba(0,0,0,0.1)';
+    if (v === 'lg') return '0 10px 15px rgba(0,0,0,0.1)';
+  }
+  return v;
 }
 
