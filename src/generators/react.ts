@@ -527,6 +527,7 @@ function genText(node: TextNode, c: GenContext): string {
     switch (key) {
       case 'size': { const uv = unquote(v); style['fontSize'] = SIZE_MAP[uv] || `${uv}px`; break; }
       case 'bold': style['fontWeight'] = 'bold'; break;
+      case 'italic': style['fontStyle'] = 'italic'; break;
       case 'color': style['color'] = v; if (isDynamic) dynamicKeys.add('color'); break;
       case 'bg': style['backgroundColor'] = v; if (isDynamic) dynamicKeys.add('backgroundColor'); break;
       case 'gradient': { const g = parseGradient(v); style['background'] = g; style['WebkitBackgroundClip'] = 'text'; style['WebkitTextFillColor'] = 'transparent'; break; }
@@ -683,8 +684,9 @@ function genFor(node: ForBlock, c: GenContext): string {
   const iter = genExpr(node.iterable, c);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n');
 
+  const keyExpr = `${item}.id ?? ${node.index ?? item}`;
   const params = node.index ? `(${item}, ${node.index})` : `(${item})`;
-  return `{${iter}.map(${params} => (\n${body}\n))}`;
+  return `{${iter}.map(${params} => (\n<React.Fragment key={${keyExpr}}>\n${body}\n</React.Fragment>\n))}`;
 }
 
 function genShow(node: ShowBlock, c: GenContext): string {
