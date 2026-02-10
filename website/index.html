@@ -11,7 +11,7 @@
   <link rel="canonical" href="https://0xlang.com/">
   <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM Information">
 
-  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="icon" type="image/svg+xml" href="assets/0xlogo.svg">
 
   <!-- Open Graph -->
   <meta property="og:title" content="0x — The AI-First Programming Language">
@@ -154,25 +154,25 @@
     <div class="particle"></div>
   </div>
 
-  <main class="container">
-
-    <!-- Nav -->
-    <div class="nav-wrapper">
-      <nav class="nav" aria-label="Main navigation">
-        <a href="#" class="nav-logo">
-          <img src="assets/logo.svg" alt="0x programming language logo" width="32" height="32">
-          <span>0x</span>
+  <!-- Nav (outside container for full-width) -->
+  <div class="nav-wrapper">
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#" class="nav-logo">
+        <img src="assets/0xlogo.svg" alt="0x programming language logo" width="32" height="32">
+        <span>0x</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#benchmarks">Benchmarks</a>
+        <a href="https://github.com/hankimis/0x-lang" class="nav-github" aria-label="View 0x-lang on GitHub" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
         </a>
-        <div class="nav-links">
-          <a href="#features">Features</a>
-          <a href="#demo">Demo</a>
-          <a href="#benchmarks">Benchmarks</a>
-          <a href="https://github.com/hankimis/0x-lang" class="nav-github" aria-label="View 0x-lang on GitHub" rel="noopener">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-          </a>
-        </div>
-      </nav>
-    </div>
+      </div>
+    </nav>
+  </div>
+
+  <main class="container">
 
     <!-- Hero -->
     <header class="hero">
@@ -202,22 +202,31 @@
     <!-- Stats Bar -->
     <section class="stats-bar" data-animate="fade">
       <div class="stat">
-        <span class="stat-value">80%</span>
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <span class="stat-value" data-stat-count="80" data-stat-suffix="%">80%</span>
         <span class="stat-label">Less Code</span>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-value">3</span>
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <span class="stat-value" data-stat-count="3">3</span>
         <span class="stat-label">Output Targets</span>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-value">0</span>
-        <span class="stat-label">Runtime Dependencies</span>
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <span class="stat-value stat-value-text">Zero</span>
+        <span class="stat-label">Runtime Deps</span>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-value">&lt;1s</span>
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <span class="stat-value stat-value-text">&lt;1s</span>
         <span class="stat-label">Compile Time</span>
       </div>
     </section>
@@ -605,68 +614,56 @@
         <div class="bench-hero-sub">Write <strong>18 lines</strong> of 0x. Get <strong>96 lines</strong> of React.</div>
       </div>
 
-      <!-- Benchmark Cards -->
-      <div class="bench-cards" data-stagger>
-        <div class="bench-card" data-animate style="--i:0">
-          <div class="bench-card-top">
-            <code class="bench-file">counter.ai</code>
-            <span class="bench-pct">81<small>%</small></span>
-          </div>
-          <div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:81"></div></div>
-          <div class="bench-card-stats">
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-0x">18</span><span class="bench-stat-lbl">0x lines</span></div>
-            <svg class="bench-stat-arrow" width="20" height="12" viewBox="0 0 20 12"><path d="M0 6h16M13 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-react">96</span><span class="bench-stat-lbl">React lines</span></div>
-          </div>
-        </div>
-        <div class="bench-card" data-animate style="--i:1">
-          <div class="bench-card-top">
-            <code class="bench-file">todo.ai</code>
-            <span class="bench-pct">82<small>%</small></span>
-          </div>
-          <div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:82"></div></div>
-          <div class="bench-card-stats">
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-0x">24</span><span class="bench-stat-lbl">0x lines</span></div>
-            <svg class="bench-stat-arrow" width="20" height="12" viewBox="0 0 20 12"><path d="M0 6h16M13 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-react">136</span><span class="bench-stat-lbl">React lines</span></div>
-          </div>
-        </div>
-        <div class="bench-card" data-animate style="--i:2">
-          <div class="bench-card-top">
-            <code class="bench-file">dashboard.ai</code>
-            <span class="bench-pct">80<small>%</small></span>
-          </div>
-          <div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:80"></div></div>
-          <div class="bench-card-stats">
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-0x">37</span><span class="bench-stat-lbl">0x lines</span></div>
-            <svg class="bench-stat-arrow" width="20" height="12" viewBox="0 0 20 12"><path d="M0 6h16M13 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-react">185</span><span class="bench-stat-lbl">React lines</span></div>
-          </div>
-        </div>
-        <div class="bench-card" data-animate style="--i:3">
-          <div class="bench-card-top">
-            <code class="bench-file">chat.ai</code>
-            <span class="bench-pct">80<small>%</small></span>
-          </div>
-          <div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:80"></div></div>
-          <div class="bench-card-stats">
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-0x">31</span><span class="bench-stat-lbl">0x lines</span></div>
-            <svg class="bench-stat-arrow" width="20" height="12" viewBox="0 0 20 12"><path d="M0 6h16M13 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-react">155</span><span class="bench-stat-lbl">React lines</span></div>
-          </div>
-        </div>
-        <div class="bench-card" data-animate style="--i:4">
-          <div class="bench-card-top">
-            <code class="bench-file">ecommerce.ai</code>
-            <span class="bench-pct">79<small>%</small></span>
-          </div>
-          <div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:79"></div></div>
-          <div class="bench-card-stats">
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-0x">44</span><span class="bench-stat-lbl">0x lines</span></div>
-            <svg class="bench-stat-arrow" width="20" height="12" viewBox="0 0 20 12"><path d="M0 6h16M13 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <div class="bench-stat-col"><span class="bench-stat-val bench-stat-react">210</span><span class="bench-stat-lbl">React lines</span></div>
-          </div>
-        </div>
+      <!-- Benchmark Table -->
+      <div class="bench-table-wrap" data-animate>
+        <table class="bench-table">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>0x</th>
+              <th>React</th>
+              <th>Saved</th>
+              <th class="bench-th-bar">Reduction</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code class="bench-file">counter.ai</code></td>
+              <td class="bench-td-0x">18 <span>lines</span></td>
+              <td class="bench-td-react">96 <span>lines</span></td>
+              <td class="bench-td-pct">81%</td>
+              <td class="bench-td-bar"><div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:81"></div></div></td>
+            </tr>
+            <tr>
+              <td><code class="bench-file">todo.ai</code></td>
+              <td class="bench-td-0x">24 <span>lines</span></td>
+              <td class="bench-td-react">136 <span>lines</span></td>
+              <td class="bench-td-pct">82%</td>
+              <td class="bench-td-bar"><div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:82"></div></div></td>
+            </tr>
+            <tr>
+              <td><code class="bench-file">dashboard.ai</code></td>
+              <td class="bench-td-0x">37 <span>lines</span></td>
+              <td class="bench-td-react">185 <span>lines</span></td>
+              <td class="bench-td-pct">80%</td>
+              <td class="bench-td-bar"><div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:80"></div></div></td>
+            </tr>
+            <tr>
+              <td><code class="bench-file">chat.ai</code></td>
+              <td class="bench-td-0x">31 <span>lines</span></td>
+              <td class="bench-td-react">155 <span>lines</span></td>
+              <td class="bench-td-pct">80%</td>
+              <td class="bench-td-bar"><div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:80"></div></div></td>
+            </tr>
+            <tr>
+              <td><code class="bench-file">ecommerce.ai</code></td>
+              <td class="bench-td-0x">44 <span>lines</span></td>
+              <td class="bench-td-react">210 <span>lines</span></td>
+              <td class="bench-td-pct">79%</td>
+              <td class="bench-td-bar"><div class="bench-bar-track"><div class="bench-bar-fill" style="--pct:79"></div></div></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <p class="benchmark-note">Compared against production TypeScript React with full inline styling, types, and component structure. Verified in CI.</p>
@@ -808,26 +805,26 @@
       </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <img src="assets/logo.svg" alt="0x logo" width="24" height="24">
-          <span>0x</span>
-          <span class="footer-sep">|</span>
-          <span class="footer-tagline">The AI-First Programming Language</span>
-        </div>
-        <div class="footer-links">
-          <a href="https://github.com/hankimis/0x-lang">GitHub</a>
-          <a href="https://www.npmjs.com/package/0x-lang">npm</a>
-          <a href="https://server.smithery.ai/hankim/ox-lang">Smithery</a>
-          <a href="https://github.com/hankimis/0x-lang/blob/main/CONTRIBUTING.md">Contribute</a>
-        </div>
-      </div>
-      <p class="footer-copy">ISC License. Free for personal and commercial use.</p>
-    </footer>
-
   </main>
+
+  <!-- Footer (outside container for full-width) -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="assets/0xlogo.svg" alt="0x logo" width="24" height="24">
+        <span>0x</span>
+        <span class="footer-sep">|</span>
+        <span class="footer-tagline">The AI-First Programming Language</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/hankimis/0x-lang">GitHub</a>
+        <a href="https://www.npmjs.com/package/0x-lang">npm</a>
+        <a href="https://server.smithery.ai/hankim/ox-lang">Smithery</a>
+        <a href="https://github.com/hankimis/0x-lang/blob/main/CONTRIBUTING.md">Contribute</a>
+      </div>
+    </div>
+    <p class="footer-copy">ISC License. Free for personal and commercial use.</p>
+  </footer>
 
   <script>
     // Tab switching
@@ -901,11 +898,11 @@
       const statsObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            const values = statsBar.querySelectorAll('.stat-value');
-            if (values[0]) animateValue(values[0], 0, 80, 1200, '%');
-            if (values[1]) animateValue(values[1], 0, 3, 800, '');
-            if (values[2]) animateValue(values[2], 0, 0, 400, '');
-            if (values[3]) values[3].textContent = '<1s';
+            statsBar.querySelectorAll('[data-stat-count]').forEach(el => {
+              const end = parseInt(el.dataset.statCount);
+              const suffix = el.dataset.statSuffix || '';
+              animateValue(el, 0, end, 1200, suffix);
+            });
             statsObserver.unobserve(entry.target);
           }
         });
