@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="website/assets/logo.svg" alt="0x Logo" width="100" height="100" />
+  <img src="website/assets/0xlogo.svg" alt="0x Logo" width="100" height="100" />
 </p>
 
 <h1 align="center">0x</h1>
