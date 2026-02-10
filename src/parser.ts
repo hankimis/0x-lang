@@ -3539,23 +3539,16 @@ class Parser {
   }
 
   private isStructuralKeyword(value: string): boolean {
-    // Only keywords that CANNOT appear as variable names in expression context
+    // Only keywords that start body-level declarations/blocks and MUST NOT
+    // be treated as identifiers in expression context.
+    // Other keywords (page, component, model, form, field, submit, table, chart, etc.)
+    // are dispatched directly by token value at the body level, so they can safely
+    // be used as variable names in expressions.
     return [
-      'page', 'component', 'app', 'state', 'derived', 'prop', 'type',
+      'state', 'derived', 'prop', 'type',
       'fn', 'async', 'layout', 'if', 'elif', 'else', 'for',
       'on', 'watch', 'check', 'requires', 'ensures',
-      'store', 'use', 'js', 'import', 'from', 'return',
-      'model', 'form', 'field', 'table', 'column', 'submit',
-      'validate', 'permission',
-      'auth', 'guard', 'role',
-      'chart', 'stat', 'realtime',
-      'route', 'nav',
-      'upload', 'modal',
-      // Phase 4 (structural only — not error/loading/offline/retry/log which are used as identifiers)
-      'deploy', 'env', 'docker', 'ci', 'domain', 'cdn', 'monitor', 'backup',
-      'endpoint', 'middleware', 'queue', 'cron', 'cache', 'migrate', 'webhook', 'storage',
-      'test', 'e2e', 'mock', 'fixture',
-      'i18n', 'locale', 'rtl',
+      'return', 'import', 'from',
     ].includes(value);
   }
 }
