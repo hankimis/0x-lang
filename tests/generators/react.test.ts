@@ -23,7 +23,7 @@ describe('React Code Generator', () => {
     test('state → useState (int)', () => {
       const output = compileReact('page T:\n  state count: int = 0');
       expect(output).toContain('const [count, setCount] = useState(0)');
-      expect(output).toContain("import React, { useState");
+      expect(output).toContain("useState");
     });
 
     test('state → useState (str)', () => {

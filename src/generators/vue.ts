@@ -185,6 +185,10 @@ function genApi(node: ApiDecl, c: VueContext): string {
 
 // ── UI Nodes ────────────────────────────────────────
 
+function srcComment(node: { loc?: { line: number } }): string {
+  return node.loc?.line ? `<!-- 0x:L${node.loc.line} -->` : '';
+}
+
 function genUINode(node: UINode, c: VueContext): string {
   switch (node.type) {
     case 'Layout': return genLayout(node, c);
@@ -323,7 +327,8 @@ function genLayout(node: LayoutNode, c: VueContext): string {
     attrs += ` :style="{ ${dynamicEntries.join(', ')} }"`;
   }
   const children = node.children.map(ch => genUINode(ch, c)).join('\n  ');
-  return `<div ${attrs}>\n  ${children}\n</div>`;
+  const sc = srcComment(node);
+  return `${sc}<div ${attrs}>\n  ${children}\n</div>`;
 }
 
 function genText(node: TextNode, c: VueContext): string {
@@ -339,7 +344,8 @@ function genText(node: TextNode, c: VueContext): string {
 
   const badgeExpr = node.props['badge'];
   const tooltipExpr = node.props['tooltip'];
-  let result = `<span${styleAttr}>${content}</span>`;
+  const sc = srcComment(node);
+  let result = `${sc}<span${styleAttr}>${content}</span>`;
 
   if (badgeExpr) {
     const badge = genExpr(badgeExpr, c);
@@ -371,7 +377,8 @@ function genButton(node: ButtonNode, c: VueContext): string {
     }
   }
   const attrStr = attrs.length > 0 ? ' ' + attrs.join(' ') : '';
-  return `<button @click="${action}"${attrStr}>${label}</button>`;
+  const sc = srcComment(node);
+  return `${sc}<button @click="${action}"${attrStr}>${label}</button>`;
 }
 
 function genInput(node: InputNode, c: VueContext): string {
@@ -383,7 +390,8 @@ function genInput(node: InputNode, c: VueContext): string {
     if (key === '@keypress') props.push(`@keypress="e => ${v}(e.key)"`);
     if (key === 'grow') props.push(`style="flex-grow: ${v}"`);
   }
-  return `<input ${props.join(' ')} />`;
+  const sc = srcComment(node);
+  return `${sc}<input ${props.join(' ')} />`;
 }
 
 function genImage(node: ImageNode, c: VueContext): string {

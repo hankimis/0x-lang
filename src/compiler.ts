@@ -10,6 +10,10 @@ import type { GeneratedCode } from './ast.js';
 export interface CompileOptions {
   target: 'react' | 'vue' | 'svelte';
   validate?: boolean;
+  // Add source line mapping comments (0x:L5) for debugging (default: true)
+  sourceMap?: boolean;
+  // Add 'use client' directive for Next.js SSR (React only, default: auto)
+  useClient?: boolean;
 }
 
 export function compile(source: string, options: CompileOptions): GeneratedCode {
@@ -24,14 +28,30 @@ export function compile(source: string, options: CompileOptions): GeneratedCode 
     }
   }
 
+  let result: GeneratedCode;
   switch (options.target) {
     case 'react':
-      return generateReact(ast);
+      result = generateReact(ast);
+      break;
     case 'vue':
-      return generateVue(ast);
+      result = generateVue(ast);
+      break;
     case 'svelte':
-      return generateSvelte(ast);
+      result = generateSvelte(ast);
+      break;
     default:
       throw new Error(`Unknown target: ${options.target}`);
   }
+
+  // Post-process: strip source map comments if disabled
+  if (options.sourceMap === false) {
+    result = { ...result, code: result.code.replace(/\{\/\* 0x:L\d+ \*\/\}/g, '').replace(/<!-- 0x:L\d+ -->/g, '') };
+  }
+
+  // Post-process: strip 'use client' if explicitly disabled
+  if (options.useClient === false && options.target === 'react') {
+    result = { ...result, code: result.code.replace(/^'use client';\n\n/gm, '') };
+  }
+
+  return result;
 }
