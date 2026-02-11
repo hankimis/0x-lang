@@ -435,6 +435,46 @@ layout col .card:                                 # Apply named style
 Sizes: `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`, `4xl`<br/>
 Button styles: `primary`, `secondary`, `danger`, `outline`, `ghost`
 
+### CSS Classes & Passthrough Props
+
+```python
+layout col class="container mx-auto p-4":
+  text "Title" class="text-xl font-bold text-blue-600"
+  button "Save" -> save() class="btn btn-primary"
+  input name class="form-input" aria-label="Name" data-testid="name-input"
+```
+
+- `class="..."` adds `className` (React) or `class` (Vue/Svelte) to any element
+- Works with Tailwind CSS, Bootstrap, or any CSS framework
+- Unknown props (`data-*`, `aria-*`, `role`, etc.) pass through as HTML attributes
+
+### Raw Block (Framework Escape Hatch)
+
+```python
+raw:
+  <CustomComponent onSpecialEvent={handler} />
+
+raw { <div dangerouslySetInnerHTML={{__html: content}} /> }
+```
+
+- `raw:` inserts code directly into JSX/template output (NOT the script section)
+- Different from `js:` which goes into the script/hook section
+- Use for third-party components or framework-specific code
+
+### Component Children
+
+```python
+component Dialog(title="Settings"):
+  layout col:
+    text "Content"
+    button "Close" -> close()
+
+component Card(item)    # Self-closing (no children)
+```
+
+- When a `component` call ends with `:`, indented children are wrapped inside the component
+- Without `:`, renders as a self-closing tag
+
 ### Control flow
 
 ```python
@@ -488,6 +528,13 @@ button "Save" -> save()                          # Click
 button "Reset" -> count = 0                       # Inline
 input query @keypress=onKeyPress                  # Keyboard
 ```
+
+### Performance Optimization (React)
+
+- `fn` declarations are auto-wrapped in `useCallback` with extracted deps
+- `derived` values use `useMemo` with extracted deps
+- Components with `prop` declarations are auto-wrapped in `React.memo`
+- No manual optimization needed — the compiler handles it automatically
 
 ---
 
@@ -739,7 +786,7 @@ Flags:
 git clone https://github.com/hankimis/0x-lang.git
 cd 0x-lang
 npm install
-npm test          # 2,600+ lines of tests
+npm test          # 1,767 tests across 9 test suites
 npm run build
 ```
 
