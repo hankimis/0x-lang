@@ -1,6 +1,6 @@
 {
   "name": "0x-lang",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "0x — AI-First Programming Language Compiler",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +13,11 @@
     "./validator": "./dist/validator.js",
     "./generators/react": "./dist/generators/react.js",
     "./generators/vue": "./dist/generators/vue.js",
-    "./generators/svelte": "./dist/generators/svelte.js"
+    "./generators/svelte": "./dist/generators/svelte.js",
+    "./generators/backend": "./dist/generators/backend.js",
+    "./generators/react-native": "./dist/generators/react-native.js",
+    "./generators/terraform": "./dist/generators/terraform.js",
+    "./generators/ai-bridge": "./dist/generators/ai-bridge.js"
   },
   "bin": {
     "0x": "./dist/cli.js"
@@ -37,10 +41,15 @@
     "react",
     "vue",
     "svelte",
+    "react-native",
+    "express",
+    "terraform",
     "code-generation",
     "dsl",
     "ui",
-    "frontend"
+    "frontend",
+    "backend",
+    "fullstack"
   ],
   "author": "0x-lang contributors",
   "license": "ISC",
