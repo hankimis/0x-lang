@@ -1938,6 +1938,122 @@ button:focus-visible,
   color: var(--text-primary);
 }
 
+/* ---- Examples Section ---- */
+.examples-section {
+  margin-bottom: 100px;
+}
+
+.example-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 28px;
+  padding: 4px;
+  background: var(--bg-surface);
+  border-radius: 10px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  flex-wrap: wrap;
+}
+
+.example-tab {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+}
+
+.example-tab.active {
+  background: var(--bg-elevated);
+  color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0, 229, 204, 0.15);
+}
+
+.example-tab:hover:not(.active) {
+  color: var(--text-secondary);
+}
+
+.example-panel {
+  display: none;
+}
+
+.example-panel.active {
+  display: block;
+  animation: exFadeIn 0.3s ease;
+}
+
+@keyframes exFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.example-meta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.example-tag {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--cyan-dim);
+  background: rgba(0, 229, 204, 0.06);
+  border: 1px solid rgba(0, 229, 204, 0.15);
+  letter-spacing: 0.03em;
+}
+
+.example-panels .code-panel {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.example-code {
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.example-code::-webkit-scrollbar {
+  width: 6px;
+}
+
+.example-code::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.example-code::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 3px;
+}
+
+.examples-cta {
+  text-align: center;
+  margin-top: 28px;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+
+.examples-cta a {
+  color: var(--cyan);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.examples-cta a:hover {
+  text-decoration: underline;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
   .hero {
@@ -1962,6 +2078,20 @@ button:focus-visible,
 
   .demo-arrow svg {
     transform: rotate(90deg);
+  }
+
+  .example-tabs {
+    gap: 2px;
+    padding: 3px;
+  }
+
+  .example-tab {
+    padding: 8px 14px;
+    font-size: 0.78rem;
+  }
+
+  .example-code {
+    max-height: 400px;
   }
 
   .features-grid {
