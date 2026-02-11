@@ -100,7 +100,8 @@ export interface OnDestroy extends BaseNode {
 
 export interface WatchBlock extends BaseNode {
   type: 'WatchBlock';
-  variable: string;
+  variable: string;       // First variable (backward compat)
+  variables: string[];    // All watched variables
   body: Statement[];
 }
 
@@ -230,6 +231,14 @@ export interface UseImport extends BaseNode {
 export interface JsBlock extends BaseNode {
   type: 'JsBlock';
   code: string;
+}
+
+// Top-level variable declarations (const/let without js { } wrapper)
+export interface TopLevelVarDecl extends BaseNode {
+  type: 'TopLevelVarDecl';
+  keyword: 'const' | 'let';
+  name: string;
+  value: Expression;
 }
 
 // Comment
@@ -1026,6 +1035,7 @@ export type ASTNode =
   | JsImport
   | UseImport
   | JsBlock
+  | TopLevelVarDecl
   | ModelNode
   | DataDecl
   | FormDecl
@@ -1077,4 +1087,5 @@ export interface GeneratedCode {
   imports: string[];
   lineCount: number;
   tokenCount: number;
+  sourceMap?: string; // V3 source map JSON string
 }

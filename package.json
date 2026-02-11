@@ -1,6 +1,6 @@
 {
   "name": "0x-lang",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "0x — AI-First Programming Language Compiler",
   "type": "module",
   "main": "./dist/index.js",
@@ -56,6 +56,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@jridgewell/gen-mapping": "^0.3.13",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "zod": "^3.24.0"
   },

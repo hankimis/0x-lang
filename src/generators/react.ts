@@ -7,7 +7,7 @@ import type {
   LayoutNode, TextNode, ButtonNode, InputNode, ImageNode, LinkNode,
   ToggleNode, SelectNode, IfBlock, ForBlock, ShowBlock, HideBlock,
   StyleDecl, ComponentCall, CommentNode,
-  JsImport, UseImport, JsBlock,
+  JsImport, UseImport, JsBlock, TopLevelVarDecl,
   ModelNode, DataDecl, FormDecl, TableNode,
   AuthDecl, ChartNode, StatNode, RealtimeDecl, RouteDecl, NavNode,
   UploadNode, ModalNode, ToastNode,
@@ -26,14 +26,17 @@ import type {
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
 import { SIZE_MAP, unquote, capitalize, parseGradient, addPx } from './shared.js';
+import { SourceMapBuilder } from './source-map.js';
 
 interface GenContext {
   imports: Set<string>; // React hooks to import
   states: Map<string, StateDecl>;
   derivedNames: Set<string>;
+  propNames: Set<string>; // Track props for dependency arrays
   styles: Map<string, StyleDecl>;
   indent: number;
   readOnly: boolean; // When true, don't convert .filter()/.push() to setState mutations
+  smb: SourceMapBuilder | null; // Source map builder for V3 source maps
 }
 
 function ctx(): GenContext {
@@ -41,9 +44,11 @@ function ctx(): GenContext {
     imports: new Set(),
     states: new Map(),
     derivedNames: new Set(),
+    propNames: new Set(),
     styles: new Map(),
     indent: 1,
     readOnly: false,
+    smb: null,
   };
 }
 
@@ -126,12 +131,27 @@ export function generateReact(ast: ASTNode[]): GeneratedCode {
 
   const code = parts.join('\n\n');
   const importLines = code.match(/^import .+$/gm) || [];
+
+  // Build V3 source map from 0x:L### comments in generated code
+  const sourceFile = ast.find(n => n.type === 'Page' || n.type === 'Component' || n.type === 'App') as any;
+  const srcName = sourceFile?.name ? `${sourceFile.name}.0x` : 'source.0x';
+  const smb = new SourceMapBuilder(srcName, 'Component.jsx');
+  const lines = code.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/\{\/\* 0x:L(\d+) \*\/\}/);
+    if (match) {
+      smb.addMapping(parseInt(match[1], 10), 0);
+    }
+    smb.advance(lines[i] + (i < lines.length - 1 ? '\n' : ''));
+  }
+
   return {
     code,
     filename: 'Component.jsx',
     imports: importLines,
-    lineCount: code.split('\n').length,
+    lineCount: lines.length,
     tokenCount: code.split(/\s+/).length,
+    sourceMap: smb.toJSON(),
   };
 }
 
@@ -175,10 +195,11 @@ export function generateBackendCode(node: ASTNode): string | null {
 function generateTopLevel(node: PageNode | ComponentNode | AppNode): string {
   const c = ctx();
 
-  // First pass: collect states, derived, styles
+  // First pass: collect states, derived, props, styles
   for (const child of node.body) {
     if (child.type === 'StateDecl') c.states.set(child.name, child);
     if (child.type === 'DerivedDecl') c.derivedNames.add(child.name);
+    if (child.type === 'PropDecl') c.propNames.add((child as PropDecl).name);
     if (child.type === 'StyleDecl') c.styles.set(child.name, child);
   }
 
@@ -271,6 +292,11 @@ function generateTopLevel(node: PageNode | ComponentNode | AppNode): string {
       case 'JsBlock':
         hookLines.push((child as JsBlock).code);
         break;
+      case 'TopLevelVarDecl': {
+        const tlv = child as TopLevelVarDecl;
+        hookLines.push(`${tlv.keyword} ${tlv.name} = ${genExpr(tlv.value, c)};`);
+        break;
+      }
       case 'StyleDecl':
         // Collected already, used by reference
         break;
@@ -363,8 +389,9 @@ function genDerived(node: DerivedDecl, c: GenContext): string {
   c.readOnly = true;
   const expr = genExpr(node.expression, c);
   c.readOnly = prevReadOnly;
-  const deps = extractDeps(node.expression, c);
-  return `const ${node.name} = useMemo(() => ${expr}, [${deps.join(', ')}]);`;
+  const { deps, warning } = extractDepsWithWarning(node.expression, c);
+  const warnComment = warning ? ` ${warning}` : '';
+  return `${warnComment ? warnComment + '\n  ' : ''}const ${node.name} = useMemo(() => ${expr}, [${deps.join(', ')}]);`;
 }
 
 function genCheck(node: CheckDecl, c: GenContext): string {
@@ -428,11 +455,12 @@ function genOnDestroy(node: OnDestroy, c: GenContext): string {
 function genWatch(node: WatchBlock, c: GenContext): string {
   c.imports.add('useEffect');
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
+  const vars = (node.variables || [node.variable]).join(', ');
   const hasAwait = bodyContainsAwait(node.body);
   if (hasAwait) {
-    return `useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, [${node.variable}]);`;
+    return `useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, [${vars}]);`;
   }
-  return `useEffect(() => {\n    ${body}\n  }, [${node.variable}]);`;
+  return `useEffect(() => {\n    ${body}\n  }, [${vars}]);`;
 }
 
 // ── UI Nodes ────────────────────────────────────────
@@ -2560,14 +2588,32 @@ function buildSpreadUpdate(prevVar: string, path: string[], value: string): stri
   return `({...${prevVar}, ${head}: ${inner}})`;
 }
 
-function extractDeps(expr: Expression, c: GenContext): string[] {
+const KNOWN_GLOBALS = new Set([
+  'console', 'Math', 'JSON', 'parseInt', 'parseFloat', 'Number', 'String', 'Boolean',
+  'Array', 'Object', 'Date', 'RegExp', 'Error', 'Promise', 'Map', 'Set', 'Symbol',
+  'window', 'document', 'navigator', 'localStorage', 'sessionStorage', 'fetch',
+  'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval', 'requestAnimationFrame',
+  'undefined', 'NaN', 'Infinity', 'globalThis', 'alert', 'confirm', 'prompt',
+  'encodeURIComponent', 'decodeURIComponent', 'encodeURI', 'decodeURI', 'btoa', 'atob',
+  'e', 'event', 'prev', 'item', 'index', 'key', 'value', 'i', 'j', 'k', 'v', 'x', 'el',
+]);
+
+function extractDepsWithWarning(expr: Expression, c: GenContext): { deps: string[]; warning: string | null } {
   const deps = new Set<string>();
+  const unknowns = new Set<string>();
   walkExpr(expr, e => {
-    if (e.kind === 'identifier' && (c.states.has(e.name) || c.derivedNames.has(e.name))) {
-      deps.add(e.name);
+    if (e.kind === 'identifier') {
+      if (c.states.has(e.name) || c.derivedNames.has(e.name) || c.propNames.has(e.name)) {
+        deps.add(e.name);
+      } else if (!KNOWN_GLOBALS.has(e.name)) {
+        unknowns.add(e.name);
+      }
     }
   });
-  return Array.from(deps);
+  const warning = unknowns.size > 0
+    ? `/* 0x-warn: untracked deps: ${Array.from(unknowns).join(', ')} */`
+    : null;
+  return { deps: Array.from(deps), warning };
 }
 
 function walkExpr(expr: Expression, fn: (e: Expression) => void): void {
@@ -2585,13 +2631,38 @@ function walkExpr(expr: Expression, fn: (e: Expression) => void): void {
     case 'array': expr.elements.forEach(e => walkExpr(e, fn)); break;
     case 'object_expr': expr.properties.forEach(p => walkExpr(p.value, fn)); break;
     case 'arrow':
-      if (!Array.isArray(expr.body)) walkExpr(expr.body as Expression, fn);
+      if (Array.isArray(expr.body)) {
+        walkStmts(expr.body as Statement[], fn);
+      } else {
+        walkExpr(expr.body as Expression, fn);
+      }
       break;
     case 'template':
       expr.parts.forEach(p => { if (typeof p !== 'string') walkExpr(p, fn); });
       break;
     case 'assignment': walkExpr(expr.target, fn); walkExpr(expr.value, fn); break;
     case 'await': walkExpr(expr.expression, fn); break;
+  }
+}
+
+function walkStmts(stmts: Statement[], fn: (e: Expression) => void): void {
+  for (const stmt of stmts) {
+    switch (stmt.kind) {
+      case 'expr_stmt': walkExpr(stmt.expression, fn); break;
+      case 'return': if (stmt.value) walkExpr(stmt.value, fn); break;
+      case 'var_decl': walkExpr(stmt.value, fn); break;
+      case 'assignment_stmt': walkExpr(stmt.target, fn); walkExpr(stmt.value, fn); break;
+      case 'if_stmt':
+        walkExpr(stmt.condition, fn);
+        walkStmts(stmt.body, fn);
+        stmt.elifs.forEach(ei => { walkExpr(ei.condition, fn); walkStmts(ei.body, fn); });
+        if (stmt.elseBody) walkStmts(stmt.elseBody, fn);
+        break;
+      case 'for_stmt':
+        walkExpr(stmt.iterable, fn);
+        walkStmts(stmt.body, fn);
+        break;
+    }
   }
 }
 
