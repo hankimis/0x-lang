@@ -1762,6 +1762,86 @@ button:focus-visible,
   color: var(--cyan);
 }
 
+/* ---- Changelog / What's New ---- */
+.changelog-section {
+  margin-bottom: 100px;
+}
+
+.changelog-list {
+  max-width: 750px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.changelog-entry {
+  display: flex;
+  gap: 20px;
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  transition: border-color 0.3s;
+}
+
+.changelog-entry:hover {
+  border-color: var(--border-accent);
+}
+
+.changelog-version {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cyan);
+  background: rgba(0, 229, 204, 0.08);
+  border: 1px solid rgba(0, 229, 204, 0.2);
+  border-radius: 6px;
+  padding: 4px 12px;
+  height: fit-content;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.changelog-content h4 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.changelog-content ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.changelog-content ul li {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.changelog-content ul li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--cyan);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .changelog-entry {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
 /* ---- FAQ Section (GEO/SGE/AIO) ---- */
 .faq-section {
   margin-bottom: 100px;
