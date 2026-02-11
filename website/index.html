@@ -248,6 +248,41 @@
   }
   </script>
 
+  <!-- JSON-LD: Review (testimonials) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "0x",
+    "review": [
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "James K." },
+        "reviewBody": "The token efficiency is insane. My AI agent generates a full dashboard in 0x with half the tokens it would take in React. Less hallucination, faster iteration.",
+        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+      },
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "Sarah L." },
+        "reviewBody": "Write once, get React AND Vue output? I migrated our component library's prototypes to 0x and cut our design-to-code time by 70%.",
+        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+      },
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "Mike P." },
+        "reviewBody": "New hires were writing production components in 0x within hours, not days. The syntax is so intuitive that onboarding friction basically disappeared.",
+        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+      },
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "Alex R." },
+        "reviewBody": "As a solo dev, 0x is a game changer. I ship features 3x faster because I'm writing 80% less code. The MCP integration with Cursor is chef's kiss.",
+        "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+      }
+    ]
+  }
+  </script>
+
   <!-- JSON-LD: HowTo (AEO) -->
   <script type="application/ld+json">
   {
@@ -305,7 +340,7 @@
         <a href="#demo">Demo</a>
         <a href="#benchmarks">Benchmarks</a>
         <a href="#faq">FAQ</a>
-        <a href="https://github.com/hankimis/0x-lang" class="nav-github" aria-label="View 0x-lang on GitHub" rel="noopener">
+        <a href="https://github.com/hankimis/0x-lang" class="nav-github" aria-label="View 0x-lang on GitHub" target="_blank" rel="noopener noreferrer">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
         </a>
       </div>
@@ -681,7 +716,7 @@
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
           </div>
           <h3 class="feature-title">MCP Integration</h3>
-          <p class="feature-desc">Built-in MCP server for Claude and Cursor. AI agents compile 0x directly in their workflow. <a href="https://server.smithery.ai/hankim/ox-lang" style="color:var(--cyan);text-decoration:underline;text-underline-offset:2px" rel="noopener">Try on Smithery</a></p>
+          <p class="feature-desc">Built-in MCP server for Claude and Cursor. AI agents compile 0x directly in their workflow. <a href="https://server.smithery.ai/hankim/ox-lang" style="color:var(--cyan);text-decoration:underline;text-underline-offset:2px" target="_blank" rel="noopener noreferrer">Try on Smithery</a></p>
         </div>
 
         <div class="feature-card" data-animate style="--i:4">
@@ -983,8 +1018,10 @@
       </div>
     </section>
 
+    <div class="section-divider"></div>
+
     <!-- What is 0x — SEO/GEO content section -->
-    <section class="about-section" id="about">
+    <section class="about-section" id="about" data-animate>
       <div class="section-header">
         <h2 class="section-title"><span class="accent">></span> What is 0x?</h2>
       </div>
@@ -1008,7 +1045,7 @@
     <div class="section-divider"></div>
 
     <!-- FAQ Section (visible, for GEO/SGE/AIO) -->
-    <section class="faq-section" id="faq">
+    <section class="faq-section" id="faq" data-animate>
       <div class="section-header">
         <h2 class="section-title"><span class="accent">></span> Frequently Asked Questions</h2>
         <p class="section-desc">Everything you need to know about 0x.</p>
@@ -1041,7 +1078,7 @@
         <details class="faq-item">
           <summary class="faq-question">Can I use 0x with Claude or Cursor?</summary>
           <div class="faq-answer">
-            <p>Yes. 0x has a built-in MCP (Model Context Protocol) server that integrates with Claude Desktop and Cursor. Add the 0x MCP server to your config, and AI agents can compile 0x code directly. Also available via <a href="https://server.smithery.ai/hankim/ox-lang" rel="noopener">Smithery</a> for easy setup.</p>
+            <p>Yes. 0x has a built-in MCP (Model Context Protocol) server that integrates with Claude Desktop and Cursor. Add the 0x MCP server to your config, and AI agents can compile 0x code directly. Also available via <a href="https://server.smithery.ai/hankim/ox-lang" target="_blank" rel="noopener noreferrer">Smithery</a> for easy setup.</p>
           </div>
         </details>
         <details class="faq-item">
@@ -1053,7 +1090,7 @@
         <details class="faq-item">
           <summary class="faq-question">Is 0x free?</summary>
           <div class="faq-answer">
-            <p>Yes. 0x is 100% free and open-source under the ISC license. Free for personal and commercial use. Source code on <a href="https://github.com/hankimis/0x-lang" rel="noopener">GitHub</a>. Published on <a href="https://www.npmjs.com/package/0x-lang" rel="noopener">npm</a> as <code>0x-lang</code>.</p>
+            <p>Yes. 0x is 100% free and open-source under the ISC license. Free for personal and commercial use. Source code on <a href="https://github.com/hankimis/0x-lang" target="_blank" rel="noopener noreferrer">GitHub</a>. Published on <a href="https://www.npmjs.com/package/0x-lang" target="_blank" rel="noopener noreferrer">npm</a> as <code>0x-lang</code>.</p>
           </div>
         </details>
       </div>
@@ -1067,11 +1104,11 @@
       <h2 class="cta-title" data-animate>Ready to write less<br>and ship more?</h2>
       <p class="cta-desc">Join the community building the future of AI-driven development.</p>
       <div class="cta-actions">
-        <a href="https://github.com/hankimis/0x-lang" class="btn btn-primary btn-lg">
+        <a href="https://github.com/hankimis/0x-lang" class="btn btn-primary btn-lg" target="_blank" rel="noopener noreferrer">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
           Star on GitHub
         </a>
-        <a href="https://www.npmjs.com/package/0x-lang" class="btn btn-outline btn-lg">View on npm</a>
+        <a href="https://www.npmjs.com/package/0x-lang" class="btn btn-outline btn-lg" target="_blank" rel="noopener noreferrer">View on npm</a>
       </div>
     </section>
 
@@ -1087,10 +1124,10 @@
         <span class="footer-tagline">The AI-First Programming Language</span>
       </div>
       <div class="footer-links">
-        <a href="https://github.com/hankimis/0x-lang">GitHub</a>
-        <a href="https://www.npmjs.com/package/0x-lang">npm</a>
-        <a href="https://server.smithery.ai/hankim/ox-lang">Smithery</a>
-        <a href="https://github.com/hankimis/0x-lang/blob/main/CONTRIBUTING.md">Contribute</a>
+        <a href="https://github.com/hankimis/0x-lang" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://www.npmjs.com/package/0x-lang" target="_blank" rel="noopener noreferrer">npm</a>
+        <a href="https://server.smithery.ai/hankim/ox-lang" target="_blank" rel="noopener noreferrer">Smithery</a>
+        <a href="https://github.com/hankimis/0x-lang/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">Contribute</a>
       </div>
     </div>
     <p class="footer-copy">ISC License. Free for personal and commercial use.</p>
@@ -1207,8 +1244,14 @@
     // Smooth scroll for nav
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
+        const href = a.getAttribute('href');
         e.preventDefault();
-        document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+        if (href === '#' || href === '') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        const target = document.querySelector(href);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
       });
     });
 

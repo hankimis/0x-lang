@@ -1673,123 +1673,6 @@ body {
   color: var(--text-muted);
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 768px) {
-  .hero {
-    padding: 60px 0 40px;
-  }
-
-  .stats-bar {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .demo-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .demo-arrow {
-    padding-top: 0;
-    flex-direction: row;
-    justify-content: center;
-  }
-
-  .demo-arrow svg {
-    transform: rotate(90deg);
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .bench-table thead th:last-child,
-  .bench-table tbody td.bench-td-bar {
-    display: none;
-  }
-
-  .pipeline-flow {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .pipeline-line {
-    display: none;
-  }
-
-  .pipeline-node-dot {
-    display: none;
-  }
-
-  .footer-inner {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .cta-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .nav-links a:not(.nav-github) {
-    display: none;
-  }
-
-  .comparison-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .reviews-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .ticker-track {
-    animation-duration: 20s;
-  }
-
-  .frameworks-row {
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-
-  .nav-wrapper {
-    padding: 0 16px;
-  }
-
-  .about-content {
-    padding: 0 8px;
-  }
-
-  .faq-question {
-    padding: 16px 20px;
-    font-size: 0.95rem;
-  }
-
-  .faq-answer {
-    padding: 0 20px 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 0 16px;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .hero-install {
-    font-size: 0.82rem;
-    padding: 12px 16px;
-    gap: 8px;
-  }
-
-  .code-block {
-    font-size: 0.72rem;
-  }
-}
-
 /* ---- AI Summary (hidden visually, accessible to crawlers) ---- */
 .ai-summary {
   position: absolute;
@@ -1932,6 +1815,123 @@ body {
 
 .faq-answer strong {
   color: var(--text-primary);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .hero {
+    padding: 60px 0 40px;
+  }
+
+  .stats-bar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .demo-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .demo-arrow {
+    padding-top: 0;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .demo-arrow svg {
+    transform: rotate(90deg);
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bench-table thead th:last-child,
+  .bench-table tbody td.bench-td-bar {
+    display: none;
+  }
+
+  .pipeline-flow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .pipeline-line {
+    display: none;
+  }
+
+  .pipeline-node-dot {
+    display: none;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .cta-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav-links a:not(.nav-github) {
+    display: none;
+  }
+
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reviews-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ticker-track {
+    animation-duration: 20s;
+  }
+
+  .frameworks-row {
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .nav-wrapper {
+    padding: 0 16px;
+  }
+
+  .about-content {
+    padding: 0 8px;
+  }
+
+  .faq-question {
+    padding: 16px 20px;
+    font-size: 0.95rem;
+  }
+
+  .faq-answer {
+    padding: 0 20px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-install {
+    font-size: 0.82rem;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .code-block {
+    font-size: 0.72rem;
+  }
 }
 
 /* ---- Reduced Motion ---- */
