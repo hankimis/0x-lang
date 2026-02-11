@@ -70,7 +70,7 @@
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock"
     },
-    "softwareVersion": "0.1.10",
+    "softwareVersion": "0.1.13",
     "isAccessibleForFree": true,
     "softwareRequirements": "Node.js >= 18",
     "featureList": [
@@ -83,9 +83,16 @@
       "AI-optimized indentation-based syntax",
       "Sub-second compile times",
       "TypeScript compiler with zero dependencies",
-      "CLI tools: build, dev, init, bench"
+      "CLI tools: build, dev, init, bench",
+      "Source line mapping for debugging (0x:L{line} comments)",
+      "Auto 'use client' directive for Next.js SSR",
+      "Smart React imports — only import used hooks",
+      "Template literal support with ${expr} interpolation",
+      "External library interop via import, use, js blocks",
+      "Conditional rendering instead of CSS display:none",
+      "1,522+ automated test cases"
     ],
-    "releaseNotes": "v0.1.10: Nested state mutations, image/text props, divider/progress elements",
+    "releaseNotes": "v0.1.13: Source maps, 'use client' SSR support, smart imports, chart optimization, parser error context",
     "author": {
       "@type": "Organization",
       "name": "0x-lang",
@@ -243,6 +250,38 @@
           "@type": "Answer",
           "text": "Alternatives include writing raw React/Vue/Svelte code directly, using tools like v0.dev (Vercel), or using meta-frameworks like Astro. However, 0x is unique in that it's a dedicated programming language (not a template or prompt tool) that compiles to multiple frameworks simultaneously, with 80% token reduction and zero-ambiguity syntax specifically designed for AI agents."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "Does 0x support debugging generated code?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Since v0.1.13, 0x adds source line mapping comments to generated code. Each UI element includes a comment like {/* 0x:L5 */} (React) or <!-- 0x:L5 --> (Vue/Svelte) linking back to the original 0x source line. This makes it easy to trace runtime errors. Source maps can be disabled with the sourceMap: false compile option."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does 0x work with Next.js?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. For React targets, 0x automatically adds the 'use client' directive when client-side hooks (useState, useEffect, useRef, useCallback) are used, enabling seamless Next.js App Router SSR support. You can control this behavior with the useClient compile option."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use external JavaScript libraries with 0x?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. 0x supports three ways to integrate external libraries: 'import { Chart } from chart.js' for ES imports, 'use myHook from ./hooks' for custom hooks, and 'js { ... }' or 'js:' blocks for inline JavaScript. This lets you use any npm package alongside 0x's declarative syntax."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How optimized is the generated React code?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "0x generates production-quality React code: conditional rendering with {cond && (...)} instead of CSS display:none, content-based keys instead of array indices, extracted style constants, optimized chart computations (O(n) instead of O(n²)), and smart imports that only include hooks you actually use. The output passes ESLint and React strict mode."
+        }
       }
     ]
   }
@@ -361,7 +400,11 @@
       <dt>Compile Targets</dt>
       <dd>React (JSX + hooks), Vue 3 (SFC + Composition API), Svelte 5 (runes)</dd>
       <dt>Key Features</dt>
-      <dd>80% less code, zero ambiguity, zero runtime dependencies, built-in MCP server for Claude and Cursor, sub-second compile times</dd>
+      <dd>80% less code, zero ambiguity, zero runtime dependencies, built-in MCP server for Claude and Cursor, sub-second compile times, source line mapping for debugging, auto 'use client' for Next.js SSR, smart React imports</dd>
+      <dt>v0.1.13 Highlights</dt>
+      <dd>Source line mapping comments (0x:L{line}), auto 'use client' directive for Next.js App Router, smart import optimization (only import used hooks), conditional rendering (not CSS display:none), chart O(n) optimization, parser error context</dd>
+      <dt>v0.1.11 Highlights</dt>
+      <dd>Template literals with ${expr}, let declarations, import/use/js blocks for external library interop, form field improvements</dd>
       <dt>License</dt>
       <dd>ISC (free for personal and commercial use)</dd>
       <dt>Requirements</dt>
@@ -371,7 +414,9 @@
       <dt>npm Package</dt>
       <dd>npmjs.com/package/0x-lang</dd>
       <dt>Latest Version</dt>
-      <dd>0.1.10</dd>
+      <dd>0.1.13</dd>
+      <dt>Test Coverage</dt>
+      <dd>1,522 automated tests (303 vitest + 328 edge + 243 scenario + 415 advanced + 115 quality + 118 deep)</dd>
     </dl>
   </div>
 
@@ -379,7 +424,7 @@
 
     <!-- Hero -->
     <header class="hero">
-      <div class="hero-badge">AI-First Programming Language <span style="opacity:0.5;margin-left:4px">v0.1.10</span></div>
+      <div class="hero-badge">AI-First Programming Language <span style="opacity:0.5;margin-left:4px">v0.1.13</span></div>
       <h1 class="hero-title">
         <span class="hero-title-line">Write <span class="gradient-text">18 lines</span>.</span>
         <span class="hero-title-line">Get <span class="gradient-text">96 lines</span> of React.</span>
@@ -736,6 +781,30 @@
           <h3 class="feature-title">Full Language</h3>
           <p class="feature-desc">State, derived values, types, functions, layouts, control flow, lifecycle hooks, APIs, and validation.</p>
         </div>
+
+        <div class="feature-card" data-animate style="--i:6">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg>
+          </div>
+          <h3 class="feature-title">Source Maps</h3>
+          <p class="feature-desc">Source line mapping comments link generated code back to your 0x source. Debug with confidence.</p>
+        </div>
+
+        <div class="feature-card" data-animate style="--i:7">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </div>
+          <h3 class="feature-title">SSR Ready</h3>
+          <p class="feature-desc">Auto <code>'use client'</code> for Next.js App Router. Generated code works with SSR out of the box.</p>
+        </div>
+
+        <div class="feature-card" data-animate style="--i:8">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/><line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="2 2"/></svg>
+          </div>
+          <h3 class="feature-title">Library Interop</h3>
+          <p class="feature-desc">Import npm packages, custom hooks, and inline JS blocks. Use any library alongside 0x syntax.</p>
+        </div>
       </div>
     </section>
 
@@ -1050,6 +1119,54 @@
 
     <div class="section-divider"></div>
 
+    <!-- What's New — Changelog (AEO/GEO) -->
+    <section class="changelog-section" id="changelog" data-animate>
+      <div class="section-header">
+        <h2 class="section-title"><span class="accent">></span> What's New</h2>
+        <p class="section-desc">Recent improvements to the 0x compiler.</p>
+      </div>
+      <div class="changelog-list">
+        <div class="changelog-entry">
+          <div class="changelog-version">v0.1.13</div>
+          <div class="changelog-content">
+            <h4>Production-Ready Output</h4>
+            <ul>
+              <li><strong>Source line mapping</strong> — <code>{/* 0x:L5 */}</code> comments trace generated code back to 0x source</li>
+              <li><strong>Auto 'use client'</strong> — Next.js App Router SSR support, auto-detected from hook usage</li>
+              <li><strong>Smart imports</strong> — Only import React hooks that are actually used</li>
+              <li><strong>CompileOptions</strong> — New <code>sourceMap</code> and <code>useClient</code> options for output control</li>
+            </ul>
+          </div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-version">v0.1.12</div>
+          <div class="changelog-content">
+            <h4>Code Quality</h4>
+            <ul>
+              <li><strong>Conditional rendering</strong> — React show/hide uses <code>{cond && (...)}</code> instead of CSS display:none</li>
+              <li><strong>Chart optimization</strong> — Bar chart maxVal extracted outside .map() (O(n) vs O(n²))</li>
+              <li><strong>Gallery keys</strong> — Content-based keys <code>img ?? i</code> instead of array index</li>
+              <li><strong>Parser errors</strong> — Nearby token context for better debugging</li>
+            </ul>
+          </div>
+        </div>
+        <div class="changelog-entry">
+          <div class="changelog-version">v0.1.11</div>
+          <div class="changelog-content">
+            <h4>Language Features</h4>
+            <ul>
+              <li><strong>Template literals</strong> — Backtick strings with <code>${expr}</code> interpolation</li>
+              <li><strong>let declarations</strong> — <code>let x = 10</code> in page/component body</li>
+              <li><strong>External imports</strong> — <code>import</code>, <code>use ... from</code>, <code>js { }</code> blocks</li>
+              <li><strong>Form improvements</strong> — Optional colon syntax, button post-action props</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
     <!-- FAQ Section (visible, for GEO/SGE/AIO) -->
     <section class="faq-section" id="faq" data-animate>
       <div class="section-header">
@@ -1091,6 +1208,30 @@
           <summary class="faq-question">How does 0x compare to JSX?</summary>
           <div class="faq-answer">
             <p>Unlike JSX, 0x has no closing tags, no curly braces, no import statements, and no boilerplate hooks. The compiler handles all of that. 0x is also framework-agnostic — the same source compiles to React, Vue, and Svelte — whereas JSX only works with React. 0x also includes built-in layout primitives (col, row, grid) that eliminate manual CSS.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Does 0x support debugging generated code?</summary>
+          <div class="faq-answer">
+            <p>Yes. Since v0.1.13, 0x adds <strong>source line mapping comments</strong> to generated code. Each UI element includes a <code>{/* 0x:L5 */}</code> (React) or <code>&lt;!-- 0x:L5 --&gt;</code> (Vue/Svelte) comment linking back to the original 0x source line. This makes it easy to trace runtime errors back to your 0x code. You can disable source maps with the <code>sourceMap: false</code> compile option.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Does 0x work with Next.js or Nuxt?</summary>
+          <div class="faq-answer">
+            <p>Yes. For React targets, 0x automatically adds the <code>'use client'</code> directive when client-side hooks (useState, useEffect, useRef, useCallback) are used, enabling seamless Next.js App Router SSR support. For Vue targets, the output is standard SFC compatible with Nuxt. You can control this with the <code>useClient</code> compile option.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Can I use external JavaScript libraries with 0x?</summary>
+          <div class="faq-answer">
+            <p>Yes. 0x supports three ways to integrate external libraries: <code>import { Chart } from 'chart.js'</code> for ES imports, <code>use myHook from './hooks'</code> for custom hooks, and <code>js { ... }</code> or <code>js:</code> blocks for inline JavaScript. This lets you use any npm package alongside 0x's declarative syntax.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">How optimized is the generated React code?</summary>
+          <div class="faq-answer">
+            <p>0x generates production-quality React code: conditional rendering with <code>{cond && (...)}</code> instead of CSS display:none, content-based keys instead of array indices, extracted style constants to reduce duplication, optimized chart computations (O(n) instead of O(n²)), and smart imports that only include hooks you actually use. The output passes ESLint and React strict mode.</p>
           </div>
         </details>
         <details class="faq-item">

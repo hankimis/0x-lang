@@ -8,7 +8,7 @@
 - **Type**: Programming language / compiler
 - **Install**: `npm install -g 0x-lang`
 - **License**: ISC (free for all use)
-- **Version**: 0.1.10
+- **Version**: 0.1.13
 - **Requirements**: Node.js >= 18
 - **Dependencies**: Zero runtime dependencies
 - **Targets**: React JSX, Vue 3 SFC, Svelte 5
@@ -83,6 +83,17 @@ page ComponentName:
 - **Lifecycle**: `on mount:`, `on destroy:`
 - **Types**: int, float, str, bool, list[T], optional[T], datetime, object
 - **Validation**: `check condition "error message"`
+
+## v0.1.13 New Features
+
+- **Source Line Mapping**: `{/* 0x:L5 */}` comments in output for debugging
+- **Smart React Imports**: Only imports used hooks (no unnecessary `import React`)
+- **Auto `'use client'`**: Detects useState/useEffect and adds SSR directive for Next.js
+- **Compiler Options**: `sourceMap: boolean` and `useClient: boolean` in CompileOptions
+- **Enhanced Error Messages**: Parse errors include nearby token context
+- **Conditional Rendering**: `show` blocks use `{cond && (...)}` instead of CSS display
+- **Chart Optimization**: O(n) max value computation instead of O(n²)
+- **External Library Interop**: `import`, `use`, `js` blocks for npm packages
 
 ## Compile Targets
 
