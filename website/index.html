@@ -441,6 +441,7 @@
       <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#demo">Demo</a>
+        <a href="#examples">Examples</a>
         <a href="#benchmarks">Benchmarks</a>
         <a href="#faq">FAQ</a>
         <a href="https://github.com/hankimis/0x-lang" class="nav-github" aria-label="View 0x-lang on GitHub" target="_blank" rel="noopener noreferrer">
@@ -791,6 +792,397 @@
         <span class="target-tab" role="tab" tabindex="-1" aria-selected="false" data-target="vue" data-filename="Counter.vue" data-badge="Vue" data-badge-class="badge-vue" data-lines="30 lines" data-chars="730 chars">Vue 3 SFC</span>
         <span class="target-tab" role="tab" tabindex="-1" aria-selected="false" data-target="svelte" data-filename="Counter.svelte" data-badge="Svelte" data-badge-class="badge-svelte" data-lines="27 lines" data-chars="650 chars">Svelte 5</span>
       </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Real-World Examples -->
+    <section id="examples" class="examples-section" data-animate>
+      <div class="section-header">
+        <h2 class="section-title"><span class="accent">></span> Real-World Examples</h2>
+        <p class="section-desc">Production-ready apps in 60–90 lines of 0x. Click to explore.</p>
+      </div>
+
+      <div class="example-tabs" role="tablist" aria-label="Example apps">
+        <button class="example-tab active" role="tab" aria-selected="true" data-example="blog">Blog</button>
+        <button class="example-tab" role="tab" aria-selected="false" data-example="crm">CRM</button>
+        <button class="example-tab" role="tab" aria-selected="false" data-example="kanban">Kanban</button>
+        <button class="example-tab" role="tab" aria-selected="false" data-example="saas">SaaS Landing</button>
+        <button class="example-tab" role="tab" aria-selected="false" data-example="admin">Admin Panel</button>
+      </div>
+
+      <div class="example-panels">
+        <!-- Blog -->
+        <div class="example-panel active" id="example-blog">
+          <div class="example-meta">
+            <span class="example-tag">64 lines</span>
+            <span class="example-tag">CRUD</span>
+            <span class="example-tag">API</span>
+            <span class="example-tag">Component</span>
+          </div>
+          <div class="code-panel">
+            <div class="code-header">
+              <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+              <span class="code-filename">blog.ai</span>
+              <span class="code-badge badge-0x">0x</span>
+            </div>
+            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">Blog</span>:
+  <span class="kw">type</span> <span class="type">Post</span> = {id: <span class="type">int</span>, title: <span class="type">str</span>, content: <span class="type">str</span>, date: <span class="type">str</span>}
+
+  <span class="kw">state</span> posts: <span class="type">list</span>[<span class="type">Post</span>] = []
+  <span class="kw">state</span> newTitle: <span class="type">str</span> = <span class="str">""</span>
+  <span class="kw">state</span> newContent: <span class="type">str</span> = <span class="str">""</span>
+  <span class="kw">state</span> loading: <span class="type">bool</span> = <span class="num">true</span>
+
+  <span class="kw">derived</span> postCount = posts.length
+
+  <span class="kw">api</span> getPosts = <span class="fn">GET</span> <span class="str">"/api/posts"</span>
+  <span class="kw">api</span> createPost = <span class="fn">POST</span> <span class="str">"/api/posts"</span>
+
+  <span class="kw">on mount</span>:
+    posts = <span class="kw">await</span> getPosts()
+    loading = <span class="num">false</span>
+
+  <span class="kw">fn</span> <span class="fn">addPost</span>():
+    <span class="kw">if</span> newTitle.trim() != <span class="str">""</span> &amp;&amp; newContent.trim() != <span class="str">""</span>:
+      result = <span class="kw">await</span> createPost(title: newTitle, content: newContent)
+      posts.push(result)
+      newTitle = <span class="str">""</span>
+      newContent = <span class="str">""</span>
+
+  <span class="kw">fn</span> <span class="fn">deletePost</span>(id: <span class="type">int</span>):
+    posts = posts.filter(p =&gt; p.id != id)
+
+  <span class="kw">layout</span> col gap=<span class="num">24</span> padding=<span class="num">32</span> maxWidth=<span class="num">800</span> margin=auto:
+    <span class="cm">// Header</span>
+    <span class="kw">layout</span> row between center:
+      <span class="el">text</span> <span class="str">"Blog"</span> size=3xl bold
+      <span class="el">text</span> <span class="str">"{postCount} posts"</span> size=lg color=#666
+
+    <span class="cm">// New Post Form</span>
+    <span class="kw">layout</span> col gap=<span class="num">12</span> padding=<span class="num">24</span> radius=<span class="num">12</span> shadow=md bg=white:
+      <span class="el">text</span> <span class="str">"New Post"</span> size=xl bold
+      <span class="el">input</span> newTitle placeholder=<span class="str">"Post title..."</span>
+      <span class="el">input</span> newContent placeholder=<span class="str">"Write your content..."</span>
+      <span class="el">button</span> <span class="str">"Publish"</span> style=primary -&gt; addPost()
+
+    <span class="cm">// Post List</span>
+    <span class="kw">if</span> loading:
+      <span class="el">text</span> <span class="str">"Loading..."</span> center
+    <span class="kw">else</span>:
+      <span class="kw">if</span> posts.length == <span class="num">0</span>:
+        <span class="el">text</span> <span class="str">"No posts yet"</span> color=#999 center
+      <span class="kw">else</span>:
+        <span class="kw">for</span> post <span class="kw">in</span> posts:
+          <span class="el">component</span> <span class="fn">PostCard</span>(post)
+
+<span class="kw">component</span> <span class="fn">PostCard</span>:
+  <span class="kw">prop</span> post: <span class="type">Post</span>
+
+  <span class="kw">style</span> card:
+    padding: <span class="num">24</span>
+    radius: <span class="num">12</span>
+    shadow: sm
+    bg: white
+
+  <span class="kw">layout</span> col gap=<span class="num">8</span> .card:
+    <span class="kw">layout</span> row between center:
+      <span class="el">text</span> post.title size=xl bold
+      <span class="el">text</span> post.date size=sm color=#999
+    <span class="el">text</span> post.content color=#444</code></pre>
+          </div>
+        </div>
+
+        <!-- CRM -->
+        <div class="example-panel" id="example-crm">
+          <div class="example-meta">
+            <span class="example-tag">80 lines</span>
+            <span class="example-tag">Dashboard</span>
+            <span class="example-tag">Search</span>
+            <span class="example-tag">Modal</span>
+          </div>
+          <div class="code-panel">
+            <div class="code-header">
+              <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+              <span class="code-filename">crm.ai</span>
+              <span class="code-badge badge-0x">0x</span>
+            </div>
+            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">CRM</span>:
+  <span class="kw">type</span> <span class="type">Customer</span> = {id: <span class="type">int</span>, name: <span class="type">str</span>, email: <span class="type">str</span>, status: <span class="type">str</span>}
+
+  <span class="kw">state</span> customers: <span class="type">list</span>[<span class="type">Customer</span>] = []
+  <span class="kw">state</span> searchQuery: <span class="type">str</span> = <span class="str">""</span>
+  <span class="kw">state</span> showAddModal: <span class="type">bool</span> = <span class="num">false</span>
+  <span class="kw">state</span> newName: <span class="type">str</span> = <span class="str">""</span>
+  <span class="kw">state</span> newEmail: <span class="type">str</span> = <span class="str">""</span>
+  <span class="kw">state</span> loading: <span class="type">bool</span> = <span class="num">true</span>
+
+  <span class="kw">derived</span> filtered = customers.filter(c =&gt; c.name.includes(searchQuery))
+  <span class="kw">derived</span> totalCount = customers.length
+  <span class="kw">derived</span> activeCount = customers.filter(c =&gt; c.status == <span class="str">"active"</span>).length
+
+  <span class="kw">api</span> getCustomers = <span class="fn">GET</span> <span class="str">"/api/customers"</span>
+  <span class="kw">api</span> createCustomer = <span class="fn">POST</span> <span class="str">"/api/customers"</span>
+
+  <span class="kw">on mount</span>:
+    customers = <span class="kw">await</span> getCustomers()
+    loading = <span class="num">false</span>
+
+  <span class="kw">fn</span> <span class="fn">addCustomer</span>():
+    <span class="kw">if</span> newName.trim() != <span class="str">""</span> &amp;&amp; newEmail.trim() != <span class="str">""</span>:
+      result = <span class="kw">await</span> createCustomer(name: newName, email: newEmail)
+      customers.push(result)
+      showAddModal = <span class="num">false</span>
+
+  <span class="kw">layout</span> col gap=<span class="num">24</span> padding=<span class="num">32</span>:
+    <span class="el">text</span> <span class="str">"CRM Dashboard"</span> size=3xl bold
+
+    <span class="cm">// Stats</span>
+    <span class="kw">layout</span> grid cols=<span class="num">3</span> gap=<span class="num">16</span>:
+      <span class="kw">layout</span> col gap=<span class="num">4</span> center padding=<span class="num">24</span> radius=<span class="num">12</span> shadow=md:
+        <span class="el">text</span> <span class="str">"{totalCount}"</span> size=3xl bold
+        <span class="el">text</span> <span class="str">"Total"</span> size=sm color=#666
+      <span class="kw">layout</span> col gap=<span class="num">4</span> center padding=<span class="num">24</span> radius=<span class="num">12</span> shadow=md:
+        <span class="el">text</span> <span class="str">"{activeCount}"</span> size=3xl bold color=#27ae60
+        <span class="el">text</span> <span class="str">"Active"</span> size=sm color=#666
+
+    <span class="cm">// Search &amp; Actions</span>
+    <span class="kw">layout</span> row gap=<span class="num">12</span> center:
+      <span class="el">input</span> searchQuery placeholder=<span class="str">"Search customers..."</span>
+      <span class="el">button</span> <span class="str">"Add Customer"</span> style=primary -&gt; showAddModal = <span class="num">true</span>
+
+    <span class="cm">// Customer List</span>
+    <span class="kw">for</span> customer <span class="kw">in</span> filtered:
+      <span class="kw">layout</span> row gap=<span class="num">16</span> padding=<span class="num">16</span> radius=<span class="num">8</span> shadow=sm center:
+        <span class="kw">layout</span> col grow=<span class="num">1</span>:
+          <span class="el">text</span> customer.name size=lg bold
+          <span class="el">text</span> customer.email size=sm color=#666
+        <span class="el">text</span> customer.status size=sm</code></pre>
+          </div>
+        </div>
+
+        <!-- Kanban -->
+        <div class="example-panel" id="example-kanban">
+          <div class="example-meta">
+            <span class="example-tag">77 lines</span>
+            <span class="example-tag">Board</span>
+            <span class="example-tag">Derived</span>
+            <span class="example-tag">Component</span>
+          </div>
+          <div class="code-panel">
+            <div class="code-header">
+              <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+              <span class="code-filename">kanban.ai</span>
+              <span class="code-badge badge-0x">0x</span>
+            </div>
+            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">Kanban</span>:
+  <span class="kw">type</span> <span class="type">Task</span> = {id: <span class="type">int</span>, title: <span class="type">str</span>, status: <span class="type">str</span>}
+
+  <span class="kw">state</span> tasks: <span class="type">list</span>[<span class="type">Task</span>] = []
+  <span class="kw">state</span> newTask: <span class="type">str</span> = <span class="str">""</span>
+
+  <span class="kw">derived</span> todoTasks = tasks.filter(t =&gt; t.status == <span class="str">"todo"</span>)
+  <span class="kw">derived</span> doingTasks = tasks.filter(t =&gt; t.status == <span class="str">"doing"</span>)
+  <span class="kw">derived</span> doneTasks = tasks.filter(t =&gt; t.status == <span class="str">"done"</span>)
+  <span class="kw">derived</span> totalCount = tasks.length
+
+  <span class="kw">fn</span> <span class="fn">addTask</span>():
+    <span class="kw">if</span> newTask.trim() != <span class="str">""</span>:
+      tasks.push({id: Date.now(), title: newTask, status: <span class="str">"todo"</span>})
+      newTask = <span class="str">""</span>
+
+  <span class="kw">fn</span> <span class="fn">moveTask</span>(id: <span class="type">int</span>, newStatus: <span class="type">str</span>):
+    task = tasks.find(t =&gt; t.id == id)
+    <span class="kw">if</span> task:
+      task.status = newStatus
+
+  <span class="kw">fn</span> <span class="fn">deleteTask</span>(id: <span class="type">int</span>):
+    tasks = tasks.filter(t =&gt; t.id != id)
+
+  <span class="kw">layout</span> col gap=<span class="num">24</span> padding=<span class="num">32</span>:
+    <span class="kw">layout</span> row between center:
+      <span class="el">text</span> <span class="str">"Kanban Board"</span> size=3xl bold
+      <span class="el">text</span> <span class="str">"{totalCount} tasks"</span> size=lg color=#666
+
+    <span class="kw">layout</span> row gap=<span class="num">8</span>:
+      <span class="el">input</span> newTask placeholder=<span class="str">"New task..."</span>
+      <span class="el">button</span> <span class="str">"Add"</span> style=primary -&gt; addTask()
+
+    <span class="cm">// Board Columns</span>
+    <span class="kw">layout</span> grid cols=<span class="num">3</span> gap=<span class="num">16</span>:
+      <span class="kw">layout</span> col gap=<span class="num">12</span> padding=<span class="num">16</span> radius=<span class="num">12</span> bg=#f0f0f0:
+        <span class="el">text</span> <span class="str">"To Do ({todoTasks.length})"</span> size=lg bold color=#e74c3c
+        <span class="kw">for</span> task <span class="kw">in</span> todoTasks:
+          <span class="el">component</span> <span class="fn">TaskCard</span>(task)
+      <span class="kw">layout</span> col gap=<span class="num">12</span> padding=<span class="num">16</span> radius=<span class="num">12</span> bg=#f0f0f0:
+        <span class="el">text</span> <span class="str">"In Progress ({doingTasks.length})"</span> size=lg bold color=#f39c12
+        <span class="kw">for</span> task <span class="kw">in</span> doingTasks:
+          <span class="el">component</span> <span class="fn">TaskCard</span>(task)
+      <span class="kw">layout</span> col gap=<span class="num">12</span> padding=<span class="num">16</span> radius=<span class="num">12</span> bg=#f0f0f0:
+        <span class="el">text</span> <span class="str">"Done ({doneTasks.length})"</span> size=lg bold color=#27ae60
+        <span class="kw">for</span> task <span class="kw">in</span> doneTasks:
+          <span class="el">component</span> <span class="fn">TaskCard</span>(task)
+
+<span class="kw">component</span> <span class="fn">TaskCard</span>:
+  <span class="kw">prop</span> task: <span class="type">Task</span>
+  <span class="kw">layout</span> col gap=<span class="num">8</span> padding=<span class="num">16</span> radius=<span class="num">8</span> shadow=sm bg=white:
+    <span class="el">text</span> task.title size=md
+    <span class="kw">layout</span> row gap=<span class="num">4</span>:
+      <span class="kw">if</span> task.status != <span class="str">"doing"</span>:
+        <span class="el">button</span> <span class="str">"Start"</span> size=sm -&gt; moveTask(task.id, <span class="str">"doing"</span>)
+      <span class="kw">if</span> task.status != <span class="str">"done"</span>:
+        <span class="el">button</span> <span class="str">"Done"</span> size=sm style=primary -&gt; moveTask(task.id, <span class="str">"done"</span>)
+      <span class="el">button</span> <span class="str">"Delete"</span> size=sm style=danger -&gt; deleteTask(task.id)</code></pre>
+          </div>
+        </div>
+
+        <!-- SaaS Landing -->
+        <div class="example-panel" id="example-saas">
+          <div class="example-meta">
+            <span class="example-tag">77 lines</span>
+            <span class="example-tag">Landing</span>
+            <span class="example-tag">Pricing</span>
+            <span class="example-tag">Nav + Footer</span>
+          </div>
+          <div class="code-panel">
+            <div class="code-header">
+              <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+              <span class="code-filename">saas-landing.ai</span>
+              <span class="code-badge badge-0x">0x</span>
+            </div>
+            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">SaasLanding</span>:
+  <span class="kw">type</span> <span class="type">Feature</span> = {title: <span class="type">str</span>, desc: <span class="type">str</span>, icon: <span class="type">str</span>}
+
+  <span class="kw">state</span> features: <span class="type">list</span>[<span class="type">Feature</span>] = []
+
+  <span class="kw">on mount</span>:
+    features.push({title: <span class="str">"Fast"</span>, desc: <span class="str">"Lightning fast builds"</span>, icon: <span class="str">"rocket.png"</span>})
+    features.push({title: <span class="str">"Secure"</span>, desc: <span class="str">"Enterprise-grade security"</span>, icon: <span class="str">"shield.png"</span>})
+    features.push({title: <span class="str">"Scalable"</span>, desc: <span class="str">"Scales to enterprise"</span>, icon: <span class="str">"chart.png"</span>})
+
+  <span class="kw">layout</span> col:
+    <span class="cm">// Nav</span>
+    <span class="kw">layout</span> row between center padding=<span class="num">24</span> bg=white shadow=sm:
+      <span class="el">text</span> <span class="str">"LaunchPad"</span> size=xl bold
+      <span class="kw">layout</span> row gap=<span class="num">24</span> center:
+        <span class="el">link</span> <span class="str">"Features"</span> href=<span class="str">"#features"</span>
+        <span class="el">link</span> <span class="str">"Pricing"</span> href=<span class="str">"#pricing"</span>
+        <span class="el">button</span> <span class="str">"Get Started"</span> style=primary
+
+    <span class="cm">// Hero</span>
+    <span class="kw">layout</span> col gap=<span class="num">16</span> padding=<span class="num">64</span> center:
+      <span class="el">text</span> <span class="str">"Build Products Faster"</span> size=4xl bold
+      <span class="el">text</span> <span class="str">"The all-in-one platform for modern teams."</span> size=lg color=#666
+      <span class="kw">layout</span> row gap=<span class="num">12</span> center:
+        <span class="el">button</span> <span class="str">"Start Free"</span> style=primary
+        <span class="el">button</span> <span class="str">"Learn More"</span> style=outline
+
+    <span class="cm">// Features Grid</span>
+    <span class="kw">layout</span> col gap=<span class="num">24</span> padding=<span class="num">48</span>:
+      <span class="el">text</span> <span class="str">"Features"</span> size=3xl bold center
+      <span class="kw">layout</span> grid cols=<span class="num">3</span> gap=<span class="num">24</span>:
+        <span class="kw">for</span> feature <span class="kw">in</span> features:
+          <span class="kw">layout</span> col gap=<span class="num">12</span> padding=<span class="num">24</span> radius=<span class="num">12</span> shadow=md center:
+            <span class="el">image</span> feature.icon width=<span class="num">64</span> height=<span class="num">64</span>
+            <span class="el">text</span> feature.title size=xl bold
+            <span class="el">text</span> feature.desc color=#666 center
+
+    <span class="cm">// Pricing</span>
+    <span class="kw">layout</span> col gap=<span class="num">24</span> padding=<span class="num">48</span>:
+      <span class="el">text</span> <span class="str">"Pricing"</span> size=3xl bold center
+      <span class="kw">layout</span> grid cols=<span class="num">3</span> gap=<span class="num">24</span>:
+        <span class="kw">layout</span> col gap=<span class="num">16</span> padding=<span class="num">32</span> radius=<span class="num">12</span> shadow=md center:
+          <span class="el">text</span> <span class="str">"Starter"</span> size=xl bold
+          <span class="el">text</span> <span class="str">"$0/mo"</span> size=3xl bold
+          <span class="el">text</span> <span class="str">"1 project"</span> size=sm color=#666
+          <span class="el">button</span> <span class="str">"Get Started"</span> style=outline
+        <span class="kw">layout</span> col gap=<span class="num">16</span> padding=<span class="num">32</span> radius=<span class="num">12</span> shadow=md center:
+          <span class="el">text</span> <span class="str">"Pro"</span> size=xl bold
+          <span class="el">text</span> <span class="str">"$29/mo"</span> size=3xl bold
+          <span class="el">text</span> <span class="str">"10 projects"</span> size=sm color=#666
+          <span class="el">button</span> <span class="str">"Choose Pro"</span> style=primary</code></pre>
+          </div>
+        </div>
+
+        <!-- Admin -->
+        <div class="example-panel" id="example-admin">
+          <div class="example-meta">
+            <span class="example-tag">91 lines</span>
+            <span class="example-tag">Sidebar</span>
+            <span class="example-tag">Table</span>
+            <span class="example-tag">Tabs</span>
+          </div>
+          <div class="code-panel">
+            <div class="code-header">
+              <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
+              <span class="code-filename">admin.ai</span>
+              <span class="code-badge badge-0x">0x</span>
+            </div>
+            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">Admin</span>:
+  <span class="kw">type</span> <span class="type">User</span> = {id: <span class="type">int</span>, name: <span class="type">str</span>, email: <span class="type">str</span>, role: <span class="type">str</span>, active: <span class="type">bool</span>}
+
+  <span class="kw">state</span> users: <span class="type">list</span>[<span class="type">User</span>] = []
+  <span class="kw">state</span> activeTab: <span class="type">str</span> = <span class="str">"users"</span>
+  <span class="kw">state</span> searchQuery: <span class="type">str</span> = <span class="str">""</span>
+  <span class="kw">state</span> loading: <span class="type">bool</span> = <span class="num">true</span>
+
+  <span class="kw">derived</span> filteredUsers = users.filter(u =&gt; u.name.includes(searchQuery))
+  <span class="kw">derived</span> totalUsers = users.length
+  <span class="kw">derived</span> activeUsers = users.filter(u =&gt; u.active).length
+  <span class="kw">derived</span> adminCount = users.filter(u =&gt; u.role == <span class="str">"admin"</span>).length
+
+  <span class="kw">api</span> getUsers = <span class="fn">GET</span> <span class="str">"/api/users"</span>
+  <span class="kw">api</span> deleteUserApi = <span class="fn">DELETE</span> <span class="str">"/api/users/{id}"</span>
+  <span class="kw">api</span> updateUser = <span class="fn">PUT</span> <span class="str">"/api/users/{id}"</span>
+
+  <span class="kw">on mount</span>:
+    users = <span class="kw">await</span> getUsers()
+    loading = <span class="num">false</span>
+
+  <span class="kw">fn</span> <span class="fn">deleteUser</span>(id: <span class="type">int</span>):
+    <span class="kw">await</span> deleteUserApi(id: id)
+    users = users.filter(u =&gt; u.id != id)
+
+  <span class="kw">fn</span> <span class="fn">toggleStatus</span>(id: <span class="type">int</span>):
+    user = users.find(u =&gt; u.id == id)
+    <span class="kw">if</span> user:
+      user.active = !user.active
+
+  <span class="kw">layout</span> row height=100vh:
+    <span class="cm">// Sidebar</span>
+    <span class="kw">layout</span> col gap=<span class="num">8</span> padding=<span class="num">24</span> bg=#2c3e50 width=<span class="num">240</span>:
+      <span class="el">text</span> <span class="str">"Admin Panel"</span> size=xl bold color=white
+      <span class="kw">layout</span> col gap=<span class="num">4</span>:
+        <span class="el">button</span> <span class="str">"Users"</span> -&gt; activeTab = <span class="str">"users"</span>
+        <span class="el">button</span> <span class="str">"Settings"</span> -&gt; activeTab = <span class="str">"settings"</span>
+        <span class="el">button</span> <span class="str">"Logs"</span> -&gt; activeTab = <span class="str">"logs"</span>
+
+    <span class="cm">// Main Content</span>
+    <span class="kw">layout</span> col gap=<span class="num">24</span> padding=<span class="num">32</span> grow=<span class="num">1</span>:
+      <span class="kw">if</span> activeTab == <span class="str">"users"</span>:
+        <span class="kw">layout</span> grid cols=<span class="num">3</span> gap=<span class="num">16</span>:
+          <span class="kw">layout</span> col gap=<span class="num">4</span> padding=<span class="num">24</span> radius=<span class="num">12</span> shadow=md:
+            <span class="el">text</span> <span class="str">"{totalUsers}"</span> size=3xl bold color=#3498db
+            <span class="el">text</span> <span class="str">"Total Users"</span> size=sm color=#666
+          <span class="kw">layout</span> col gap=<span class="num">4</span> padding=<span class="num">24</span> radius=<span class="num">12</span> shadow=md:
+            <span class="el">text</span> <span class="str">"{activeUsers}"</span> size=3xl bold color=#27ae60
+            <span class="el">text</span> <span class="str">"Active"</span> size=sm color=#666
+
+        <span class="el">input</span> searchQuery placeholder=<span class="str">"Search users..."</span>
+
+        <span class="kw">for</span> user <span class="kw">in</span> filteredUsers:
+          <span class="kw">layout</span> row gap=<span class="num">16</span> padding=<span class="num">12</span> center shadow=sm radius=<span class="num">4</span>:
+            <span class="el">text</span> user.name grow=<span class="num">1</span>
+            <span class="el">text</span> user.email grow=<span class="num">1</span> color=#666
+            <span class="el">text</span> user.role size=sm
+            <span class="kw">layout</span> row gap=<span class="num">4</span>:
+              <span class="el">button</span> <span class="str">"Toggle"</span> size=sm -&gt; toggleStatus(user.id)
+              <span class="el">button</span> <span class="str">"Delete"</span> size=sm style=danger -&gt; deleteUser(user.id)</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <p class="examples-cta">All examples compile to <strong>React</strong>, <strong>Vue 3</strong>, and <strong>Svelte 5</strong> with zero changes. <a href="https://github.com/hankimis/0x-lang/tree/main/examples">View all on GitHub &rarr;</a></p>
     </section>
 
     <div class="section-divider"></div>
@@ -1666,6 +2058,20 @@
         }
         const target = document.querySelector(href);
         if (target) target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Example app tab switching
+    const exTabs = document.querySelectorAll('.example-tab');
+    const exPanels = document.querySelectorAll('.example-panel');
+    exTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        exTabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        exPanels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        const panel = document.getElementById('example-' + tab.dataset.example);
+        if (panel) panel.classList.add('active');
       });
     });
 
