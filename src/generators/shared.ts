@@ -214,6 +214,12 @@ export function parseGradient(raw: string): string {
     return `linear-gradient(${direction}, ${colors.join(', ')})`;
   }
 
+  // Fallback: try comma-separated format "blue,purple" or "blue, purple"
+  const commaParts = v.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  if (commaParts.length >= 2) {
+    return `linear-gradient(${direction}, ${commaParts.join(', ')})`;
+  }
+
   // Fallback: treat as raw value
   return v;
 }

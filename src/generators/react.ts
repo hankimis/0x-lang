@@ -584,7 +584,8 @@ function genLayout(node: LayoutNode, c: GenContext): string {
       case 'between': style['justifyContent'] = 'space-between'; break;
       case 'end': style['justifyContent'] = 'flex-end'; break;
       case 'grow': style['flexGrow'] = v; break;
-      case 'scroll': { const sv = unquote(v); style['overflow' + (sv === 'y' ? 'Y' : 'X')] = 'auto'; break; }
+      case 'scroll': { const sv = unquote(v); if (sv === 'y') style['overflowY'] = 'auto'; else if (sv === 'x') style['overflowX'] = 'auto'; else style['overflow'] = 'auto'; break; }
+      case 'wrap': style['flexWrap'] = 'wrap'; break;
       case 'radius': style['borderRadius'] = addPx(v); break;
       case 'shadow': {
         const sv = unquote(v);
@@ -658,12 +659,12 @@ function genText(node: TextNode, c: GenContext): string {
 
   if (badgeExpr) {
     const badge = genExpr(badgeExpr, c);
-    result = `<span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>\n<span${styleStr}>${content}</span>\n<span style={{ marginLeft: '6px', padding: '2px 6px', fontSize: '12px', fontWeight: 'bold', borderRadius: '9999px', backgroundColor: '#ef4444', color: '#fff', minWidth: '20px', textAlign: 'center' }}>{${badge}}</span>\n</span>`;
+    result = `<span${classAttr} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>\n<span${styleStr}>${content}</span>\n<span style={{ marginLeft: '6px', padding: '2px 6px', fontSize: '12px', fontWeight: 'bold', borderRadius: '9999px', backgroundColor: '#ef4444', color: '#fff', minWidth: '20px', textAlign: 'center' }}>{${badge}}</span>\n</span>`;
   }
 
   if (tooltipExpr) {
     const tooltip = genExpr(tooltipExpr, c);
-    result = `<span title={${tooltip}}>${badgeExpr ? result.replace(/^<span/, '<span') : `<span${styleStr}>${content}</span>`}</span>`;
+    result = `<span${classAttr} title={${tooltip}}>${badgeExpr ? result.replace(/^<span[^>]*>/, '<span>') : `<span${styleStr}>${content}</span>`}</span>`;
   }
 
   return result;

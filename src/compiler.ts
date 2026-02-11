@@ -61,7 +61,7 @@ export function compile(source: string, options: CompileOptions): GeneratedCode 
 
   // Post-process: strip source map comments and V3 source map if disabled
   if (options.sourceMap === false) {
-    result = { ...result, code: result.code.replace(/\{\/\* 0x:L\d+ \*\/\}/g, '').replace(/<!-- 0x:L\d+ -->/g, ''), sourceMap: undefined };
+    result = { ...result, code: result.code.replace(/\{\/\* 0x:L\d+ \*\/\}/g, '').replace(/<!-- 0x:L\d+ -->/g, '').replace(/\/\/ 0x:L\d+\n\s*/g, ''), sourceMap: undefined };
   } else if (result.sourceMap) {
     // Append inline sourceMappingURL as base64 data URL
     const b64 = Buffer.from(result.sourceMap).toString('base64');
