@@ -1,0 +1,77 @@
+page Kanban:
+  type Task = {id: int, title: str, status: str}
+
+  state tasks: list[Task] = []
+  state newTask: str = ""
+
+  derived todoTasks = tasks.filter(t => t.status == "todo")
+  derived doingTasks = tasks.filter(t => t.status == "doing")
+  derived doneTasks = tasks.filter(t => t.status == "done")
+  derived totalCount = tasks.length
+
+  on mount:
+    tasks.push({id: 1, title: "Design mockups", status: "todo"})
+    tasks.push({id: 2, title: "Set up database", status: "doing"})
+    tasks.push({id: 3, title: "Write API docs", status: "done"})
+
+  fn addTask():
+    if newTask.trim() != "":
+      tasks.push({id: Date.now(), title: newTask, status: "todo"})
+      newTask = ""
+
+  fn moveTask(id: int, newStatus: str):
+    task = tasks.find(t => t.id == id)
+    if task:
+      task.status = newStatus
+
+  fn deleteTask(id: int):
+    tasks = tasks.filter(t => t.id != id)
+
+  layout col gap=24 padding=32:
+    // Header
+    layout row between center:
+      text "Kanban Board" size=3xl bold
+      text "{totalCount} tasks" size=lg color=#666
+
+    // Add Task
+    layout row gap=8:
+      input newTask placeholder="New task..."
+      button "Add" style=primary -> addTask()
+
+    // Board Columns
+    layout grid cols=3 gap=16:
+      // Todo Column
+      layout col gap=12 padding=16 radius=12 bg=#f0f0f0:
+        text "To Do ({todoTasks.length})" size=lg bold color=#e74c3c
+        for task in todoTasks:
+          component TaskCard(task)
+
+      // Doing Column
+      layout col gap=12 padding=16 radius=12 bg=#f0f0f0:
+        text "In Progress ({doingTasks.length})" size=lg bold color=#f39c12
+        for task in doingTasks:
+          component TaskCard(task)
+
+      // Done Column
+      layout col gap=12 padding=16 radius=12 bg=#f0f0f0:
+        text "Done ({doneTasks.length})" size=lg bold color=#27ae60
+        for task in doneTasks:
+          component TaskCard(task)
+
+component TaskCard:
+  prop task: Task
+
+  style card:
+    padding: 16
+    radius: 8
+    shadow: sm
+    bg: white
+
+  layout col gap=8 .card:
+    text task.title size=md
+    layout row gap=4:
+      if task.status != "doing":
+        button "Start" size=sm -> moveTask(task.id, "doing")
+      if task.status != "done":
+        button "Done" size=sm style=primary -> moveTask(task.id, "done")
+      button "Delete" size=sm style=danger -> deleteTask(task.id)

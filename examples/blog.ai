@@ -1,0 +1,64 @@
+page Blog:
+  type Post = {id: int, title: str, content: str, date: str}
+
+  state posts: list[Post] = []
+  state newTitle: str = ""
+  state newContent: str = ""
+  state loading: bool = true
+
+  derived postCount = posts.length
+
+  api getPosts = GET "/api/posts"
+  api createPost = POST "/api/posts"
+
+  on mount:
+    posts = await getPosts()
+    loading = false
+
+  fn addPost():
+    if newTitle.trim() != "" && newContent.trim() != "":
+      result = await createPost(title: newTitle, content: newContent)
+      posts.push(result)
+      newTitle = ""
+      newContent = ""
+
+  fn deletePost(id: int):
+    posts = posts.filter(p => p.id != id)
+
+  layout col gap=24 padding=32 maxWidth=800 margin=auto:
+    // Header
+    layout row between center:
+      text "Blog" size=3xl bold
+      text "{postCount} posts" size=lg color=#666
+
+    // New Post Form
+    layout col gap=12 padding=24 radius=12 shadow=md bg=white:
+      text "New Post" size=xl bold
+      input newTitle placeholder="Post title..."
+      input newContent placeholder="Write your content..."
+      button "Publish" style=primary -> addPost()
+
+    // Post List
+    if loading:
+      text "Loading..." center
+    else:
+      if posts.length == 0:
+        text "No posts yet" color=#999 center
+      else:
+        for post in posts:
+          component PostCard(post)
+
+component PostCard:
+  prop post: Post
+
+  style card:
+    padding: 24
+    radius: 12
+    shadow: sm
+    bg: white
+
+  layout col gap=8 .card:
+    layout row between center:
+      text post.title size=xl bold
+      text post.date size=sm color=#999
+    text post.content color=#444

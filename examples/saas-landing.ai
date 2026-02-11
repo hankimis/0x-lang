@@ -1,0 +1,77 @@
+page SaasLanding:
+  type Feature = {title: str, desc: str, icon: str}
+
+  state features: list[Feature] = []
+
+  on mount:
+    features.push({title: "Fast", desc: "Lightning fast builds in seconds", icon: "rocket.png"})
+    features.push({title: "Secure", desc: "Enterprise-grade security built in", icon: "shield.png"})
+    features.push({title: "Scalable", desc: "Scales from startup to enterprise", icon: "chart.png"})
+
+  layout col:
+    // Nav
+    layout row between center padding=24 bg=white shadow=sm:
+      text "LaunchPad" size=xl bold color=#333
+      layout row gap=24 center:
+        link "Features" href="#features"
+        link "Pricing" href="#pricing"
+        button "Get Started" style=primary -> navigate("/signup")
+
+    // Hero
+    layout col gap=16 padding=64 center bg=#f8f9fa:
+      text "Build Products Faster" size=4xl bold
+      text "The all-in-one platform for modern teams to ship great software." size=lg color=#666
+      layout row gap=12 center:
+        button "Start Free" style=primary -> navigate("/signup")
+        button "Learn More" style=outline -> navigate("/docs")
+
+    // Features
+    layout col gap=24 padding=48:
+      text "Features" size=3xl bold center
+      layout grid cols=3 gap=24:
+        for feature in features:
+          layout col gap=12 padding=24 radius=12 shadow=md bg=white center:
+            image feature.icon width=64 height=64
+            text feature.title size=xl bold
+            text feature.desc color=#666 center
+
+    // Pricing
+    layout col gap=24 padding=48 bg=#f8f9fa:
+      text "Pricing" size=3xl bold center
+      layout grid cols=3 gap=24:
+        // Starter
+        layout col gap=16 padding=32 radius=12 shadow=md bg=white center:
+          text "Starter" size=xl bold
+          text "$0/mo" size=3xl bold color=#333
+          text "1 project" size=sm color=#666
+          text "1GB storage" size=sm color=#666
+          text "Community support" size=sm color=#666
+          button "Get Started" style=outline -> navigate("/signup")
+
+        // Pro
+        layout col gap=16 padding=32 radius=12 shadow=md bg=white center:
+          text "Pro" size=xl bold
+          text "$29/mo" size=3xl bold color=#333
+          text "10 projects" size=sm color=#666
+          text "50GB storage" size=sm color=#666
+          text "Priority support" size=sm color=#666
+          text "API access" size=sm color=#666
+          button "Choose Pro" style=primary -> navigate("/signup")
+
+        // Enterprise
+        layout col gap=16 padding=32 radius=12 shadow=md bg=white center:
+          text "Enterprise" size=xl bold
+          text "$99/mo" size=3xl bold color=#333
+          text "Unlimited projects" size=sm color=#666
+          text "1TB storage" size=sm color=#666
+          text "24/7 support" size=sm color=#666
+          text "Custom integrations" size=sm color=#666
+          button "Contact Sales" style=primary -> navigate("/contact")
+
+    // Footer
+    layout row between padding=32 bg=#333:
+      text "LaunchPad Inc." color=white
+      layout row gap=16:
+        link "Privacy" href="/privacy" color=white
+        link "Terms" href="/terms" color=white
+        link "Contact" href="/contact" color=white

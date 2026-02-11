@@ -1,0 +1,80 @@
+page CRM:
+  type Customer = {id: int, name: str, email: str, status: str}
+  type Stat = {label: str, value: int}
+
+  state customers: list[Customer] = []
+  state searchQuery: str = ""
+  state showAddModal: bool = false
+  state newName: str = ""
+  state newEmail: str = ""
+  state loading: bool = true
+  state stats: list[Stat] = []
+
+  derived filtered = customers.filter(c => c.name.includes(searchQuery) || c.email.includes(searchQuery))
+  derived totalCount = customers.length
+  derived activeCount = customers.filter(c => c.status == "active").length
+
+  api getCustomers = GET "/api/customers"
+  api createCustomer = POST "/api/customers"
+
+  on mount:
+    customers = await getCustomers()
+    loading = false
+
+  fn addCustomer():
+    if newName.trim() != "" && newEmail.trim() != "":
+      result = await createCustomer(name: newName, email: newEmail)
+      customers.push(result)
+      newName = ""
+      newEmail = ""
+      showAddModal = false
+
+  fn removeCustomer(id: int):
+    customers = customers.filter(c => c.id != id)
+
+  layout col gap=24 padding=32:
+    // Header
+    text "CRM Dashboard" size=3xl bold
+
+    // Stats
+    layout grid cols=3 gap=16:
+      layout col gap=4 center padding=24 radius=12 shadow=md bg=white:
+        text "{totalCount}" size=3xl bold color=#333
+        text "Total Customers" size=sm color=#666
+      layout col gap=4 center padding=24 radius=12 shadow=md bg=white:
+        text "{activeCount}" size=3xl bold color=#27ae60
+        text "Active" size=sm color=#666
+      layout col gap=4 center padding=24 radius=12 shadow=md bg=white:
+        text "{totalCount - activeCount}" size=3xl bold color=#999
+        text "Inactive" size=sm color=#666
+
+    // Search & Actions
+    layout row gap=12 center:
+      input searchQuery placeholder="Search customers..."
+      button "Add Customer" style=primary -> showAddModal = true
+
+    // Add Form
+    if showAddModal:
+      layout col gap=12 padding=24 radius=12 shadow=md bg=white:
+        text "New Customer" size=xl bold
+        input newName placeholder="Customer name..."
+        input newEmail placeholder="Email address..."
+        layout row gap=8:
+          button "Save" style=primary -> addCustomer()
+          button "Cancel" -> showAddModal = false
+
+    // Customer List
+    if loading:
+      text "Loading..." center
+    else:
+      layout col gap=8:
+        for customer in filtered:
+          layout row gap=16 padding=16 radius=8 bg=white shadow=sm center:
+            layout col grow=1:
+              text customer.name size=lg bold
+              text customer.email size=sm color=#666
+            text customer.status size=sm color={customer.status == "active" ? "green" : "#999"}
+            button "Remove" style=danger size=sm -> removeCustomer(customer.id)
+
+      if filtered.length == 0:
+        text "No customers found" color=#999 center
