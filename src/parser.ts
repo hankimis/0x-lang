@@ -29,8 +29,9 @@ import type {
 } from './ast.js';
 
 export class ParseError extends Error {
-  constructor(message: string, public line: number, public column: number) {
-    super(`Line ${line}, Col ${column}: ${message}`);
+  constructor(message: string, public line: number, public column: number, context?: string) {
+    const ctx = context ? ` (near: ${context})` : '';
+    super(`Line ${line}, Col ${column}: ${message}${ctx}`);
     this.name = 'ParseError';
   }
 }
@@ -38,6 +39,16 @@ export class ParseError extends Error {
 class Parser {
   private tokens: Token[];
   private pos: number = 0;
+
+  /** Returns nearby tokens as context string for error messages */
+  private nearby(): string {
+    const start = Math.max(0, this.pos - 2);
+    const end = Math.min(this.tokens.length, this.pos + 3);
+    return this.tokens.slice(start, end)
+      .filter(t => t.type !== 'NEWLINE' && t.type !== 'INDENT' && t.type !== 'DEDENT')
+      .map(t => t.value || t.type)
+      .join(' ');
+  }
 
   constructor(tokens: Token[]) {
     // Filter out comments for storage, but keep them for potential AST inclusion
@@ -67,7 +78,7 @@ class Parser {
     if (tok.type !== type || (value !== undefined && tok.value !== value)) {
       throw new ParseError(
         `Expected ${type}${value ? ` '${value}'` : ''}, got ${tok.type} '${tok.value}'`,
-        tok.line, tok.column
+        tok.line, tok.column, this.nearby()
       );
     }
     return this.advance();
@@ -101,7 +112,7 @@ class Parser {
       this.advance();
       return tok.value;
     }
-    throw new ParseError(`Expected name, got ${tok.type} '${tok.value}'`, tok.line, tok.column);
+    throw new ParseError(`Expected name, got ${tok.type} '${tok.value}'`, tok.line, tok.column, this.nearby());
   }
 
   // ── Top Level ─────────────────────────────────────────
@@ -188,8 +199,8 @@ class Parser {
       } else {
         const tok = this.current();
         throw new ParseError(
-          `Expected top-level keyword, got '${tok.value}'`,
-          tok.line, tok.column
+          `Expected top-level keyword (page, component, app, store, api, etc.), got '${tok.value}'`,
+          tok.line, tok.column, this.nearby()
         );
       }
       this.skipNewlines();
@@ -318,7 +329,7 @@ class Parser {
       }
     }
 
-    throw new ParseError(`Unexpected token '${tok.value}'`, tok.line, tok.column);
+    throw new ParseError(`Unexpected token '${tok.value}'`, tok.line, tok.column, this.nearby());
   }
 
   private tryParseUIKeyword(value: string): UINode | null {
@@ -385,7 +396,7 @@ class Parser {
       const uiNode = this.tryParseUIKeyword(tok.value);
       if (uiNode) return uiNode;
     }
-    throw new ParseError(`Expected UI element, got '${tok.value}'`, tok.line, tok.column);
+    throw new ParseError(`Expected UI element, got '${tok.value}'`, tok.line, tok.column, this.nearby());
   }
 
   // ── Declarations ──────────────────────────────────────
@@ -575,7 +586,7 @@ class Parser {
       const body = this.parseStatementBlock();
       return { type: 'OnDestroy', body, loc: location };
     }
-    throw new ParseError(`Expected 'mount' or 'destroy' after 'on', got '${kind}'`, this.current().line, this.current().column);
+    throw new ParseError(`Expected 'mount' or 'destroy' after 'on', got '${kind}'`, this.current().line, this.current().column, this.nearby());
   }
 
   private parseWatch(): WatchBlock {
@@ -694,7 +705,7 @@ class Parser {
       return { type: 'JsBlock', code: code.trim(), loc: location };
     }
 
-    throw new ParseError(`Expected 'import', '{', or ':' after 'js'`, this.current().line, this.current().column);
+    throw new ParseError(`Expected 'import', '{', or ':' after 'js'`, this.current().line, this.current().column, this.nearby());
   }
 
   private parseJsImport(location: SourceLocation): JsImport {
@@ -2618,7 +2629,7 @@ class Parser {
       return { kind: 'if_stmt', condition, body, elifs, elseBody };
     }
 
-    throw new ParseError(`Expected ':' after if condition`, this.current().line, this.current().column);
+    throw new ParseError(`Expected ':' after if condition`, this.current().line, this.current().column, this.nearby());
   }
 
   private parseForStmt(): Statement {
@@ -2985,7 +2996,7 @@ class Parser {
       return { kind: 'object_expr', properties };
     }
 
-    throw new ParseError(`Unexpected token '${tok.value}' (${tok.type})`, tok.line, tok.column);
+    throw new ParseError(`Unexpected token '${tok.value}' (${tok.type})`, tok.line, tok.column, this.nearby());
   }
 
   parseAtomicExpression(): Expression {
