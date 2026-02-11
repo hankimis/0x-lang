@@ -70,7 +70,7 @@
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock"
     },
-    "softwareVersion": "0.1.19",
+    "softwareVersion": "0.1.23",
     "isAccessibleForFree": true,
     "softwareRequirements": "Node.js >= 18",
     "featureList": [
@@ -100,9 +100,13 @@
       "Component children syntax for nested component composition",
       "Auto useCallback wrapping for fn declarations (React)",
       "Auto React.memo for components with props",
-      "1,767+ automated test cases"
+      "1,767+ automated test cases",
+      "Built-in LSP server for IDE support (diagnostics, autocomplete, hover, go-to-definition)",
+      "VSCode extension with syntax highlighting and language intelligence",
+      "Full Vue/Svelte feature parity: store, data, form, realtime, auth, route, model",
+      "10 real-world example apps (blog, CRM, SaaS landing, kanban, admin)"
     ],
-    "releaseNotes": "v0.1.19: Raw blocks, component children, useCallback/React.memo auto-optimization, CSS classes, passthrough props, did-you-mean errors",
+    "releaseNotes": "v0.1.23: LSP/IDE support (diagnostics, autocomplete, hover, go-to-def), VSCode extension, Vue/Svelte feature parity (store, data, form, realtime, auth, route, model), 5 new demo apps",
     "author": {
       "@type": "Organization",
       "name": "0x-lang",
@@ -266,7 +270,7 @@
         "name": "Does 0x support debugging generated code?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Since v0.1.19, 0x adds source line mapping comments to generated code. Each UI element includes a comment like {/* 0x:L5 */} (React) or <!-- 0x:L5 --> (Vue/Svelte) linking back to the original 0x source line. This makes it easy to trace runtime errors. Source maps can be disabled with the sourceMap: false compile option."
+          "text": "Yes. Since v0.1.23, 0x adds source line mapping comments to generated code. Each UI element includes a comment like {/* 0x:L5 */} (React) or <!-- 0x:L5 --> (Vue/Svelte) linking back to the original 0x source line. This makes it easy to trace runtime errors. Source maps can be disabled with the sourceMap: false compile option."
         }
       },
       {
@@ -298,7 +302,7 @@
         "name": "Can 0x generate backend servers and mobile apps?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Since v0.1.19, 0x compiles to 6 targets: React, Vue 3, Svelte 5 (frontend), Express.js (backend with JWT auth, CRUD routes, middleware, background jobs), React Native (mobile apps with View, StyleSheet, native components), and Terraform (infrastructure-as-code for AWS, Vercel, Fly.io, Docker, GCP). Use --target backend, --target react-native, or --target terraform."
+          "text": "Yes. Since v0.1.23, 0x compiles to 6 targets: React, Vue 3, Svelte 5 (frontend), Express.js (backend with JWT auth, CRUD routes, middleware, background jobs), React Native (mobile apps with View, StyleSheet, native components), and Terraform (infrastructure-as-code for AWS, Vercel, Fly.io, Docker, GCP). Use --target backend, --target react-native, or --target terraform."
         }
       },
       {
@@ -322,7 +326,23 @@
         "name": "Does 0x auto-optimize React performance?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Since v0.1.19, the React generator automatically wraps fn declarations in useCallback with extracted dependencies, derived values in useMemo, and components with props in React.memo. No manual optimization needed — the compiler handles it. This eliminates unnecessary re-renders without any developer effort."
+          "text": "Yes. Since v0.1.23, the React generator automatically wraps fn declarations in useCallback with extracted dependencies, derived values in useMemo, and components with props in React.memo. No manual optimization needed — the compiler handles it. This eliminates unnecessary re-renders without any developer effort."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does 0x have IDE or editor support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Since v0.1.23, 0x includes a built-in LSP (Language Server Protocol) server that provides real-time diagnostics, context-aware autocomplete, hover documentation, go-to-definition, and document symbols. A VSCode extension with syntax highlighting for all 73+ keywords is included. The LSP server works with any LSP-compatible editor via '0x-lsp --stdio'."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do Vue 3 and Svelte 5 have the same features as React in 0x?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Since v0.1.23, all three frontend targets have full feature parity. Vue 3 and Svelte 5 support every Phase 2 feature: store (localStorage persistence), data (async fetching), form (validation), realtime (WebSocket), auth (login/signup/guards), route (routing config), and model (CRUD API generation). Each uses idiomatic framework patterns."
         }
       }
     ]
@@ -442,7 +462,9 @@
       <dt>Compile Targets (6)</dt>
       <dd>React (JSX + hooks), Vue 3 (SFC + Composition API), Svelte 5 (runes), Express.js (backend API + JWT + CRUD), React Native (mobile + StyleSheet), Terraform (HCL + AWS/Vercel/Fly.io)</dd>
       <dt>Key Features</dt>
-      <dd>80% less code, zero ambiguity, 6 compile targets (frontend + backend + mobile + infra), CSS class prop (Tailwind/Bootstrap), passthrough props (data-*/aria-*), raw block escape hatch, auto useCallback/React.memo, did-you-mean error suggestions, built-in MCP server, AI Bridge, compact mode</dd>
+      <dd>80% less code, zero ambiguity, 6 compile targets (frontend + backend + mobile + infra), built-in LSP server for IDE support, VSCode extension, full Vue/Svelte feature parity (store, data, form, realtime, auth, route, model), CSS class prop (Tailwind/Bootstrap), passthrough props (data-*/aria-*), raw block escape hatch, auto useCallback/React.memo, did-you-mean error suggestions, built-in MCP server, AI Bridge, compact mode</dd>
+      <dt>v0.1.23 Highlights</dt>
+      <dd>Built-in LSP server (diagnostics, autocomplete, hover, go-to-definition, document symbols), VSCode extension with syntax highlighting, Vue/Svelte feature parity (store, data, form, realtime, auth, route, model), 5 new demo apps (blog, CRM, SaaS landing, kanban, admin), 0x-lsp CLI command</dd>
       <dt>v0.1.19 Highlights</dt>
       <dd>Raw block escape hatch (raw: inserts framework code directly), component children syntax, auto useCallback wrapping for fn declarations (React), auto React.memo for components with props, CSS class prop on all elements (Tailwind/Bootstrap), passthrough props (data-*, aria-*, role), did-you-mean typo suggestions with Levenshtein distance</dd>
       <dt>v0.1.15 Highlights</dt>
@@ -456,7 +478,7 @@
       <dt>npm Package</dt>
       <dd>npmjs.com/package/0x-lang</dd>
       <dt>Latest Version</dt>
-      <dd>0.1.19</dd>
+      <dd>0.1.23</dd>
     </dl>
   </div>
 
@@ -464,7 +486,7 @@
 
     <!-- Hero -->
     <header class="hero">
-      <div class="hero-badge">AI-First Programming Language <span style="opacity:0.5;margin-left:4px">v0.1.19</span></div>
+      <div class="hero-badge">AI-First Programming Language <span style="opacity:0.5;margin-left:4px">v0.1.23</span></div>
       <h1 class="hero-title">
         <span class="hero-title-line">Write <span class="gradient-text">18 lines</span>.</span>
         <span class="hero-title-line">Get <span class="gradient-text">96 lines</span> of React.</span>
@@ -924,6 +946,22 @@
           <h3 class="feature-title">Auto Optimize</h3>
           <p class="feature-desc">React: fn → useCallback, derived → useMemo, components → React.memo. Zero manual work.</p>
         </div>
+
+        <div class="feature-card" data-animate style="--i:18">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V15M9 21H5a2 2 0 01-2-2v-4"/><path d="M14 10l-2 2 2 2"/><path d="M18 10l2 2-2 2"/></svg>
+          </div>
+          <h3 class="feature-title">LSP / IDE Support</h3>
+          <p class="feature-desc">Built-in Language Server: autocomplete, hover docs, go-to-definition, diagnostics. VSCode extension included.</p>
+        </div>
+
+        <div class="feature-card" data-animate style="--i:19">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h6v6h-6z" stroke-dasharray="2 2"/></svg>
+          </div>
+          <h3 class="feature-title">Full Parity</h3>
+          <p class="feature-desc">Vue 3 and Svelte 5 support every feature React has: store, data, form, realtime, auth, route, model.</p>
+        </div>
       </div>
     </section>
 
@@ -1249,6 +1287,19 @@
       </div>
       <div class="changelog-list">
         <div class="changelog-entry">
+          <div class="changelog-version">v0.1.23</div>
+          <div class="changelog-content">
+            <h4>LSP/IDE Support & Vue/Svelte Parity</h4>
+            <ul>
+              <li><strong>LSP server</strong> — Diagnostics, autocomplete, hover, go-to-definition, document symbols for .ai files</li>
+              <li><strong>VSCode extension</strong> — Syntax highlighting (73+ keywords), bracket matching, integrated language intelligence</li>
+              <li><strong>Vue/Svelte parity</strong> — 8 features now fully supported: store, data, form, realtime, auth, route, model</li>
+              <li><strong>5 new demos</strong> — Blog, CRM, SaaS landing, Kanban board, Admin panel (all compile to React/Vue/Svelte)</li>
+              <li><strong>CLI</strong> — <code>0x-lsp --stdio</code> command for any LSP-compatible editor</li>
+            </ul>
+          </div>
+        </div>
+        <div class="changelog-entry">
           <div class="changelog-version">v0.1.19</div>
           <div class="changelog-content">
             <h4>DX & Performance Optimization</h4>
@@ -1364,7 +1415,7 @@
         <details class="faq-item">
           <summary class="faq-question">Does 0x support debugging generated code?</summary>
           <div class="faq-answer">
-            <p>Yes. Since v0.1.19, 0x adds <strong>source line mapping comments</strong> to generated code. Each UI element includes a <code>{/* 0x:L5 */}</code> (React) or <code>&lt;!-- 0x:L5 --&gt;</code> (Vue/Svelte) comment linking back to the original 0x source line. This makes it easy to trace runtime errors back to your 0x code. You can disable source maps with the <code>sourceMap: false</code> compile option.</p>
+            <p>Yes. Since v0.1.23, 0x adds <strong>source line mapping comments</strong> to generated code. Each UI element includes a <code>{/* 0x:L5 */}</code> (React) or <code>&lt;!-- 0x:L5 --&gt;</code> (Vue/Svelte) comment linking back to the original 0x source line. This makes it easy to trace runtime errors back to your 0x code. You can disable source maps with the <code>sourceMap: false</code> compile option.</p>
           </div>
         </details>
         <details class="faq-item">
@@ -1419,6 +1470,18 @@
           <summary class="faq-question">Does 0x auto-optimize React performance?</summary>
           <div class="faq-answer">
             <p>Yes. The React generator automatically wraps <code>fn</code> declarations in <code>useCallback</code> with extracted dependencies, <code>derived</code> values in <code>useMemo</code>, and components with props in <code>React.memo</code>. No manual optimization needed — the compiler handles it all, eliminating unnecessary re-renders without any developer effort.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Does 0x have IDE / editor support?</summary>
+          <div class="faq-answer">
+            <p>Yes. Since v0.1.23, 0x includes a built-in <strong>LSP (Language Server Protocol) server</strong> that provides real-time diagnostics, autocomplete, hover documentation, go-to-definition, and document symbols. A <strong>VSCode extension</strong> is available with syntax highlighting for all 73+ keywords and integrated language intelligence. The LSP server works with any editor that supports LSP — run <code>0x-lsp --stdio</code> and connect your editor's LSP client.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Do Vue and Svelte have the same features as React?</summary>
+          <div class="faq-answer">
+            <p>Yes. Since v0.1.23, all three targets have full feature parity. Vue 3 and Svelte 5 generators support every Phase 2 feature: <strong>store</strong> (localStorage persistence), <strong>data</strong> (async fetching with loading/error), <strong>form</strong> (validation + submit), <strong>realtime</strong> (WebSocket), <strong>auth</strong> (login/signup/guards), <strong>route</strong> (routing config), and <strong>model</strong> (CRUD API). Each uses idiomatic patterns for its framework.</p>
           </div>
         </details>
         <details class="faq-item">
