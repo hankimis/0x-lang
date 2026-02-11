@@ -177,6 +177,10 @@ function genApi(node: ApiDecl, c: SvelteContext): string {
 
 // ── UI Nodes ────────────────────────────────────────
 
+function srcComment(node: { loc?: { line: number } }): string {
+  return node.loc?.line ? `<!-- 0x:L${node.loc.line} -->` : '';
+}
+
 function genUINode(node: UINode, c: SvelteContext): string {
   switch (node.type) {
     case 'Layout': return genLayout(node, c);
@@ -309,7 +313,8 @@ function genLayout(node: LayoutNode, c: SvelteContext): string {
   }
 
   const children = node.children.map(ch => genUINode(ch, c)).join('\n  ');
-  return `<div style="${style.join('; ')}">\n  ${children}\n</div>`;
+  const sc = srcComment(node);
+  return `${sc}<div style="${style.join('; ')}">\n  ${children}\n</div>`;
 }
 
 function genText(node: TextNode, c: SvelteContext): string {
@@ -319,11 +324,12 @@ function genText(node: TextNode, c: SvelteContext): string {
 
   const badgeExpr = node.props['badge'];
   const tooltipExpr = node.props['tooltip'];
-  let result = `<span${styleAttr}>${content}</span>`;
+  const sc = srcComment(node);
+  let result = `${sc}<span${styleAttr}>${content}</span>`;
 
   if (badgeExpr) {
     const badge = genExpr(badgeExpr, c);
-    result = `<span style="position: relative; display: inline-flex; align-items: center">\n<span${styleAttr}>${content}</span>\n<span style="margin-left: 6px; padding: 2px 6px; font-size: 12px; font-weight: bold; border-radius: 9999px; background-color: #ef4444; color: #fff; min-width: 20px; text-align: center">{${badge}}</span>\n</span>`;
+    result = `${sc}<span style="position: relative; display: inline-flex; align-items: center">\n<span${styleAttr}>${content}</span>\n<span style="margin-left: 6px; padding: 2px 6px; font-size: 12px; font-weight: bold; border-radius: 9999px; background-color: #ef4444; color: #fff; min-width: 20px; text-align: center">{${badge}}</span>\n</span>`;
   }
 
   if (tooltipExpr) {
@@ -351,7 +357,8 @@ function genButton(node: ButtonNode, c: SvelteContext): string {
     }
   }
   const attrStr = attrs.length > 0 ? ' ' + attrs.join(' ') : '';
-  return `<button onclick={() => ${action}}${attrStr}>${label}</button>`;
+  const sc = srcComment(node);
+  return `${sc}<button onclick={() => ${action}}${attrStr}>${label}</button>`;
 }
 
 function genInput(node: InputNode, c: SvelteContext): string {
@@ -363,7 +370,8 @@ function genInput(node: InputNode, c: SvelteContext): string {
     if (key === '@keypress') props.push(`onkeypress={e => ${v}(e.key)}`);
     if (key === 'grow') props.push(`style="flex-grow: ${v}"`);
   }
-  return `<input ${props.join(' ')} />`;
+  const sc = srcComment(node);
+  return `${sc}<input ${props.join(' ')} />`;
 }
 
 function genImage(node: ImageNode, c: SvelteContext): string {
