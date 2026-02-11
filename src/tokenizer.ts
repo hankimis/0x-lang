@@ -29,7 +29,7 @@ const KEYWORDS = new Set([
   'fn', 'async', 'layout', 'text', 'button', 'input', 'image',
   'link', 'toggle', 'select', 'if', 'elif', 'else', 'for', 'in',
   'show', 'hide', 'on', 'watch', 'check', 'requires', 'ensures',
-  'api', 'store', 'use', 'js', 'style', 'import', 'from', 'return',
+  'api', 'store', 'use', 'js', 'raw', 'style', 'import', 'from', 'return',
   'mount', 'destroy', 'await', 'true', 'false', 'null', 'let', 'const',
   'row', 'col', 'grid', 'stack', 'center', 'middle', 'between', 'end',
   'list', 'map', 'set',

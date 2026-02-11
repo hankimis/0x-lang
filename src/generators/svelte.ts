@@ -104,6 +104,7 @@ function generateSvelteComponent(node: PageNode | ComponentNode | AppNode): stri
         break;
       }
       case 'JsBlock': scriptLines.push((child as any).code); break;
+      case 'RawBlock': templateParts.push((child as any).code); break;
       case 'TopLevelVarDecl': {
         const tlv = child as any;
         scriptLines.push(`${tlv.keyword} ${tlv.name} = ${genExpr(tlv.value, c)};`);
@@ -224,6 +225,7 @@ function genUINode(node: UINode, c: SvelteContext): string {
     case 'ShowBlock': return genShow(node, c);
     case 'HideBlock': return genHide(node, c);
     case 'ComponentCall': return genComponentCall(node, c);
+    case 'RawBlock': return (node as any).code;
     case 'Table': return genTableUI(node as TableNode, c);
     case 'Chart': return genChartUI(node as ChartNode, c);
     case 'Stat': return genStatUI(node as StatNode, c);
@@ -483,7 +485,14 @@ function genComponentCall(node: ComponentCall, c: SvelteContext): string {
   const props = Object.entries(node.args)
     .filter(([k]) => !k.startsWith('_arg'))
     .map(([k, v]) => `${k}={${genExpr(v, c)}}`);
-  return `<${node.name} ${props.join(' ')} />`;
+  const propsStr = props.length > 0 ? ` ${props.join(' ')}` : '';
+
+  if (node.children && node.children.length > 0) {
+    const childrenHtml = node.children.map(ch => genUINode(ch, c)).join('\n  ');
+    return `<${node.name}${propsStr}>\n  ${childrenHtml}\n</${node.name}>`;
+  }
+
+  return `<${node.name}${propsStr} />`;
 }
 
 function genIf(node: IfBlock, c: SvelteContext): string {

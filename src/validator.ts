@@ -287,6 +287,9 @@ function collectUsedNames(node: ASTNode | UINode, names: Set<string>): void {
       break;
     case 'ComponentCall':
       Object.values(node.args).forEach(e => collectExprNames(e, names));
+      if (node.children) node.children.forEach(ch => collectUsedNames(ch as ASTNode, names));
+      break;
+    case 'RawBlock':
       break;
   }
 }

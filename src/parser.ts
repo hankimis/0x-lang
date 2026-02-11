@@ -9,7 +9,7 @@ import type {
   LayoutNode, TextNode, ButtonNode, InputNode, ImageNode, LinkNode,
   ToggleNode, SelectNode, IfBlock, ForBlock, ShowBlock, HideBlock,
   StyleDecl, StyleProperty, ComponentCall, CommentNode,
-  JsImport, UseImport, JsBlock, TopLevelVarDecl,
+  JsImport, UseImport, JsBlock, RawBlock, TopLevelVarDecl,
   ModelNode, ModelField, DataDecl, FormDecl, FormField, FormValidation, FormSubmit,
   TableNode, TableColumn,
   AuthDecl, ChartNode, StatNode, RealtimeDecl, RouteDecl, NavNode, NavItem,
@@ -40,6 +40,7 @@ export class ParseError extends Error {
 class Parser {
   private tokens: Token[];
   private pos: number = 0;
+  private sourceLines: string[];
 
   /** Returns nearby tokens as context string for error messages */
   private nearby(): string {
@@ -51,9 +52,10 @@ class Parser {
       .join(' ');
   }
 
-  constructor(tokens: Token[]) {
+  constructor(tokens: Token[], source: string = '') {
     // Filter out comments for storage, but keep them for potential AST inclusion
     this.tokens = tokens;
+    this.sourceLines = source.split('\n');
   }
 
   // ── Utilities ─────────────────────────────────────────
@@ -325,6 +327,7 @@ class Parser {
         case 'check': return this.parseCheck();
         case 'style': return this.parseStyle();
         case 'js': return this.parseJsInterop();
+        case 'raw': return this.parseRawBlock();
         case 'import': return this.parseJsImport(this.loc());
         case 'use': return this.parseUseImport();
         case 'const':
@@ -355,7 +358,7 @@ class Parser {
     } else {
       const bodyKeywords = [
         'state', 'derived', 'prop', 'type', 'store', 'api', 'fn', 'async', 'on', 'watch', 'check',
-        'style', 'js', 'import', 'use', 'const', 'let', 'data', 'form', 'realtime', 'emit',
+        'style', 'js', 'raw', 'import', 'use', 'const', 'let', 'data', 'form', 'realtime', 'emit',
         'error', 'loading', 'offline', 'retry', 'log',
         'layout', 'text', 'button', 'input', 'image', 'link', 'toggle', 'select',
         'if', 'for', 'show', 'hide', 'table', 'chart', 'stat', 'nav', 'upload', 'modal',
@@ -385,6 +388,7 @@ class Parser {
       case 'show': return this.parseShow();
       case 'hide': return this.parseHide();
       case 'component': return this.parseComponentCall();
+      case 'raw': return this.parseRawBlock();
       case 'table': return this.parseTable();
       case 'chart': return this.parseChart();
       case 'stat': return this.parseStat();
@@ -441,7 +445,7 @@ class Parser {
       const uiKeywords = [
         'layout', 'text', 'button', 'input', 'image', 'link', 'toggle', 'select',
         'if', 'for', 'show', 'hide', 'table', 'chart', 'stat', 'nav', 'upload', 'modal',
-        'toast', 'list', 'drawer', 'animate', 'breadcrumb', 'divider', 'progress',
+        'toast', 'list', 'drawer', 'animate', 'breadcrumb', 'divider', 'progress', 'raw', 'component',
       ];
       const suggestion = suggestKeyword(tok.value, uiKeywords);
       if (suggestion) hint = `\n  → Did you mean '${suggestion}'?`;
@@ -782,6 +786,66 @@ class Parser {
     throw new ParseError(`Expected 'import', '{', or ':' after 'js'`, this.current().line, this.current().column, this.nearby());
   }
 
+  private parseRawBlock(): RawBlock {
+    const location = this.loc();
+    this.expect('KEYWORD', 'raw');
+
+    // Raw block: raw { ... }
+    if (this.match('PUNCTUATION', '{')) {
+      const openBrace = this.tokens[this.pos];
+      this.advance();
+      let braceDepth = 1;
+      while (braceDepth > 0 && !this.match('EOF')) {
+        const tok = this.advance();
+        if (tok.value === '{') braceDepth++;
+        else if (tok.value === '}') {
+          braceDepth--;
+          if (braceDepth === 0) break;
+        }
+      }
+      // Extract raw source between { and }
+      const line = this.sourceLines[openBrace.line - 1] || '';
+      const afterBrace = line.indexOf('{', openBrace.column);
+      const closeBrace = line.lastIndexOf('}');
+      const code = afterBrace >= 0 && closeBrace > afterBrace
+        ? line.substring(afterBrace + 1, closeBrace).trim()
+        : line.substring(openBrace.column + 1).trim();
+      return { type: 'RawBlock', code, loc: location };
+    }
+
+    // Raw block: raw: (indented block)
+    if (this.match('PUNCTUATION', ':')) {
+      this.advance();
+      this.skipNewlines();
+      if (this.match('INDENT')) {
+        this.advance();
+        // Track line range of content tokens
+        let minLine = Infinity;
+        let maxLine = 0;
+        while (!this.match('DEDENT') && !this.match('EOF')) {
+          const tok = this.advance();
+          if (tok.type !== 'NEWLINE' && tok.type !== 'INDENT' && tok.type !== 'DEDENT') {
+            minLine = Math.min(minLine, tok.line);
+            maxLine = Math.max(maxLine, tok.line);
+          }
+        }
+        if (this.match('DEDENT')) this.advance();
+
+        if (minLine <= maxLine) {
+          const rawLines = this.sourceLines.slice(minLine - 1, maxLine);
+          // Find base indentation from first line
+          const baseIndent = rawLines[0]?.match(/^(\s*)/)?.[1]?.length ?? 0;
+          const code = rawLines.map(l => l.slice(baseIndent)).join('\n').trim();
+          return { type: 'RawBlock', code, loc: location };
+        }
+        return { type: 'RawBlock', code: '', loc: location };
+      }
+      return { type: 'RawBlock', code: '', loc: location };
+    }
+
+    throw new ParseError(`Expected '{' or ':' after 'raw'`, this.current().line, this.current().column, this.nearby());
+  }
+
   private parseJsImport(location: SourceLocation): JsImport {
     this.expect('KEYWORD', 'import');
     const specifiers: string[] = [];
@@ -978,7 +1042,15 @@ class Parser {
       this.expect('PUNCTUATION', ')');
     }
 
-    return { type: 'ComponentCall', name, args, loc: location };
+    // Check for children block: component Name(args):
+    let children: UINode[] | undefined;
+    if (this.match('PUNCTUATION', ':')) {
+      this.advance();
+      this.skipNewlines();
+      children = this.parseUIBlock();
+    }
+
+    return { type: 'ComponentCall', name, args, children, loc: location };
   }
 
   // ── Control Flow ──────────────────────────────────────
@@ -3799,6 +3871,6 @@ class Parser {
 
 export function parse(source: string): ASTNode[] {
   const tokens = tokenize(source);
-  const parser = new Parser(tokens);
+  const parser = new Parser(tokens, source);
   return parser.parseProgram();
 }
