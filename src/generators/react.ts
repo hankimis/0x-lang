@@ -25,7 +25,7 @@ import type {
   I18nNode, LocaleNode, RtlNode,
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
-import { SIZE_MAP, unquote, capitalize, parseGradient, addPx } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS, KNOWN_MODAL_PROPS } from './shared.js';
 import { SourceMapBuilder } from './source-map.js';
 
 export interface GenContext {
@@ -391,7 +391,8 @@ function genDerived(node: DerivedDecl, c: GenContext): string {
   c.readOnly = prevReadOnly;
   const { deps, warning } = extractDepsWithWarning(node.expression, c);
   const warnComment = warning ? ` ${warning}` : '';
-  return `${warnComment ? warnComment + '\n  ' : ''}const ${node.name} = useMemo(() => ${expr}, [${deps.join(', ')}]);`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
+  return `${sc}${warnComment ? warnComment + '\n  ' : ''}const ${node.name} = useMemo(() => ${expr}, [${deps.join(', ')}]);`;
 }
 
 function genCheck(node: CheckDecl, c: GenContext): string {
@@ -431,7 +432,8 @@ function genFunction(node: FnDecl, c: GenContext): string {
   ).join('\n    ');
 
   const allBody = [requireChecks, body].filter(Boolean).join('\n    ');
-  return `const ${node.name} = ${asyncKw}(${params}) => {\n    ${allBody}\n  };`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
+  return `${sc}const ${node.name} = ${asyncKw}(${params}) => {\n    ${allBody}\n  };`;
 }
 
 // ── Lifecycle ───────────────────────────────────────
@@ -440,16 +442,18 @@ function genOnMount(node: OnMount, c: GenContext): string {
   c.imports.add('useEffect');
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
   const hasAwait = bodyContainsAwait(node.body);
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
   if (hasAwait) {
-    return `useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, []);`;
+    return `${sc}useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, []);`;
   }
-  return `useEffect(() => {\n    ${body}\n  }, []);`;
+  return `${sc}useEffect(() => {\n    ${body}\n  }, []);`;
 }
 
 function genOnDestroy(node: OnDestroy, c: GenContext): string {
   c.imports.add('useEffect');
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
-  return `useEffect(() => {\n    return () => {\n      ${body}\n    };\n  }, []);`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
+  return `${sc}useEffect(() => {\n    return () => {\n      ${body}\n    };\n  }, []);`;
 }
 
 function genWatch(node: WatchBlock, c: GenContext): string {
@@ -457,10 +461,11 @@ function genWatch(node: WatchBlock, c: GenContext): string {
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
   const vars = (node.variables || [node.variable]).join(', ');
   const hasAwait = bodyContainsAwait(node.body);
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
   if (hasAwait) {
-    return `useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, [${vars}]);`;
+    return `${sc}useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, [${vars}]);`;
   }
-  return `useEffect(() => {\n    ${body}\n  }, [${vars}]);`;
+  return `${sc}useEffect(() => {\n    ${body}\n  }, [${vars}]);`;
 }
 
 // ── UI Nodes ────────────────────────────────────────
@@ -561,10 +566,12 @@ function genLayout(node: LayoutNode, c: GenContext): string {
   }
 
   // Process layout props
+  let className: string | null = null;
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
     switch (key) {
+      case 'class': className = unquote(v); break;
       case 'gap': style['gap'] = addPx(v); break;
       case 'padding': style['padding'] = addPx(v); break;
       case 'margin': style['margin'] = v; break;
@@ -602,19 +609,23 @@ function genLayout(node: LayoutNode, c: GenContext): string {
   }
 
   const styleStr = genStyleObj(style, dynamicKeys);
+  const classAttr = className ? ` className="${className}"` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_LAYOUT_PROPS, e => genExpr(e, c), 'react');
   const children = node.children.map(ch => genUINode(ch, c)).join('\n');
   const sc = srcComment(node);
-  return `${sc}<div style={${styleStr}}>\n${children}\n</div>`;
+  return `${sc}<div${classAttr} style={${styleStr}}${extra}>\n${children}\n</div>`;
 }
 
 function genText(node: TextNode, c: GenContext): string {
   const style: Record<string, string> = {};
   const dynamicKeys = new Set<string>();
+  let className: string | null = null;
 
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     const isDynamic = val.kind === 'braced' || val.kind === 'ternary' || val.kind === 'binary' || val.kind === 'member' || val.kind === 'call';
     switch (key) {
+      case 'class': className = unquote(v); break;
       case 'size': { const uv = unquote(v); style['fontSize'] = SIZE_MAP[uv] || `${uv}px`; break; }
       case 'bold': style['fontWeight'] = 'bold'; break;
       case 'italic': style['fontStyle'] = 'italic'; break;
@@ -635,13 +646,15 @@ function genText(node: TextNode, c: GenContext): string {
   }
 
   const content = genTextContent(node.content, c);
+  const classAttr = className ? ` className="${className}"` : '';
   const styleStr = Object.keys(style).length > 0 ? ` style={${genStyleObj(style, dynamicKeys)}}` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_TEXT_PROPS, e => genExpr(e, c), 'react');
 
   // Badge prop: render a badge indicator next to content
   const badgeExpr = node.props['badge'];
   const tooltipExpr = node.props['tooltip'];
   const sc = srcComment(node);
-  let result = `${sc}<span${styleStr}>${content}</span>`;
+  let result = `${sc}<span${classAttr}${styleStr}${extra}>${content}</span>`;
 
   if (badgeExpr) {
     const badge = genExpr(badgeExpr, c);
@@ -660,23 +673,33 @@ function genButton(node: ButtonNode, c: GenContext): string {
   const label = genTextContent(node.label, c);
   const actionCode = genActionExpr(node.action, c);
   const styleProps: string[] = [];
+  let className: string | null = null;
 
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     switch (key) {
-      case 'style': styleProps.push(`className="${v}"`); break;
+      case 'class': className = unquote(v); break;
+      case 'style': {
+        const sv = unquote(v);
+        if (sv === 'primary') styleProps.push('style={{ backgroundColor: "#3b82f6", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}');
+        else if (sv === 'danger') styleProps.push('style={{ backgroundColor: "#ef4444", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}');
+        break;
+      }
       case 'disabled': styleProps.push(`disabled={${v}}`); break;
       case 'size': /* handled in style */ break;
     }
   }
 
+  if (className) styleProps.push(`className="${className}"`);
+  const extra = getPassthroughProps(node.props, KNOWN_BUTTON_PROPS, e => genExpr(e, c), 'react');
   const propsStr = styleProps.join(' ');
   const sc = srcComment(node);
-  return `${sc}<button onClick={() => ${actionCode}}${propsStr ? ' ' + propsStr : ''}>${label}</button>`;
+  return `${sc}<button onClick={() => ${actionCode}}${propsStr ? ' ' + propsStr : ''}${extra}>${label}</button>`;
 }
 
 function genInput(node: InputNode, c: GenContext): string {
   const setter = 'set' + capitalize(node.binding);
+  let className: string | null = null;
   const props: string[] = [
     `value={${node.binding}}`,
     `onChange={e => ${setter}(e.target.value)}`,
@@ -685,6 +708,7 @@ function genInput(node: InputNode, c: GenContext): string {
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     switch (key) {
+      case 'class': className = unquote(v); break;
       case 'placeholder': props.push(`placeholder=${quoteJsx(v)}`); break;
       case 'type': props.push(`type=${quoteJsx(v)}`); break;
     }
@@ -698,18 +722,22 @@ function genInput(node: InputNode, c: GenContext): string {
     }
   }
 
+  if (className) props.push(`className="${className}"`);
+  const extra = getPassthroughProps(node.props, KNOWN_INPUT_PROPS, e => genExpr(e, c), 'react');
   const sc = srcComment(node);
-  return `${sc}<input ${props.join(' ')} />`;
+  return `${sc}<input ${props.join(' ')}${extra} />`;
 }
 
 function genImage(node: ImageNode, c: GenContext): string {
   const src = genExpr(node.src, c);
   const props: string[] = [`src={${src}}`];
   const style: Record<string, string> = {};
+  let className: string | null = null;
 
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     switch (key) {
+      case 'class': className = unquote(v); break;
       case 'width': props.push(`width="${v}"`); break;
       case 'height': props.push(`height="${v}"`); break;
       case 'alt': props.push(`alt=${quoteJsx(v)}`); break;
@@ -719,18 +747,26 @@ function genImage(node: ImageNode, c: GenContext): string {
     }
   }
 
+  if (className) props.push(`className="${className}"`);
   if (Object.keys(style).length > 0) {
     const entries = Object.entries(style).map(([k, v]) => `${k}: ${v}`).join(', ');
     props.push(`style={{ ${entries} }}`);
   }
+  const extra = getPassthroughProps(node.props, KNOWN_IMAGE_PROPS, e => genExpr(e, c), 'react');
 
-  return `<img ${props.join(' ')} />`;
+  return `<img ${props.join(' ')}${extra} />`;
 }
 
 function genLink(node: LinkNode, c: GenContext): string {
   const label = genTextContent(node.label, c);
   const href = genExpr(node.href, c);
-  return `<a href={${href}}>${label}</a>`;
+  let className: string | null = null;
+  for (const [key, val] of Object.entries(node.props || {})) {
+    if (key === 'class') className = unquote(genExpr(val, c));
+  }
+  const classAttr = className ? ` className="${className}"` : '';
+  const extra = getPassthroughProps(node.props || {}, KNOWN_LINK_PROPS, e => genExpr(e, c), 'react');
+  return `<a href={${href}}${classAttr}${extra}>${label}</a>`;
 }
 
 function genToggle(node: ToggleNode, c: GenContext): string {
@@ -744,13 +780,25 @@ function genToggle(node: ToggleNode, c: GenContext): string {
     setter = `set${capitalize(parts[0])}(prev => ({...prev, ${parts.slice(1).join('.')}: !prev.${parts.slice(1).join('.')}}))`;
   }
 
-  return `<input type="checkbox" checked={${binding}} onChange={() => ${setter}} />`;
+  let className: string | null = null;
+  for (const [key, val] of Object.entries(node.props || {})) {
+    if (key === 'class') className = unquote(genExpr(val, c));
+  }
+  const classAttr = className ? ` className="${className}"` : '';
+  const extra = getPassthroughProps(node.props || {}, KNOWN_TOGGLE_PROPS, e => genExpr(e, c), 'react');
+  return `<input type="checkbox" checked={${binding}} onChange={() => ${setter}}${classAttr}${extra} />`;
 }
 
 function genSelect(node: SelectNode, c: GenContext): string {
   const setter = 'set' + capitalize(node.binding);
   const options = genExpr(node.options, c);
-  return `<select value={${node.binding}} onChange={e => ${setter}(e.target.value)}>\n  {${options}.map(opt => <option key={opt} value={opt}>{opt}</option>)}\n</select>`;
+  let className: string | null = null;
+  for (const [key, val] of Object.entries(node.props || {})) {
+    if (key === 'class') className = unquote(genExpr(val, c));
+  }
+  const classAttr = className ? ` className="${className}"` : '';
+  const extra = getPassthroughProps(node.props || {}, KNOWN_SELECT_PROPS, e => genExpr(e, c), 'react');
+  return `<select value={${node.binding}} onChange={e => ${setter}(e.target.value)}${classAttr}${extra}>\n  {${options}.map(opt => <option key={opt} value={opt}>{opt}</option>)}\n</select>`;
 }
 
 function genComponentCall(node: ComponentCall, c: GenContext): string {

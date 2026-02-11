@@ -1,6 +1,7 @@
 // 0x Parser — Recursive Descent Parser
 
 import { tokenize, Token, TokenType } from './tokenizer.js';
+import { suggestKeyword, COMMON_MISTAKES } from './generators/shared.js';
 import type {
   ASTNode, PageNode, ComponentNode, AppNode,
   StateDecl, DerivedDecl, PropDecl, TypeDecl, StoreDecl, ApiDecl,
@@ -76,8 +77,12 @@ class Parser {
   private expect(type: TokenType, value?: string): Token {
     const tok = this.current();
     if (tok.type !== type || (value !== undefined && tok.value !== value)) {
+      let hint = '';
+      if (tok.type === 'IDENTIFIER' && COMMON_MISTAKES[tok.value]) {
+        hint = `\n  → Hint: ${COMMON_MISTAKES[tok.value]}`;
+      }
       throw new ParseError(
-        `Expected ${type}${value ? ` '${value}'` : ''}, got ${tok.type} '${tok.value}'`,
+        `Expected ${type}${value ? ` '${value}'` : ''}, got ${tok.type} '${tok.value}'${hint}`,
         tok.line, tok.column, this.nearby()
       );
     }
@@ -198,8 +203,21 @@ class Parser {
         nodes.push(this.parseRtl());
       } else {
         const tok = this.current();
+        let hint = '';
+        if (COMMON_MISTAKES[tok.value]) {
+          hint = `\n  → Hint: ${COMMON_MISTAKES[tok.value]}`;
+        } else {
+          const topKeywords = [
+            'page', 'component', 'app', 'model', 'auth', 'route', 'roles', 'automation', 'dev',
+            'deploy', 'env', 'docker', 'ci', 'domain', 'cdn', 'monitor', 'backup',
+            'endpoint', 'middleware', 'queue', 'cron', 'cache', 'migrate', 'seed', 'webhook', 'storage',
+            'test', 'e2e', 'mock', 'fixture', 'i18n', 'locale', 'rtl',
+          ];
+          const suggestion = suggestKeyword(tok.value, topKeywords);
+          if (suggestion) hint = `\n  → Did you mean '${suggestion}'?`;
+        }
         throw new ParseError(
-          `Expected top-level keyword (page, component, app, store, api, etc.), got '${tok.value}'`,
+          `Expected top-level keyword (page, component, app, etc.), got '${tok.value}'${hint}`,
           tok.line, tok.column, this.nearby()
         );
       }
@@ -331,7 +349,25 @@ class Parser {
       }
     }
 
-    throw new ParseError(`Unexpected token '${tok.value}'`, tok.line, tok.column, this.nearby());
+    let hint = '';
+    if (COMMON_MISTAKES[tok.value]) {
+      hint = `\n  → Hint: ${COMMON_MISTAKES[tok.value]}`;
+    } else {
+      const bodyKeywords = [
+        'state', 'derived', 'prop', 'type', 'store', 'api', 'fn', 'async', 'on', 'watch', 'check',
+        'style', 'js', 'import', 'use', 'const', 'let', 'data', 'form', 'realtime', 'emit',
+        'error', 'loading', 'offline', 'retry', 'log',
+        'layout', 'text', 'button', 'input', 'image', 'link', 'toggle', 'select',
+        'if', 'for', 'show', 'hide', 'table', 'chart', 'stat', 'nav', 'upload', 'modal',
+        'toast', 'crud', 'list', 'drawer', 'command', 'confirm', 'pay', 'cart', 'media',
+        'notification', 'search', 'filter', 'social', 'profile', 'hero', 'features',
+        'pricing', 'faq', 'testimonials', 'footer', 'admin', 'seo', 'a11y', 'animate',
+        'gesture', 'ai', 'breadcrumb', 'responsive', 'divider', 'progress',
+      ];
+      const suggestion = suggestKeyword(tok.value, bodyKeywords);
+      if (suggestion) hint = `\n  → Did you mean '${suggestion}'?`;
+    }
+    throw new ParseError(`Unexpected token '${tok.value}'${hint}`, tok.line, tok.column, this.nearby());
   }
 
   private tryParseUIKeyword(value: string): UINode | null {
@@ -398,7 +434,19 @@ class Parser {
       const uiNode = this.tryParseUIKeyword(tok.value);
       if (uiNode) return uiNode;
     }
-    throw new ParseError(`Expected UI element, got '${tok.value}'`, tok.line, tok.column, this.nearby());
+    let hint = '';
+    if (COMMON_MISTAKES[tok.value]) {
+      hint = `\n  → Hint: ${COMMON_MISTAKES[tok.value]}`;
+    } else {
+      const uiKeywords = [
+        'layout', 'text', 'button', 'input', 'image', 'link', 'toggle', 'select',
+        'if', 'for', 'show', 'hide', 'table', 'chart', 'stat', 'nav', 'upload', 'modal',
+        'toast', 'list', 'drawer', 'animate', 'breadcrumb', 'divider', 'progress',
+      ];
+      const suggestion = suggestKeyword(tok.value, uiKeywords);
+      if (suggestion) hint = `\n  → Did you mean '${suggestion}'?`;
+    }
+    throw new ParseError(`Expected UI element, got '${tok.value}'${hint}`, tok.line, tok.column, this.nearby());
   }
 
   // ── Declarations ──────────────────────────────────────
@@ -785,7 +833,12 @@ class Parser {
       if (this.match('STYLE_CLASS')) {
         styleClass = this.advance().value.slice(1); // remove '.'
       } else if (this.match('KEYWORD') || this.match('IDENTIFIER')) {
-        const propName = this.advance().value;
+        let propName = this.advance().value;
+        // Support hyphenated prop names: data-testid, aria-label, etc.
+        while (this.match('OPERATOR', '-') && this.peek(1).type === 'IDENTIFIER') {
+          this.advance(); // consume '-'
+          propName += '-' + this.advance().value;
+        }
         if (this.match('OPERATOR', '=')) {
           this.advance();
           props[propName] = this.parseAtomicExpression();
@@ -2528,7 +2581,12 @@ class Parser {
     const props: Record<string, Expression> = {};
     while (!this.match('NEWLINE') && !this.match('EOF') && !this.match('INDENT') && !this.match('DEDENT') && !this.match('OPERATOR', '->')) {
       if (this.match('IDENTIFIER') || this.match('KEYWORD')) {
-        const name = this.advance().value;
+        let name = this.advance().value;
+        // Support hyphenated prop names: data-testid, aria-label, etc.
+        while (this.match('OPERATOR', '-') && this.peek(1).type === 'IDENTIFIER') {
+          this.advance(); // consume '-'
+          name += '-' + this.advance().value;
+        }
         if (this.match('OPERATOR', '=')) {
           this.advance();
           props[name] = this.parseAtomicExpression();
@@ -2555,13 +2613,15 @@ class Parser {
     const props: Record<string, Expression> = {};
     while (!this.match('NEWLINE') && !this.match('EOF') && !this.match('OPERATOR', '->')) {
       if (this.match('IDENTIFIER') || this.match('KEYWORD')) {
-        const name = this.advance().value;
+        let name = this.advance().value;
+        // Support hyphenated prop names: data-testid, aria-label, etc.
+        while (this.match('OPERATOR', '-') && this.peek(1).type === 'IDENTIFIER') {
+          this.advance(); // consume '-'
+          name += '-' + this.advance().value;
+        }
         if (this.match('OPERATOR', '=')) {
           this.advance();
           props[name] = this.parseAtomicExpression();
-        } else if (name !== 'disabled') {
-          // plain boolean prop
-          props[name] = { kind: 'boolean', value: true };
         } else {
           props[name] = { kind: 'boolean', value: true };
         }
