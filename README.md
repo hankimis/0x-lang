@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Write 18 lines. Get 96 lines of production React.</strong><br/>
-  A programming language that compiles to React, Vue 3, and Svelte 5.
+  A full-stack language that compiles to React, Vue 3, Svelte 5, Express, React Native, and Terraform.
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 
 ## What is this?
 
-0x is a tiny language for building UI. You describe what you want, and the compiler outputs production-ready React, Vue, or Svelte.
+0x is a tiny language for building apps. You describe what you want, and the compiler outputs production-ready React, Vue, Svelte, Express backends, React Native mobile apps, or Terraform infrastructure.
 
 ```python
 page Counter:
@@ -39,9 +39,9 @@ page Counter:
     button "+1" style=primary -> increment()
 ```
 
-That's a complete component. Run `0x build counter.ai --target react` and you get a working React component with `useState`, event handlers, and full styling. Same source also compiles to Vue 3 and Svelte 5.
+That's a complete component. Run `0x build counter.ai --target react` and you get a working React component with `useState`, event handlers, and full styling. Same source also compiles to Vue 3, Svelte 5, and React Native.
 
-**Why?** Most frontend code is boilerplate — imports, hook calls, JSX wrappers, style objects, closing tags. 0x skips all of that. You write what matters, the compiler handles the rest.
+**Why?** Most code is boilerplate — imports, hook calls, JSX wrappers, style objects, closing tags, Express middleware, Terraform blocks. 0x skips all of that. You write what matters, the compiler handles the rest.
 
 ## The numbers
 
@@ -75,12 +75,21 @@ page Hello:
 Compile it:
 
 ```bash
-# Pick your framework
+# Frontend
 0x build hello.ai --target react
 0x build hello.ai --target vue
 0x build hello.ai --target svelte
 
-# Or all three at once
+# Mobile
+0x build app.ai --target react-native
+
+# Backend
+0x build server.ai --target backend
+
+# Infrastructure
+0x build infra.ai --target terraform
+
+# Or multiple at once
 0x build hello.ai --target react,vue,svelte
 ```
 
@@ -272,6 +281,72 @@ page Shop:
             button "Add to Cart" style=primary -> addToCart(product)
 ```
 
+### Backend API — Express server
+
+```python
+page API:
+  model User:
+    field name: str
+    field email: str
+    field role: str = "user"
+
+  auth:
+    secret: JWT_SECRET
+    endpoint: /auth
+
+  route GET /api/users:
+    users = await db.find("users")
+    respond 200 users
+
+  route POST /api/users:
+    user = await db.create("users", body)
+    respond 201 user
+
+  env:
+    DATABASE_URL: "postgres://localhost/mydb"
+    JWT_SECRET: secret
+```
+
+Compiles to a full Express.js server with JWT auth, CORS, error handling, and CRUD routes.
+
+### React Native Mobile App
+
+```python
+page MobileCounter:
+  state count: int = 0
+
+  fn increment():
+    count += 1
+
+  layout col gap=16 padding=24 center:
+    text "Counter" size=2xl bold
+    text "{count}" size=4xl color=cyan
+    button "+1" style=primary -> increment()
+```
+
+Same 0x syntax compiles to React Native with `View`, `Text`, `TouchableOpacity`, and `StyleSheet`.
+
+### Infrastructure — Terraform
+
+```python
+page Infra:
+  deploy myApp:
+    provider: aws
+    region: us-east-1
+    instance: t3.medium
+
+  storage assets:
+    provider: s3
+    bucket: my-app-assets
+    versioning: true
+
+  domain mysite:
+    provider: route53
+    name: "myapp.com"
+```
+
+Compiles to Terraform HCL with provider blocks, resource definitions, and variable declarations.
+
 More examples in [`examples/`](examples/).
 
 ---
@@ -430,12 +505,44 @@ page Hello:
     text "Hello, {name}!" size=2xl bold
 `;
 
+// Frontend targets
 const react  = compile(source, { target: 'react' });
 const vue    = compile(source, { target: 'vue' });
 const svelte = compile(source, { target: 'svelte' });
 
+// Mobile
+const rn = compile(source, { target: 'react-native' });
+
+// Backend & infrastructure
+const server = compile(backendSource, { target: 'backend' });
+const infra  = compile(infraSource, { target: 'terraform' });
+
+// Options
+const result = compile(source, {
+  target: 'react',
+  validate: true,       // Run validator (default: true)
+  sourceMap: true,      // Add source line comments (default: true)
+  useClient: true,      // Add 'use client' for Next.js (default: auto)
+  compact: true,        // AI-optimized compact output — strips comments
+});
+
 console.log(react.code);       // Full React component
 console.log(react.lineCount);  // Line count
+```
+
+### AI Bridge
+
+```typescript
+import { getLanguageSpec, generatePrompt, compileFromDescription } from '0x-lang';
+
+// Get the full 0x language spec for an LLM
+const spec = getLanguageSpec();
+
+// Generate a structured prompt for AI code generation
+const prompt = generatePrompt("todo app with authentication", 'react');
+
+// Auto-generate a 0x skeleton from a natural language description
+const skeleton = compileFromDescription("dashboard with charts and API");
 ```
 
 ### Pipeline access
@@ -461,6 +568,10 @@ const output = generateReact(ast);   // React JSX string
 | `0x-lang/generators/react` | `generateReact()` |
 | `0x-lang/generators/vue` | `generateVue()` |
 | `0x-lang/generators/svelte` | `generateSvelte()` |
+| `0x-lang/generators/backend` | `generateBackend()` |
+| `0x-lang/generators/react-native` | `generateReactNative()` |
+| `0x-lang/generators/terraform` | `generateTerraform()` |
+| `0x-lang/generators/ai-bridge` | `getLanguageSpec()`, `generatePrompt()`, `compileFromDescription()` |
 
 ---
 
@@ -541,39 +652,30 @@ See [mcp-server/](mcp-server/) for full docs.
 
 ## For AI agent builders
 
-If you're building tools that generate UI code, 0x works well as an intermediate representation:
+If you're building tools that generate code, 0x works well as an intermediate representation:
 
 ```typescript
 import { compile } from '0x-lang/compiler';
+import { compileFromDescription, generatePrompt } from '0x-lang';
 
-// Your AI generates compact 0x
-const aiOutput = `
-page Dashboard:
-  state metrics: list[object] = []
+// Auto-generate 0x skeleton from natural language
+const skeleton = compileFromDescription("e-commerce product page");
 
-  on mount:
-    metrics = await api.getMetrics()
+// Or use the AI bridge to generate a prompt for your LLM
+const prompt = generatePrompt("todo app with auth", 'react');
 
-  layout col gap=24 padding=32:
-    text "Dashboard" size=3xl bold
-    layout grid cols=3 gap=16:
-      for metric in metrics:
-        layout col padding=20 bg=white rounded=lg shadow:
-          text "{metric.label}" size=sm color=gray
-          text "{metric.value}" size=2xl bold
-`;
-
-// Compile to whatever the user needs
-const react  = compile(aiOutput, { target: 'react' });
-const vue    = compile(aiOutput, { target: 'vue' });
-const svelte = compile(aiOutput, { target: 'svelte' });
+// Compile with compact mode for AI-optimized output
+const react  = compile(source, { target: 'react', compact: true });
+const server = compile(source, { target: 'backend', compact: true });
 ```
 
 Why this matters for AI:
 
 - **80% fewer output tokens** — less generation cost, lower latency
 - **One syntax, zero decisions** — no "which React pattern?" hallucinations
-- **Multi-framework** — one generation covers React, Vue, and Svelte users
+- **Full-stack** — frontend, backend, mobile, and infrastructure from one language
+- **Compact mode** — strips comments and whitespace for minimal token usage
+- **AI Bridge** — built-in spec, prompt generation, and skeleton creation
 - **Deterministic** — same input always produces the same output
 - **Validated** — the compiler catches errors before they reach the user
 
@@ -591,12 +693,16 @@ Parser ────── Recursive descent → typed AST
 Validator ─── Circular deps · unused state · type checks
     ↓
 Generator
-    ├── React ─── JSX + hooks + CSS-in-JS
-    ├── Vue ───── SFC + Composition API + scoped styles
-    └── Svelte ── Runes ($state, $derived) + styles
+    ├── React ────────── JSX + hooks + CSS-in-JS
+    ├── Vue ──────────── SFC + Composition API + scoped styles
+    ├── Svelte ──────── Runes ($state, $derived) + styles
+    ├── React Native ── View + StyleSheet + TouchableOpacity
+    ├── Backend ─────── Express + JWT + CRUD + middleware
+    ├── Terraform ───── HCL + providers + resources
+    └── AI Bridge ───── Spec + prompts + skeleton generation
 ```
 
-~9,800 lines of TypeScript. Zero runtime dependencies.
+~12,000 lines of TypeScript. Zero runtime dependencies (except gen-mapping for source maps).
 
 | Module | Lines | |
 |:---|---:|:---|
@@ -605,8 +711,12 @@ Generator
 | AST Types | 1,065 | TypeScript definitions |
 | Vue Generator | 822 | SFC with `<script setup>` and `ref()` |
 | Svelte Generator | 743 | Svelte 5 with `$state()` and `$derived()` |
+| React Native Generator | 690 | View + StyleSheet + native components |
+| Backend Generator | 412 | Express + JWT + CRUD + middleware |
+| Terraform Generator | 370 | HCL + multi-provider (AWS, Vercel, Fly.io) |
 | Validator | 355 | Static analysis + error reporting |
 | Tokenizer | 348 | Indentation-aware lexer |
+| AI Bridge | 291 | Spec + prompt generation + skeleton |
 | CLI | 223 | build · dev · bench · init |
 
 ## CLI
@@ -618,7 +728,7 @@ Generator
 0x init [project-name]
 
 Flags:
-  --target, -t    react, vue, svelte (comma-separated)
+  --target, -t    react, vue, svelte, react-native, backend, terraform (comma-separated)
   --output, -o    Output directory (default: ./dist/)
   --help, -h      Show help
 ```
