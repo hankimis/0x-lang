@@ -1,0 +1,91 @@
+page Admin:
+  type User = {id: int, name: str, email: str, role: str, active: bool}
+
+  state users: list[User] = []
+  state activeTab: str = "users"
+  state searchQuery: str = ""
+  state loading: bool = true
+
+  derived filteredUsers = users.filter(u => u.name.includes(searchQuery) || u.email.includes(searchQuery))
+  derived totalUsers = users.length
+  derived activeUsers = users.filter(u => u.active).length
+  derived adminCount = users.filter(u => u.role == "admin").length
+
+  api getUsers = GET "/api/users"
+  api deleteUserApi = DELETE "/api/users/{id}"
+  api updateUser = PUT "/api/users/{id}"
+
+  on mount:
+    users = await getUsers()
+    loading = false
+
+  fn deleteUser(id: int):
+    await deleteUserApi(id: id)
+    users = users.filter(u => u.id != id)
+
+  fn toggleStatus(id: int):
+    user = users.find(u => u.id == id)
+    if user:
+      user.active = !user.active
+      await updateUser(id: id, active: user.active)
+
+  layout row height=100vh:
+    // Sidebar
+    layout col gap=8 padding=24 bg=#2c3e50 width=240:
+      text "Admin Panel" size=xl bold color=white
+      layout col gap=4:
+        button "Users" style={activeTab == "users" ? "primary" : "ghost"} -> activeTab = "users"
+        button "Settings" style={activeTab == "settings" ? "primary" : "ghost"} -> activeTab = "settings"
+        button "Logs" style={activeTab == "logs" ? "primary" : "ghost"} -> activeTab = "logs"
+
+    // Main Content
+    layout col gap=24 padding=32 grow=1:
+      if activeTab == "users":
+        // Stats Bar
+        layout grid cols=3 gap=16:
+          layout col gap=4 padding=24 radius=12 shadow=md bg=white:
+            text "{totalUsers}" size=3xl bold color=#3498db
+            text "Total Users" size=sm color=#666
+          layout col gap=4 padding=24 radius=12 shadow=md bg=white:
+            text "{activeUsers}" size=3xl bold color=#27ae60
+            text "Active Users" size=sm color=#666
+          layout col gap=4 padding=24 radius=12 shadow=md bg=white:
+            text "{adminCount}" size=3xl bold color=#9b59b6
+            text "Admins" size=sm color=#666
+
+        // Search
+        input searchQuery placeholder="Search users..."
+
+        // User Table
+        if loading:
+          text "Loading..." center
+        else:
+          layout col gap=4:
+            // Table Header
+            layout row gap=16 padding=12 bg=#f8f9fa radius=8:
+              text "Name" bold grow=1
+              text "Email" bold grow=1
+              text "Role" bold
+              text "Status" bold
+              text "Actions" bold
+
+            for user in filteredUsers:
+              layout row gap=16 padding=12 center bg=white shadow=sm radius=4:
+                text user.name grow=1
+                text user.email grow=1 color=#666
+                text user.role size=sm
+                text "{user.active ? 'Active' : 'Inactive'}" size=sm color={user.active ? "green" : "#999"}
+                layout row gap=4:
+                  button "{user.active ? 'Disable' : 'Enable'}" size=sm -> toggleStatus(user.id)
+                  button "Delete" size=sm style=danger -> deleteUser(user.id)
+
+          if filteredUsers.length == 0:
+            text "No users found" color=#999 center
+
+      if activeTab == "settings":
+        text "Settings" size=2xl bold
+        text "Settings panel coming soon." color=#666
+
+      if activeTab == "logs":
+        text "Activity Logs" size=2xl bold
+        text "Logs panel coming soon." color=#666
