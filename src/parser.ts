@@ -3247,8 +3247,6 @@ class Parser {
     } else {
       domain = this.expectName();
     }
-    this.expect('PUNCTUATION', ':');
-    this.skipNewlines();
     const props = this.parseGenericPropsBlock();
     return { type: 'Domain', domain, props, loc };
   }
@@ -3260,8 +3258,6 @@ class Parser {
     if (this.current().type === 'IDENTIFIER') {
       provider = this.advance().value;
     }
-    this.expect('PUNCTUATION', ':');
-    this.skipNewlines();
     const props = this.parseGenericPropsBlock();
     return { type: 'Cdn', provider, props, loc };
   }
@@ -3273,8 +3269,6 @@ class Parser {
     if (this.current().type === 'IDENTIFIER') {
       provider = this.advance().value;
     }
-    this.expect('PUNCTUATION', ':');
-    this.skipNewlines();
     const props = this.parseGenericPropsBlock();
     return { type: 'Monitor', provider, props, loc };
   }
@@ -3286,8 +3280,6 @@ class Parser {
     if (this.current().type === 'IDENTIFIER') {
       strategy = this.advance().value;
     }
-    this.expect('PUNCTUATION', ':');
-    this.skipNewlines();
     const props = this.parseGenericPropsBlock();
     return { type: 'Backup', strategy, props, loc };
   }
@@ -3443,8 +3435,6 @@ class Parser {
     if (this.current().type === 'IDENTIFIER' && ['s3', 'r2', 'gcs', 'local'].includes(this.current().value)) {
       provider = this.advance().value;
     }
-    this.expect('PUNCTUATION', ':');
-    this.skipNewlines();
     const props = this.parseGenericPropsBlock();
     return { type: 'Storage', provider, name, props, loc };
   }
