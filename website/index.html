@@ -70,7 +70,7 @@
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock"
     },
-    "softwareVersion": "0.1.15",
+    "softwareVersion": "0.1.19",
     "isAccessibleForFree": true,
     "softwareRequirements": "Node.js >= 18",
     "featureList": [
@@ -92,9 +92,17 @@
       "Smart React imports — only import used hooks",
       "Compact mode for AI-optimized minimal output",
       "External library interop via import, use, js blocks",
-      "Conditional rendering instead of CSS display:none"
+      "Conditional rendering instead of CSS display:none",
+      "CSS class prop for Tailwind, Bootstrap, and any CSS framework",
+      "Passthrough props (data-*, aria-*, role) as HTML attributes",
+      "Did you mean? typo suggestions with Levenshtein distance",
+      "Raw block escape hatch for framework-specific code",
+      "Component children syntax for nested component composition",
+      "Auto useCallback wrapping for fn declarations (React)",
+      "Auto React.memo for components with props",
+      "1,767+ automated test cases"
     ],
-    "releaseNotes": "v0.1.15: Backend (Express), React Native, Terraform generators, AI Bridge, compact mode, V3 source maps",
+    "releaseNotes": "v0.1.19: Raw blocks, component children, useCallback/React.memo auto-optimization, CSS classes, passthrough props, did-you-mean errors",
     "author": {
       "@type": "Organization",
       "name": "0x-lang",
@@ -258,7 +266,7 @@
         "name": "Does 0x support debugging generated code?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Since v0.1.15, 0x adds source line mapping comments to generated code. Each UI element includes a comment like {/* 0x:L5 */} (React) or <!-- 0x:L5 --> (Vue/Svelte) linking back to the original 0x source line. This makes it easy to trace runtime errors. Source maps can be disabled with the sourceMap: false compile option."
+          "text": "Yes. Since v0.1.19, 0x adds source line mapping comments to generated code. Each UI element includes a comment like {/* 0x:L5 */} (React) or <!-- 0x:L5 --> (Vue/Svelte) linking back to the original 0x source line. This makes it easy to trace runtime errors. Source maps can be disabled with the sourceMap: false compile option."
         }
       },
       {
@@ -290,7 +298,7 @@
         "name": "Can 0x generate backend servers and mobile apps?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Since v0.1.15, 0x compiles to 6 targets: React, Vue 3, Svelte 5 (frontend), Express.js (backend with JWT auth, CRUD routes, middleware, background jobs), React Native (mobile apps with View, StyleSheet, native components), and Terraform (infrastructure-as-code for AWS, Vercel, Fly.io, Docker, GCP). Use --target backend, --target react-native, or --target terraform."
+          "text": "Yes. Since v0.1.19, 0x compiles to 6 targets: React, Vue 3, Svelte 5 (frontend), Express.js (backend with JWT auth, CRUD routes, middleware, background jobs), React Native (mobile apps with View, StyleSheet, native components), and Terraform (infrastructure-as-code for AWS, Vercel, Fly.io, Docker, GCP). Use --target backend, --target react-native, or --target terraform."
         }
       },
       {
@@ -299,6 +307,22 @@
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "The AI Bridge module provides three functions for AI agent integration: getLanguageSpec() returns the full 0x syntax reference, generatePrompt() creates structured LLM prompts for code generation, and compileFromDescription() auto-generates 0x code skeletons from natural language descriptions. Import from '0x-lang/generators/ai-bridge'."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does 0x support Tailwind CSS or Bootstrap?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Since v0.1.17, 0x supports a class prop on all UI elements. Use class=\"container mx-auto p-4\" on layouts, class=\"text-xl font-bold\" on text, etc. React outputs className, Vue/Svelte output class. You can combine class with 0x's built-in styles. Unknown props like data-testid and aria-label also pass through as HTML attributes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does 0x auto-optimize React performance?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Since v0.1.19, the React generator automatically wraps fn declarations in useCallback with extracted dependencies, derived values in useMemo, and components with props in React.memo. No manual optimization needed — the compiler handles it. This eliminates unnecessary re-renders without any developer effort."
         }
       }
     ]
@@ -418,11 +442,11 @@
       <dt>Compile Targets (6)</dt>
       <dd>React (JSX + hooks), Vue 3 (SFC + Composition API), Svelte 5 (runes), Express.js (backend API + JWT + CRUD), React Native (mobile + StyleSheet), Terraform (HCL + AWS/Vercel/Fly.io)</dd>
       <dt>Key Features</dt>
-      <dd>80% less code, zero ambiguity, full-stack (frontend + backend + mobile + infrastructure), built-in MCP server for Claude and Cursor, sub-second compile times, V3 source maps, auto 'use client' for Next.js SSR, compact mode for AI-optimized output, AI Bridge for spec/prompt/skeleton generation</dd>
+      <dd>80% less code, zero ambiguity, 6 compile targets (frontend + backend + mobile + infra), CSS class prop (Tailwind/Bootstrap), passthrough props (data-*/aria-*), raw block escape hatch, auto useCallback/React.memo, did-you-mean error suggestions, built-in MCP server, AI Bridge, compact mode</dd>
+      <dt>v0.1.19 Highlights</dt>
+      <dd>Raw block escape hatch (raw: inserts framework code directly), component children syntax, auto useCallback wrapping for fn declarations (React), auto React.memo for components with props, CSS class prop on all elements (Tailwind/Bootstrap), passthrough props (data-*, aria-*, role), did-you-mean typo suggestions with Levenshtein distance</dd>
       <dt>v0.1.15 Highlights</dt>
-      <dd>Backend generator (Express.js with JWT, CRUD, middleware, background jobs), React Native generator (View, StyleSheet, TouchableOpacity), Terraform generator (AWS, Vercel, Fly.io, Docker, GCP), AI Bridge module (getLanguageSpec, generatePrompt, compileFromDescription), compact mode, V3 source maps with inline base64</dd>
-      <dt>v0.1.13 Highlights</dt>
-      <dd>Source line mapping comments (0x:L{line}), auto 'use client' directive for Next.js App Router, smart import optimization (only import used hooks), conditional rendering (not CSS display:none)</dd>
+      <dd>Backend generator (Express.js), React Native generator, Terraform generator (AWS/Vercel/Fly.io), AI Bridge module, compact mode, V3 source maps</dd>
       <dt>License</dt>
       <dd>ISC (free for personal and commercial use)</dd>
       <dt>Requirements</dt>
@@ -432,7 +456,7 @@
       <dt>npm Package</dt>
       <dd>npmjs.com/package/0x-lang</dd>
       <dt>Latest Version</dt>
-      <dd>0.1.15</dd>
+      <dd>0.1.19</dd>
     </dl>
   </div>
 
@@ -440,7 +464,7 @@
 
     <!-- Hero -->
     <header class="hero">
-      <div class="hero-badge">AI-First Programming Language <span style="opacity:0.5;margin-left:4px">v0.1.15</span></div>
+      <div class="hero-badge">AI-First Programming Language <span style="opacity:0.5;margin-left:4px">v0.1.19</span></div>
       <h1 class="hero-title">
         <span class="hero-title-line">Write <span class="gradient-text">18 lines</span>.</span>
         <span class="hero-title-line">Get <span class="gradient-text">96 lines</span> of React.</span>
@@ -492,6 +516,13 @@
         </div>
         <span class="stat-value stat-value-text">&lt;1s</span>
         <span class="stat-label">Compile Time</span>
+      </div>
+      <div class="stat">
+        <div class="stat-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <span class="stat-value" data-stat-count="1767" data-stat-suffix="+">1,767+</span>
+        <span class="stat-label">Tests Passing</span>
       </div>
     </section>
 
@@ -861,6 +892,38 @@
           <h3 class="feature-title">Compact Mode</h3>
           <p class="feature-desc">AI-optimized output that strips comments and minimizes whitespace for minimal token usage.</p>
         </div>
+
+        <div class="feature-card" data-animate style="--i:14">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M20 18l-2-2 2-2" stroke="#7c3aed"/></svg>
+          </div>
+          <h3 class="feature-title">CSS Classes</h3>
+          <p class="feature-desc">Use <code>class="..."</code> on any element. Works with Tailwind, Bootstrap, or any CSS framework.</p>
+        </div>
+
+        <div class="feature-card" data-animate style="--i:15">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <h3 class="feature-title">Passthrough Props</h3>
+          <p class="feature-desc"><code>data-testid</code>, <code>aria-label</code>, <code>role</code> pass through as HTML attributes automatically.</p>
+        </div>
+
+        <div class="feature-card" data-animate style="--i:16">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <h3 class="feature-title">Did You Mean?</h3>
+          <p class="feature-desc">Typo suggestions powered by Levenshtein distance. "pge" → Did you mean 'page'?</p>
+        </div>
+
+        <div class="feature-card" data-animate style="--i:17">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <h3 class="feature-title">Auto Optimize</h3>
+          <p class="feature-desc">React: fn → useCallback, derived → useMemo, components → React.memo. Zero manual work.</p>
+        </div>
       </div>
     </section>
 
@@ -1042,7 +1105,7 @@
             <li>96 lines for a counter component</li>
             <li>AI must choose between 20+ React patterns</li>
             <li>Separate tools for frontend, backend, mobile, infra</li>
-            <li>High token cost per component</li>
+            <li>Manual useCallback, useMemo, React.memo</li>
             <li>Styling decisions cause hallucinations</li>
           </ul>
         </div>
@@ -1052,8 +1115,8 @@
             <li>18 lines — same functionality</li>
             <li>One syntax, zero ambiguity</li>
             <li>6 targets — frontend, backend, mobile, infra</li>
-            <li>80% fewer tokens per generation</li>
-            <li>Built-in styles, no decisions needed</li>
+            <li>Auto useCallback + React.memo optimization</li>
+            <li>Tailwind, Bootstrap, or built-in styles</li>
           </ul>
         </div>
       </div>
@@ -1186,16 +1249,31 @@
       </div>
       <div class="changelog-list">
         <div class="changelog-entry">
+          <div class="changelog-version">v0.1.19</div>
+          <div class="changelog-content">
+            <h4>DX & Performance Optimization</h4>
+            <ul>
+              <li><strong>Raw block</strong> — <code>raw:</code> inserts framework-specific JSX/template code directly (escape hatch)</li>
+              <li><strong>Component children</strong> — <code>component Dialog(title="Hi"):</code> wraps children inside component tags</li>
+              <li><strong>useCallback auto-wrap</strong> — All <code>fn</code> declarations wrapped in useCallback with extracted deps (React)</li>
+              <li><strong>React.memo auto-wrap</strong> — Components with props auto-wrapped for render optimization</li>
+              <li><strong>CSS classes</strong> — <code>class="tailwind-class"</code> on all elements, works with Tailwind/Bootstrap</li>
+              <li><strong>Passthrough props</strong> — <code>data-testid</code>, <code>aria-label</code>, <code>role</code> pass through as HTML attributes</li>
+              <li><strong>Did you mean?</strong> — Typo suggestions with Levenshtein distance: "pge" → Did you mean 'page'?</li>
+            </ul>
+          </div>
+        </div>
+        <div class="changelog-entry">
           <div class="changelog-version">v0.1.15</div>
           <div class="changelog-content">
             <h4>Full-Stack Compilation</h4>
             <ul>
-              <li><strong>Backend generator</strong> — Express.js server with JWT auth, CRUD routes, middleware, background jobs, caching</li>
-              <li><strong>React Native generator</strong> — Mobile apps with View, StyleSheet, TouchableOpacity, native components</li>
-              <li><strong>Terraform generator</strong> — Infrastructure-as-code for AWS, Vercel, Fly.io, Docker, GCP, Cloudflare</li>
-              <li><strong>AI Bridge</strong> — Language spec, prompt generation, and skeleton creation for AI agents</li>
-              <li><strong>Compact mode</strong> — AI-optimized output that strips comments and minimizes whitespace</li>
-              <li><strong>V3 Source Maps</strong> — Inline base64 source maps for debugging generated code</li>
+              <li><strong>Backend generator</strong> — Express.js server with JWT auth, CRUD routes, middleware, caching</li>
+              <li><strong>React Native generator</strong> — Mobile apps with View, StyleSheet, native components</li>
+              <li><strong>Terraform generator</strong> — IaC for AWS, Vercel, Fly.io, Docker, GCP, Cloudflare</li>
+              <li><strong>AI Bridge</strong> — Language spec, prompt generation, skeleton creation for AI agents</li>
+              <li><strong>Compact mode</strong> — AI-optimized output, strips comments and whitespace</li>
+              <li><strong>V3 Source Maps</strong> — Inline base64 source maps for debugging</li>
             </ul>
           </div>
         </div>
@@ -1286,7 +1364,7 @@
         <details class="faq-item">
           <summary class="faq-question">Does 0x support debugging generated code?</summary>
           <div class="faq-answer">
-            <p>Yes. Since v0.1.15, 0x adds <strong>source line mapping comments</strong> to generated code. Each UI element includes a <code>{/* 0x:L5 */}</code> (React) or <code>&lt;!-- 0x:L5 --&gt;</code> (Vue/Svelte) comment linking back to the original 0x source line. This makes it easy to trace runtime errors back to your 0x code. You can disable source maps with the <code>sourceMap: false</code> compile option.</p>
+            <p>Yes. Since v0.1.19, 0x adds <strong>source line mapping comments</strong> to generated code. Each UI element includes a <code>{/* 0x:L5 */}</code> (React) or <code>&lt;!-- 0x:L5 --&gt;</code> (Vue/Svelte) comment linking back to the original 0x source line. This makes it easy to trace runtime errors back to your 0x code. You can disable source maps with the <code>sourceMap: false</code> compile option.</p>
           </div>
         </details>
         <details class="faq-item">
@@ -1329,6 +1407,24 @@
           <summary class="faq-question">Can 0x generate infrastructure code?</summary>
           <div class="faq-answer">
             <p>Yes. The <code>terraform</code> target generates <strong>HCL</strong> configuration files with provider blocks, resource definitions, and variable declarations. Supports AWS (EC2, S3, Route53, CloudFront, ElastiCache), Vercel, Fly.io, Docker, GCP, Cloudflare, Datadog, and Sentry. Use <code>0x build infra.ai --target terraform</code>.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Does 0x work with Tailwind CSS or Bootstrap?</summary>
+          <div class="faq-answer">
+            <p>Yes. Since v0.1.17, 0x supports a <code>class</code> prop on all UI elements. Use <code>class="container mx-auto p-4"</code> on layouts, <code>class="text-xl font-bold"</code> on text, etc. React outputs <code>className</code>, Vue/Svelte output <code>class</code>. You can combine <code>class</code> with 0x's built-in styles. Unknown props like <code>data-testid</code> and <code>aria-label</code> also pass through as HTML attributes.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Does 0x auto-optimize React performance?</summary>
+          <div class="faq-answer">
+            <p>Yes. The React generator automatically wraps <code>fn</code> declarations in <code>useCallback</code> with extracted dependencies, <code>derived</code> values in <code>useMemo</code>, and components with props in <code>React.memo</code>. No manual optimization needed — the compiler handles it all, eliminating unnecessary re-renders without any developer effort.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Can I use framework-specific code with 0x?</summary>
+          <div class="faq-answer">
+            <p>Yes. The <code>raw:</code> block is an escape hatch that inserts code directly into JSX/template output. Use it for third-party components, custom directives, or framework-specific code that 0x doesn't abstract. Example: <code>raw: &lt;CustomComponent onSpecialEvent={handler} /&gt;</code>. For JavaScript in the script section, use <code>js:</code> blocks instead.</p>
           </div>
         </details>
       </div>
