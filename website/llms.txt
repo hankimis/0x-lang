@@ -8,9 +8,10 @@
 - **Type**: Programming language / compiler
 - **Install**: `npm install -g 0x-lang`
 - **License**: ISC (free for all use)
-- **Version**: 0.1.19
+- **Version**: 0.1.23
 - **Requirements**: Node.js >= 18
 - **Targets**: React, Vue 3, Svelte 5, Express.js, React Native, Terraform
+- **IDE**: Built-in LSP server + VSCode extension
 
 ## Why AI Agents Should Use 0x
 
@@ -20,6 +21,8 @@
 - **AI Bridge**: Built-in language spec, prompt generation, and skeleton creation for AI agents.
 - **MCP integration**: Built-in MCP server for Claude and Cursor.
 - **Compact mode**: AI-optimized output that strips comments and minimizes whitespace.
+- **IDE support**: Built-in LSP server with diagnostics, autocomplete, hover, go-to-definition.
+- **Full parity**: Vue 3 and Svelte 5 support every feature React has (store, data, form, realtime, auth, route, model).
 - **Deterministic**: Same input always produces the same output.
 
 ## Install
@@ -119,7 +122,15 @@ page ComponentName:
 | React Native | View + StyleSheet | `0x build app.ai --target react-native` |
 | Terraform | HCL + providers | `0x build infra.ai --target terraform` |
 
-## v0.1.19 New Features
+## v0.1.23 New Features
+
+- **LSP Server**: Built-in Language Server Protocol — diagnostics, autocomplete, hover, go-to-definition, document symbols
+- **VSCode Extension**: Syntax highlighting for 73+ keywords, bracket matching, integrated language intelligence
+- **Vue/Svelte Parity**: 8 features now fully supported in all 3 targets: store, data, form, realtime, auth, route, model
+- **5 New Demo Apps**: Blog, CRM, SaaS landing, Kanban board, Admin panel — all compile to React/Vue/Svelte
+- **CLI**: `0x-lsp --stdio` command for any LSP-compatible editor
+
+## v0.1.19 Features
 
 - **Raw Escape Hatch**: `raw:` block inserts framework-specific code directly into JSX/template output
 - **Component Children**: `component Dialog(title="Hi"):` wraps children inside component tags

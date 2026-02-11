@@ -6,7 +6,8 @@
 
 <p align="center">
   <strong>Write 18 lines. Get 96 lines of production React.</strong><br/>
-  A full-stack language that compiles to React, Vue 3, Svelte 5, Express, React Native, and Terraform.
+  A full-stack language that compiles to React, Vue 3, Svelte 5, Express, React Native, and Terraform.<br/>
+  Now with <strong>LSP/IDE support</strong> and full Vue/Svelte feature parity.
 </p>
 
 <p align="center">
@@ -347,7 +348,77 @@ page Infra:
 
 Compiles to Terraform HCL with provider blocks, resource definitions, and variable declarations.
 
-More examples in [`examples/`](examples/).
+### Blog App — 64 lines
+
+```python
+page Blog:
+  state posts: list[Post] = []
+  state loading: bool = true
+
+  data posts from fetch("/api/posts")
+
+  layout col gap=24 padding=32:
+    nav "BlogApp" links=["Home", "Write", "About"]
+    hero "My Blog" subtitle="Thoughts and tutorials"
+
+    for post in posts:
+      component PostCard(post)
+```
+
+Full CRUD blog with data fetching, auth, routing, and reusable components.
+
+### CRM Dashboard — 80 lines
+
+```python
+page CRM:
+  data customers from fetch("/api/customers")
+  state search: str = ""
+  derived filtered = customers.filter(c => c.name.includes(search))
+
+  layout col gap=24 padding=32:
+    text "CRM Dashboard" size=3xl bold
+    input search placeholder="Search customers..."
+
+    layout grid cols=3 gap=16:
+      stat "Total" value={customers.length}
+      stat "Active" value={customers.filter(c => c.active).length}
+      stat "Revenue" value="$12,500"
+
+    table filtered columns=["name", "email", "status", "revenue"]
+```
+
+CRM with search, stats, filterable table, and modal forms.
+
+### SaaS Landing — 77 lines, Kanban Board — 77 lines, Admin Panel — 91 lines
+
+See all 10 examples in [`examples/`](examples/).
+
+---
+
+## IDE / Editor Support
+
+0x includes a built-in **Language Server Protocol (LSP)** server for IDE integration.
+
+### VSCode Extension
+
+Install the 0x VSCode extension for:
+- **Syntax highlighting** — all 73+ keywords color-coded
+- **Autocomplete** — context-aware keyword and identifier completion
+- **Hover info** — documentation for keywords, types for variables
+- **Go to definition** — jump to state, fn, prop declarations
+- **Document outline** — page, component, state, fn in the sidebar
+- **Real-time diagnostics** — parse and validation errors as you type
+
+### Other Editors
+
+The LSP server works with any editor that supports LSP:
+
+```bash
+# Start the LSP server
+0x-lsp --stdio
+```
+
+Configure your editor's LSP client to connect to `0x-lsp --stdio` for `.ai` files.
 
 ---
 
@@ -619,6 +690,7 @@ const output = generateReact(ast);   // React JSX string
 | `0x-lang/generators/react-native` | `generateReactNative()` |
 | `0x-lang/generators/terraform` | `generateTerraform()` |
 | `0x-lang/generators/ai-bridge` | `getLanguageSpec()`, `generatePrompt()`, `compileFromDescription()` |
+| `0x-lang/lsp` | LSP server for IDE integration |
 
 ---
 
@@ -741,30 +813,34 @@ Validator ─── Circular deps · unused state · type checks
     ↓
 Generator
     ├── React ────────── JSX + hooks + CSS-in-JS
-    ├── Vue ──────────── SFC + Composition API + scoped styles
-    ├── Svelte ──────── Runes ($state, $derived) + styles
+    ├── Vue ──────────── SFC + Composition API + store/data/form/auth/model
+    ├── Svelte ──────── Runes + store/data/form/auth/model
     ├── React Native ── View + StyleSheet + TouchableOpacity
     ├── Backend ─────── Express + JWT + CRUD + middleware
     ├── Terraform ───── HCL + providers + resources
     └── AI Bridge ───── Spec + prompts + skeleton generation
+    ↓
+LSP Server ─── Diagnostics · completion · hover · go-to-def · symbols
 ```
 
-~12,000 lines of TypeScript. Zero runtime dependencies (except gen-mapping for source maps).
+~14,000 lines of TypeScript. Zero runtime dependencies (except gen-mapping for source maps).
 
 | Module | Lines | |
 |:---|---:|:---|
-| Parser | 3,560 | Recursive descent, full AST |
-| React Generator | 2,423 | JSX + hooks + memo + styling |
-| AST Types | 1,065 | TypeScript definitions |
-| Vue Generator | 822 | SFC with `<script setup>` and `ref()` |
-| Svelte Generator | 743 | Svelte 5 with `$state()` and `$derived()` |
-| React Native Generator | 690 | View + StyleSheet + native components |
-| Backend Generator | 412 | Express + JWT + CRUD + middleware |
-| Terraform Generator | 370 | HCL + multi-provider (AWS, Vercel, Fly.io) |
-| Validator | 355 | Static analysis + error reporting |
-| Tokenizer | 348 | Indentation-aware lexer |
-| AI Bridge | 291 | Spec + prompt generation + skeleton |
-| CLI | 223 | build · dev · bench · init |
+| Parser | 3,876 | Recursive descent, full AST |
+| React Generator | 2,795 | JSX + hooks + memo + styling |
+| Vue Generator | 1,383 | SFC + Composition API + store/data/form/auth/model |
+| Svelte Generator | 1,270 | Svelte 5 runes + store/data/form/auth/model |
+| AST Types | 1,099 | TypeScript definitions |
+| React Native Generator | 689 | View + StyleSheet + native components |
+| Backend Generator | 425 | Express + JWT + CRUD + middleware |
+| Tokenizer | 394 | Indentation-aware lexer |
+| Terraform Generator | 369 | HCL + multi-provider (AWS, Vercel, Fly.io) |
+| Validator | 358 | Static analysis + error reporting |
+| AI Bridge | 323 | Spec + prompt generation + skeleton |
+| Shared Utilities | 249 | Type helpers, gradient parser, passthrough props |
+| CLI | 249 | build · dev · bench · init |
+| LSP Server | 637 | Diagnostics, completion, hover, go-to-def, symbols |
 
 ## CLI
 
@@ -773,6 +849,7 @@ Generator
 0x dev <file.ai> --target <target>
 0x bench <file.ai>
 0x init [project-name]
+0x-lsp --stdio                          # Start LSP server
 
 Flags:
   --target, -t    react, vue, svelte, react-native, backend, terraform (comma-separated)
@@ -786,7 +863,7 @@ Flags:
 git clone https://github.com/hankimis/0x-lang.git
 cd 0x-lang
 npm install
-npm test          # 1,767 tests across 9 test suites
+npm test          # 303 tests across 12 test suites
 npm run build
 ```
 
