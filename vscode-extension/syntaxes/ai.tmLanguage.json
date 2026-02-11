@@ -1,0 +1,132 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "0x",
+  "scopeName": "source.0x",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string-template" },
+    { "include": "#string-double" },
+    { "include": "#string-single" },
+    { "include": "#constant-color" },
+    { "include": "#constant-language" },
+    { "include": "#constant-numeric" },
+    { "include": "#http-method" },
+    { "include": "#fn-declaration" },
+    { "include": "#type-declaration" },
+    { "include": "#variable-declaration" },
+    { "include": "#keyword-control" },
+    { "include": "#keyword-declaration" },
+    { "include": "#keyword-ui" },
+    { "include": "#keyword-infra" },
+    { "include": "#storage-type" },
+    { "include": "#keyword-operator" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.double-slash.0x",
+      "match": "//.*$"
+    },
+    "string-template": {
+      "name": "string.template.0x",
+      "begin": "`",
+      "end": "`",
+      "patterns": [
+        {
+          "name": "constant.character.escape.0x",
+          "match": "\\\\."
+        },
+        {
+          "name": "meta.template.expression.0x",
+          "begin": "\\$\\{",
+          "end": "\\}",
+          "beginCaptures": { "0": { "name": "punctuation.definition.template-expression.begin.0x" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.template-expression.end.0x" } },
+          "patterns": [{ "include": "source.0x" }]
+        }
+      ]
+    },
+    "string-double": {
+      "name": "string.quoted.double.0x",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.0x",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "string-single": {
+      "name": "string.quoted.single.0x",
+      "begin": "'",
+      "end": "'",
+      "patterns": [
+        {
+          "name": "constant.character.escape.0x",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "constant-color": {
+      "name": "constant.other.color.0x",
+      "match": "#[0-9a-fA-F]{3,8}\\b"
+    },
+    "constant-language": {
+      "name": "constant.language.0x",
+      "match": "\\b(true|false|null)\\b"
+    },
+    "constant-numeric": {
+      "name": "constant.numeric.0x",
+      "match": "\\b[0-9]+(\\.[0-9]+)?\\b"
+    },
+    "http-method": {
+      "name": "keyword.other.http.0x",
+      "match": "\\b(GET|POST|PUT|DELETE|PATCH)\\b"
+    },
+    "fn-declaration": {
+      "match": "\\b(fn|async\\s+fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.0x" },
+        "2": { "name": "entity.name.function.0x" }
+      }
+    },
+    "type-declaration": {
+      "match": "\\b(page|component|app|model|type)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.0x" },
+        "2": { "name": "entity.name.type.0x" }
+      }
+    },
+    "variable-declaration": {
+      "match": "\\b(state|derived|prop)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.0x" },
+        "2": { "name": "variable.other.0x" }
+      }
+    },
+    "keyword-control": {
+      "name": "keyword.control.0x",
+      "match": "\\b(if|elif|else|for|in|return|show|hide|import|from|use|export|let|const|await|emit|redirect|requires|ensures)\\b"
+    },
+    "keyword-declaration": {
+      "name": "keyword.declaration.0x",
+      "match": "\\b(page|component|app|state|derived|prop|fn|async|type|store|api|model|data|form|auth|route|role|check|on|mount|destroy|watch|realtime|query|field|submit|validate|permission|login|signup|logout|guard|subscribe|raw|js|style)\\b"
+    },
+    "keyword-ui": {
+      "name": "keyword.ui.0x",
+      "match": "\\b(layout|text|button|input|image|link|toggle|select|table|chart|stat|stats|nav|modal|toast|upload|hero|features|pricing|faq|testimonials|footer|admin|crud|list|drawer|command|confirm|animate|responsive|search|filter|social|profile|progress|divider|loading|error|offline|row|col|grid|stack|center|middle|between|end|preview|notify|breadcrumb|gallery|media|gesture|transition|seo|a11y|mobile|desktop|tablet|column|pay|cart|notification)\\b"
+    },
+    "keyword-infra": {
+      "name": "keyword.infra.0x",
+      "match": "\\b(deploy|env|docker|ci|domain|cdn|monitor|backup|endpoint|middleware|queue|cron|cache|migrate|seed|webhook|storage|test|e2e|mock|fixture|snapshot|retry|log|dev|automation|trigger|schedule|i18n|locale|rtl)\\b"
+    },
+    "storage-type": {
+      "name": "storage.type.0x",
+      "match": "\\b(int|str|bool|float|list|map|set|datetime|optional|date|time)\\b"
+    },
+    "keyword-operator": {
+      "name": "keyword.operator.0x",
+      "match": "(=>|->|&&|\\|\\||[!=<>]=|[+\\-*/=<>!])"
+    }
+  }
+}

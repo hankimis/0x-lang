@@ -1,0 +1,31 @@
+{
+  "name": "0x-lang",
+  "displayName": "0x Language",
+  "description": "Language support for 0x (.ai files)",
+  "version": "0.1.0",
+  "publisher": "0x-lang",
+  "engines": { "vscode": "^1.89.0" },
+  "categories": ["Programming Languages"],
+  "activationEvents": ["onLanguage:0x"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [{
+      "id": "0x",
+      "aliases": ["0x", "0x-lang"],
+      "extensions": [".ai"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "0x",
+      "scopeName": "source.0x",
+      "path": "./syntaxes/ai.tmLanguage.json"
+    }]
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.89.0",
+    "typescript": "^5.9.0"
+  }
+}
