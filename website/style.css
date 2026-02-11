@@ -55,6 +55,42 @@ body {
   color: var(--bg-deep);
 }
 
+/* Focus styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+.target-tab:focus-visible,
+.faq-question:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Skip to Content ---- */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 24px;
+  background: var(--cyan);
+  color: var(--bg-deep);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 0 0 8px 8px;
+  z-index: 200;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
 /* ---- Stars Background ---- */
 .stars {
   position: fixed;
@@ -483,6 +519,11 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 600;
+}
+
+/* ---- Scroll Offset for Sticky Nav ---- */
+[id] {
+  scroll-margin-top: 80px;
 }
 
 /* ---- Section Header ---- */

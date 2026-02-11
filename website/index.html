@@ -315,6 +315,8 @@
 </head>
 <body>
 
+  <a href="#demo" class="skip-to-content">Skip to content</a>
+
   <div class="stars"></div>
   <div class="nebula"></div>
   <div class="particles" aria-hidden="true">
@@ -670,10 +672,10 @@
       </div>
 
       <!-- Target Tabs -->
-      <div class="target-tabs">
-        <span class="target-tab active" data-target="react" data-filename="Counter.jsx" data-badge="React" data-badge-class="badge-react" data-lines="96 lines" data-chars="1,359 chars">React JSX</span>
-        <span class="target-tab" data-target="vue" data-filename="Counter.vue" data-badge="Vue" data-badge-class="badge-vue" data-lines="30 lines" data-chars="730 chars">Vue 3 SFC</span>
-        <span class="target-tab" data-target="svelte" data-filename="Counter.svelte" data-badge="Svelte" data-badge-class="badge-svelte" data-lines="27 lines" data-chars="650 chars">Svelte 5</span>
+      <div class="target-tabs" role="tablist" aria-label="Output framework">
+        <span class="target-tab active" role="tab" tabindex="0" aria-selected="true" data-target="react" data-filename="Counter.jsx" data-badge="React" data-badge-class="badge-react" data-lines="96 lines" data-chars="1,359 chars">React JSX</span>
+        <span class="target-tab" role="tab" tabindex="-1" aria-selected="false" data-target="vue" data-filename="Counter.vue" data-badge="Vue" data-badge-class="badge-vue" data-lines="30 lines" data-chars="730 chars">Vue 3 SFC</span>
+        <span class="target-tab" role="tab" tabindex="-1" aria-selected="false" data-target="svelte" data-filename="Counter.svelte" data-badge="Svelte" data-badge-class="badge-svelte" data-lines="27 lines" data-chars="650 chars">Svelte 5</span>
       </div>
     </section>
 
@@ -896,6 +898,8 @@
       <p class="benchmark-note">Compared against production TypeScript React with full inline styling, types, and component structure. Verified in CI.</p>
     </section>
 
+    <div class="section-divider"></div>
+
     <!-- AI vs Traditional Comparison -->
     <section class="comparison-section">
       <div class="section-header">
@@ -903,7 +907,7 @@
         <p class="section-desc">Why AI agents choose 0x over writing raw JSX, Vue templates, or Svelte code.</p>
       </div>
 
-      <div class="comparison-grid">
+      <div class="comparison-grid" data-stagger>
         <div class="comparison-card" data-animate style="--i:0">
           <div class="comparison-header comparison-header-old">Without 0x</div>
           <ul class="comparison-list">
@@ -927,6 +931,8 @@
       </div>
     </section>
 
+    <div class="section-divider"></div>
+
     <!-- Reviews -->
     <section class="reviews-section">
       <div class="section-header">
@@ -934,7 +940,7 @@
         <p class="section-desc">Early adopters on building with 0x.</p>
       </div>
 
-      <div class="reviews-grid">
+      <div class="reviews-grid" data-stagger>
         <div class="review-card" data-animate style="--i:0">
           <span class="review-quote">"</span>
           <p class="review-text">The token efficiency is insane. My AI agent generates a full dashboard in 0x with half the tokens it would take in React. Less hallucination, faster iteration.</p>
@@ -1142,23 +1148,40 @@
     const linesEl = document.getElementById('output-lines');
     const charsEl = document.getElementById('output-chars');
 
+    function activateTab(tab) {
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+        t.setAttribute('tabindex', '-1');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      tab.setAttribute('tabindex', '0');
+      tab.focus();
+
+      const target = tab.dataset.target;
+      outputs.forEach(o => o.style.display = 'none');
+      document.getElementById('output-' + target).style.display = '';
+
+      filename.textContent = tab.dataset.filename;
+      badge.textContent = tab.dataset.badge;
+      badge.className = 'code-badge ' + tab.dataset.badgeClass;
+      linesEl.textContent = tab.dataset.lines;
+      charsEl.textContent = tab.dataset.chars;
+    }
+
     tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        // Update active tab
-        tabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        // Show correct output
-        const target = tab.dataset.target;
-        outputs.forEach(o => o.style.display = 'none');
-        document.getElementById('output-' + target).style.display = '';
-
-        // Update header
-        filename.textContent = tab.dataset.filename;
-        badge.textContent = tab.dataset.badge;
-        badge.className = 'code-badge ' + tab.dataset.badgeClass;
-        linesEl.textContent = tab.dataset.lines;
-        charsEl.textContent = tab.dataset.chars;
+      tab.addEventListener('click', () => activateTab(tab));
+      tab.addEventListener('keydown', e => {
+        const tabArr = Array.from(tabs);
+        const idx = tabArr.indexOf(tab);
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          activateTab(tabArr[(idx + 1) % tabArr.length]);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          activateTab(tabArr[(idx - 1 + tabArr.length) % tabArr.length]);
+        }
       });
     });
 
@@ -1169,8 +1192,8 @@
       const copyBtn = installBar.querySelector('.copy-btn');
       const copyIcon = installBar.querySelector('.copy-icon');
       const checkIcon = installBar.querySelector('.check-icon');
-      installBar.addEventListener('click', () => {
-        navigator.clipboard.writeText('npm install -g 0x-lang');
+      installBar.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText('npm install -g 0x-lang'); } catch (_) {}
         copyBtn.classList.add('copied');
         copyToast.classList.add('show');
         copyIcon.style.display = 'none';
