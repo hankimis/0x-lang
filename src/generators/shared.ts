@@ -1,6 +1,6 @@
 // Shared utilities for all code generators
 
-import type { Expression } from '../ast.js';
+import type { Expression, TypeExpr } from '../ast.js';
 
 // ── Known prop sets per UI element ─────────────────────
 
@@ -134,6 +134,30 @@ export const COMMON_MISTAKES: Record<string, string> = {
   'img': "Use 'image \"src\"' instead of 'img'",
   'a': "Use 'link \"text\" href=\"url\"' instead of 'a'",
 };
+
+// ── Shared type/field utilities ──────────────────────────
+
+export function typeExprToJs(t: TypeExpr): string {
+  switch (t.kind) {
+    case 'primitive': {
+      const map: Record<string, string> = { int: 'number', float: 'number', str: 'string', bool: 'boolean', datetime: 'Date', date: 'Date', time: 'string' };
+      return map[t.name] || t.name;
+    }
+    case 'list': return `${typeExprToJs(t.itemType)}[]`;
+    case 'named': return t.name;
+    case 'nullable': return `${typeExprToJs(t.inner)} | null`;
+    default: return 'any';
+  }
+}
+
+export function getFieldDefault(t: TypeExpr): string {
+  if (t.kind === 'primitive') {
+    if (t.name === 'str') return "''";
+    if (t.name === 'int' || t.name === 'float') return '0';
+    if (t.name === 'bool') return 'false';
+  }
+  return "''";
+}
 
 export const SIZE_MAP: Record<string, string> = {
   'xs': '12px', 'sm': '14px', 'md': '16px', 'lg': '20px',

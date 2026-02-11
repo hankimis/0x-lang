@@ -25,7 +25,7 @@ import type {
   I18nNode, LocaleNode, RtlNode,
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
-import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS, KNOWN_MODAL_PROPS } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, typeExprToJs, getFieldDefault, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS, KNOWN_MODAL_PROPS } from './shared.js';
 import { SourceMapBuilder } from './source-map.js';
 
 export interface GenContext {
@@ -1224,18 +1224,7 @@ function genModelCode(node: ModelNode): string {
   return lines.join('\n');
 }
 
-function typeExprToJs(t: import('../ast.js').TypeExpr): string {
-  switch (t.kind) {
-    case 'primitive': {
-      const map: Record<string, string> = { int: 'number', float: 'number', str: 'string', bool: 'boolean', datetime: 'Date', date: 'Date', time: 'string' };
-      return map[t.name] || t.name;
-    }
-    case 'list': return `${typeExprToJs(t.itemType)}[]`;
-    case 'named': return t.name;
-    case 'nullable': return `${typeExprToJs(t.inner)} | null`;
-    default: return 'any';
-  }
-}
+// typeExprToJs is now imported from shared.ts
 
 function genExprStandalone(expr: Expression): string {
   const c = ctx();
@@ -1355,14 +1344,7 @@ function genFormDecl(node: FormDecl, c: GenContext): string {
   return lines.join('\n  ');
 }
 
-function getFieldDefault(t: import('../ast.js').TypeExpr): string {
-  if (t.kind === 'primitive') {
-    if (t.name === 'str') return "''";
-    if (t.name === 'int' || t.name === 'float') return '0';
-    if (t.name === 'bool') return 'false';
-  }
-  return "''";
-}
+// getFieldDefault is now imported from shared.ts
 
 // ── Phase 1 Advanced: Table ─────────────────────────
 

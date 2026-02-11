@@ -5,6 +5,7 @@ import type {
   ASTNode, PageNode, ComponentNode, AppNode,
   StateDecl, DerivedDecl, PropDecl, TypeDecl, FnDecl,
   OnMount, OnDestroy, WatchBlock, CheckDecl, ApiDecl, StoreDecl,
+  DataDecl, FormDecl, RealtimeDecl, AuthDecl, RouteDecl, ModelNode,
   LayoutNode, TextNode, ButtonNode, InputNode, ImageNode, LinkNode,
   ToggleNode, SelectNode, IfBlock, ForBlock, ShowBlock, HideBlock,
   StyleDecl, ComponentCall, CommentNode,
@@ -19,7 +20,7 @@ import type {
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
 
-import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, typeExprToJs, getFieldDefault, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS } from './shared.js';
 import { generateBackendCode } from './react.js';
 
 interface VueContext {
@@ -40,6 +41,12 @@ export function generateVue(ast: ASTNode[]): GeneratedCode {
   for (const node of ast) {
     if (node.type === 'Page' || node.type === 'Component' || node.type === 'App') {
       parts.push(generateVueComponent(node));
+    } else if (node.type === 'Model') {
+      parts.push(genVueModelCode(node as ModelNode));
+    } else if (node.type === 'AuthDecl') {
+      parts.push(genVueAuthCode(node as AuthDecl));
+    } else if (node.type === 'RouteDecl') {
+      parts.push(genVueRouteCode(node as RouteDecl));
     } else {
       const backend = generateBackendCode(node);
       if (backend) parts.push(backend);
@@ -113,9 +120,12 @@ function generateVueComponent(node: PageNode | ComponentNode | AppNode): string 
         scriptLines.push(`${tlv.keyword} ${tlv.name} = ${genExpr(tlv.value, c, true)};`);
         break;
       }
+      case 'StoreDecl': scriptLines.push(genVueStore(child as StoreDecl, c)); break;
+      case 'DataDecl': scriptLines.push(genVueDataDecl(child as DataDecl, c)); break;
+      case 'FormDecl': scriptLines.push(genVueFormDecl(child as FormDecl, c)); break;
+      case 'RealtimeDecl': scriptLines.push(genVueRealtimeDecl(child as RealtimeDecl, c)); break;
       case 'TypeDecl': case 'StyleDecl': case 'Comment':
-      case 'Model': case 'DataDecl': case 'FormDecl':
-      case 'AuthDecl': case 'RealtimeDecl': case 'RouteDecl': break;
+      case 'Model': case 'AuthDecl': case 'RouteDecl': break;
       default:
         templateParts.push(genUINode(child as UINode, c));
         break;
@@ -1007,5 +1017,367 @@ function formatCssValue(prop: string, val: string): string {
     if (v === 'lg') return '0 10px 15px rgba(0,0,0,0.1)';
   }
   return v;
+}
+
+// ── Phase 2: Store (localStorage persistence) ───────
+
+function genVueStore(node: StoreDecl, c: VueContext): string {
+  c.imports.add('ref');
+  c.imports.add('watch');
+  const init = genExpr(node.initial, c, true);
+  const lines = [
+    `const ${node.name} = ref(JSON.parse(localStorage.getItem('${node.name}') ?? 'null') ?? ${init});`,
+    `watch(${node.name}, (val) => { localStorage.setItem('${node.name}', JSON.stringify(val)); }, { deep: true });`,
+  ];
+  c.states.set(node.name, node as any);
+  return lines.join('\n');
+}
+
+// ── Phase 2: Data Fetching ──────────────────────────
+
+function genVueDataDecl(node: DataDecl, c: VueContext): string {
+  c.imports.add('ref');
+  c.imports.add('onMounted');
+  const query = genExpr(node.query, c, true);
+  const lines: string[] = [];
+  lines.push(`const ${node.name} = ref([]);`);
+  lines.push(`const ${node.name}Loading = ref(true);`);
+  lines.push(`const ${node.name}Error = ref(null);`);
+  lines.push(`onMounted(async () => {`);
+  lines.push(`  try {`);
+  lines.push(`    ${node.name}.value = await ${query};`);
+  lines.push(`    ${node.name}Error.value = null;`);
+  lines.push(`  } catch (e) {`);
+  lines.push(`    ${node.name}Error.value = e.message;`);
+  lines.push(`  } finally {`);
+  lines.push(`    ${node.name}Loading.value = false;`);
+  lines.push(`  }`);
+  lines.push(`});`);
+  c.states.set(node.name, { type: 'StateDecl', name: node.name, valueType: { kind: 'primitive', name: 'any' }, initial: { kind: 'array', elements: [] }, loc: node.loc } as any);
+  return lines.join('\n');
+}
+
+// ── Phase 2: Form ───────────────────────────────────
+
+function genVueFormDecl(node: FormDecl, c: VueContext): string {
+  c.imports.add('ref');
+  const lines: string[] = [];
+
+  const initialValues = node.fields.map(f => `${f.name}: ${getFieldDefault(f.fieldType)}`).join(', ');
+  lines.push(`const ${node.name} = ref({ ${initialValues} });`);
+  lines.push(`const ${node.name}Errors = ref({});`);
+  lines.push(`const ${node.name}Submitting = ref(false);`);
+
+  lines.push(`function update${capitalize(node.name)}(field, value) {`);
+  lines.push(`  ${node.name}.value[field] = value;`);
+  lines.push(`  ${node.name}Errors.value[field] = null;`);
+  lines.push(`}`);
+
+  lines.push(`function validate${capitalize(node.name)}() {`);
+  lines.push(`  const errors = {};`);
+  for (const f of node.fields) {
+    for (const v of f.validations) {
+      switch (v.rule) {
+        case 'required':
+          lines.push(`  if (!${node.name}.value.${f.name}) errors.${f.name} = '${v.message}';`);
+          break;
+        case 'min':
+          lines.push(`  if (${node.name}.value.${f.name}.length < ${genExprStandalone(v.value!)}) errors.${f.name} = '${v.message}';`);
+          break;
+        case 'max':
+          lines.push(`  if (${node.name}.value.${f.name}.length > ${genExprStandalone(v.value!)}) errors.${f.name} = '${v.message}';`);
+          break;
+        case 'format':
+          if (v.value?.kind === 'string' && v.value.value === 'email') {
+            lines.push(`  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(${node.name}.value.${f.name})) errors.${f.name} = '${v.message}';`);
+          }
+          break;
+        case 'pattern':
+          if (v.value?.kind === 'string') {
+            lines.push(`  if (!/${v.value.value}/.test(${node.name}.value.${f.name})) errors.${f.name} = '${v.message}';`);
+          }
+          break;
+      }
+    }
+  }
+  lines.push(`  ${node.name}Errors.value = errors;`);
+  lines.push(`  return Object.keys(errors).length === 0;`);
+  lines.push(`}`);
+
+  if (node.submit) {
+    const action = genExpr(node.submit.action, c, true);
+    lines.push(`async function submit${capitalize(node.name)}() {`);
+    lines.push(`  if (!validate${capitalize(node.name)}()) return;`);
+    lines.push(`  ${node.name}Submitting.value = true;`);
+    lines.push(`  try {`);
+    lines.push(`    await ${action};`);
+    if (node.submit.success) {
+      lines.push(`    ${genExpr(node.submit.success, c, true)};`);
+    }
+    lines.push(`  } catch (e) {`);
+    if (node.submit.error) {
+      lines.push(`    ${genExpr(node.submit.error, c, true)};`);
+    }
+    lines.push(`  } finally {`);
+    lines.push(`    ${node.name}Submitting.value = false;`);
+    lines.push(`  }`);
+    lines.push(`}`);
+  }
+
+  return lines.join('\n');
+}
+
+// ── Phase 2: Realtime (WebSocket) ───────────────────
+
+function genVueRealtimeDecl(node: RealtimeDecl, c: VueContext): string {
+  c.imports.add('ref');
+  c.imports.add('onMounted');
+  c.imports.add('onUnmounted');
+  const channel = genExpr(node.channel, c, true);
+  const lines: string[] = [];
+
+  lines.push(`const ${node.name} = ref([]);`);
+  lines.push(`let ${node.name}Ws = null;`);
+  lines.push(`onMounted(() => {`);
+  lines.push(`  const ws = new WebSocket(${channel});`);
+  lines.push(`  ${node.name}Ws = ws;`);
+
+  for (const handler of node.handlers) {
+    if (handler.event === 'message') {
+      lines.push(`  ws.onmessage = (event) => {`);
+      lines.push(`    const message = JSON.parse(event.data);`);
+      const body = handler.body.map(s => genStmt(s, c)).join('\n    ');
+      lines.push(`    ${body}`);
+      lines.push(`  };`);
+    } else if (handler.event === 'error') {
+      lines.push(`  ws.onerror = (event) => {`);
+      const body = handler.body.map(s => genStmt(s, c)).join('\n    ');
+      lines.push(`    ${body}`);
+      lines.push(`  };`);
+    } else if (handler.event === 'open') {
+      lines.push(`  ws.onopen = () => {`);
+      const body = handler.body.map(s => genStmt(s, c)).join('\n    ');
+      lines.push(`    ${body}`);
+      lines.push(`  };`);
+    } else if (handler.event === 'close') {
+      lines.push(`  ws.onclose = () => {`);
+      const body = handler.body.map(s => genStmt(s, c)).join('\n    ');
+      lines.push(`    ${body}`);
+      lines.push(`  };`);
+    }
+  }
+
+  lines.push(`});`);
+  lines.push(`onUnmounted(() => { if (${node.name}Ws) ${node.name}Ws.close(); });`);
+
+  c.states.set(node.name, { type: 'StateDecl', name: node.name, valueType: { kind: 'list', itemType: { kind: 'primitive', name: 'any' } }, initial: { kind: 'array', elements: [] }, loc: node.loc } as any);
+  return lines.join('\n');
+}
+
+// ── Phase 2: Auth (provide/inject) ──────────────────
+
+function genVueAuthCode(node: AuthDecl): string {
+  const lines: string[] = [
+    `// Generated by 0x — Vue Auth: ${node.provider}`,
+    `import { ref, provide, inject, readonly } from 'vue';`,
+    '',
+    `const AuthSymbol = Symbol('auth');`,
+    '',
+    `export function useAuth() {`,
+    `  const ctx = inject(AuthSymbol);`,
+    `  if (!ctx) throw new Error('useAuth must be inside AuthProvider');`,
+    `  return ctx;`,
+    `}`,
+    '',
+    `export const AuthProvider = {`,
+    `  setup(props, { slots }) {`,
+    `    const user = ref(null);`,
+    `    const loading = ref(false);`,
+    `    const error = ref(null);`,
+    '',
+  ];
+
+  if (node.loginFields.length > 0) {
+    const params = node.loginFields.join(', ');
+    lines.push(`    async function login(${params}) {`);
+    lines.push(`      loading.value = true; error.value = null;`);
+    lines.push(`      try {`);
+    lines.push(`        const res = await fetch('/api/auth/login', {`);
+    lines.push(`          method: 'POST',`);
+    lines.push(`          headers: { 'Content-Type': 'application/json' },`);
+    lines.push(`          body: JSON.stringify({ ${params} }),`);
+    lines.push(`        });`);
+    lines.push(`        const data = await res.json();`);
+    lines.push(`        if (!res.ok) throw new Error(data.message || 'Login failed');`);
+    lines.push(`        user.value = data.user;`);
+    lines.push(`        return data;`);
+    lines.push(`      } catch (e) { error.value = e.message; throw e; }`);
+    lines.push(`      finally { loading.value = false; }`);
+    lines.push(`    }`);
+    lines.push('');
+  }
+
+  if (node.signupFields.length > 0) {
+    const params = node.signupFields.join(', ');
+    lines.push(`    async function signup(${params}) {`);
+    lines.push(`      loading.value = true; error.value = null;`);
+    lines.push(`      try {`);
+    lines.push(`        const res = await fetch('/api/auth/signup', {`);
+    lines.push(`          method: 'POST',`);
+    lines.push(`          headers: { 'Content-Type': 'application/json' },`);
+    lines.push(`          body: JSON.stringify({ ${params} }),`);
+    lines.push(`        });`);
+    lines.push(`        const data = await res.json();`);
+    lines.push(`        if (!res.ok) throw new Error(data.message || 'Sign up failed');`);
+    lines.push(`        user.value = data.user;`);
+    lines.push(`        return data;`);
+    lines.push(`      } catch (e) { error.value = e.message; throw e; }`);
+    lines.push(`      finally { loading.value = false; }`);
+    lines.push(`    }`);
+    lines.push('');
+  }
+
+  lines.push(`    async function logout() {`);
+  lines.push(`      await fetch('/api/auth/logout', { method: 'POST' });`);
+  lines.push(`      user.value = null;`);
+  lines.push(`    }`);
+  lines.push('');
+  lines.push(`    const auth = { user: readonly(user), loading: readonly(loading), error: readonly(error), login, signup, logout };`);
+  lines.push(`    provide(AuthSymbol, auth);`);
+  lines.push(`    return () => slots.default?.();`);
+  lines.push(`  },`);
+  lines.push(`};`);
+  lines.push('');
+
+  for (const g of node.guards) {
+    const guardName = `${capitalize(g.role)}Guard`;
+    lines.push(`export const ${guardName} = {`);
+    lines.push(`  setup(props, { slots }) {`);
+    lines.push(`    const { user } = useAuth();`);
+    if (g.role === 'auth') {
+      lines.push(`    if (!user.value) {`);
+    } else {
+      lines.push(`    if (!user.value || user.value.role !== '${g.role}') {`);
+    }
+    if (g.redirect) {
+      lines.push(`      window.location.href = '${g.redirect}';`);
+      lines.push(`      return () => null;`);
+    } else {
+      lines.push(`      return () => 'Access denied';`);
+    }
+    lines.push(`    }`);
+    lines.push(`    return () => slots.default?.();`);
+    lines.push(`  },`);
+    lines.push(`};`);
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+// ── Phase 2: Route (vue-router config) ──────────────
+
+function genVueRouteCode(node: RouteDecl): string {
+  const lines: string[] = [];
+  lines.push(`// Route: ${node.path} -> ${node.target}`);
+  if (node.guard) {
+    lines.push(`{`);
+    lines.push(`  path: '${node.path}',`);
+    lines.push(`  component: ${node.target},`);
+    lines.push(`  beforeEnter: (to, from, next) => {`);
+    lines.push(`    // Guard: ${node.guard}`);
+    lines.push(`    next();`);
+    lines.push(`  },`);
+    lines.push(`},`);
+  } else {
+    lines.push(`{ path: '${node.path}', component: ${node.target} },`);
+  }
+  return lines.join('\n');
+}
+
+// ── Phase 2: Model (CRUD API + Vue composables) ─────
+
+function genVueModelCode(node: ModelNode): string {
+  const name = node.name;
+  const lower = name.toLowerCase();
+  const lines: string[] = [
+    `// Generated by 0x — Vue Model: ${name}`,
+    '',
+  ];
+
+  // JSDoc type
+  lines.push(`/** @typedef {Object} ${name}`);
+  for (const f of node.fields) {
+    lines.push(` * @property {${typeExprToJs(f.fieldType)}} ${f.name}`);
+  }
+  lines.push(' */');
+  lines.push('');
+
+  // CRUD API (framework-agnostic)
+  lines.push(`const ${name}API = {`);
+  lines.push(`  findAll: async (params = {}) => {`);
+  lines.push(`    const query = new URLSearchParams(params).toString();`);
+  lines.push(`    const res = await fetch(\`/api/${lower}s\${query ? '?' + query : ''}\`);`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`  findById: async (id) => {`);
+  lines.push(`    const res = await fetch(\`/api/${lower}s/\${id}\`);`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`  create: async (data) => {`);
+  lines.push(`    const res = await fetch('/api/${lower}s', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`  update: async (id, data) => {`);
+  lines.push(`    const res = await fetch(\`/api/${lower}s/\${id}\`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`  delete: async (id) => {`);
+  lines.push(`    const res = await fetch(\`/api/${lower}s/\${id}\`, { method: 'DELETE' });`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`};`);
+  lines.push('');
+
+  // Vue composables
+  lines.push(`import { ref, onMounted } from 'vue';`);
+  lines.push('');
+  lines.push(`function use${name}s(params = {}) {`);
+  lines.push(`  const data = ref([]);`);
+  lines.push(`  const loading = ref(true);`);
+  lines.push(`  const error = ref(null);`);
+  lines.push(`  async function fetch${name}s() {`);
+  lines.push(`    loading.value = true;`);
+  lines.push(`    try {`);
+  lines.push(`      data.value = await ${name}API.findAll(params);`);
+  lines.push(`      error.value = null;`);
+  lines.push(`    } catch (e) {`);
+  lines.push(`      error.value = e.message;`);
+  lines.push(`    } finally {`);
+  lines.push(`      loading.value = false;`);
+  lines.push(`    }`);
+  lines.push(`  }`);
+  lines.push(`  onMounted(() => fetch${name}s());`);
+  lines.push(`  return { data, loading, error, refetch: fetch${name}s };`);
+  lines.push(`}`);
+  lines.push('');
+  lines.push(`function useCreate${name}() {`);
+  lines.push(`  const loading = ref(false);`);
+  lines.push(`  const create = async (data) => {`);
+  lines.push(`    loading.value = true;`);
+  lines.push(`    try { return await ${name}API.create(data); }`);
+  lines.push(`    finally { loading.value = false; }`);
+  lines.push(`  };`);
+  lines.push(`  return { create, loading };`);
+  lines.push(`}`);
+
+  return lines.join('\n');
+}
+
+// ── Standalone expression helper ────────────────────
+
+function genExprStandalone(expr: Expression): string {
+  const c = newCtx();
+  return genExpr(expr, c);
 }
 

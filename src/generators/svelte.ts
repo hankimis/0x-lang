@@ -5,6 +5,7 @@ import type {
   ASTNode, PageNode, ComponentNode, AppNode,
   StateDecl, DerivedDecl, PropDecl, TypeDecl, FnDecl,
   OnMount, OnDestroy, WatchBlock, CheckDecl, ApiDecl, StoreDecl,
+  DataDecl, FormDecl, RealtimeDecl, AuthDecl, RouteDecl, ModelNode,
   LayoutNode, TextNode, ButtonNode, InputNode, ImageNode, LinkNode,
   ToggleNode, SelectNode, IfBlock, ForBlock, ShowBlock, HideBlock,
   StyleDecl, ComponentCall, CommentNode,
@@ -19,7 +20,7 @@ import type {
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
 
-import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, typeExprToJs, getFieldDefault, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS } from './shared.js';
 import { generateBackendCode } from './react.js';
 
 interface SvelteContext {
@@ -39,6 +40,12 @@ export function generateSvelte(ast: ASTNode[]): GeneratedCode {
   for (const node of ast) {
     if (node.type === 'Page' || node.type === 'Component' || node.type === 'App') {
       parts.push(generateSvelteComponent(node));
+    } else if (node.type === 'Model') {
+      parts.push(genSvelteModelCode(node as ModelNode));
+    } else if (node.type === 'AuthDecl') {
+      parts.push(genSvelteAuthCode(node as AuthDecl));
+    } else if (node.type === 'RouteDecl') {
+      parts.push(genSvelteRouteCode(node as RouteDecl));
     } else {
       const backend = generateBackendCode(node);
       if (backend) parts.push(backend);
@@ -110,9 +117,12 @@ function generateSvelteComponent(node: PageNode | ComponentNode | AppNode): stri
         scriptLines.push(`${tlv.keyword} ${tlv.name} = ${genExpr(tlv.value, c)};`);
         break;
       }
+      case 'StoreDecl': scriptLines.push(genSvelteStore(child as StoreDecl, c)); break;
+      case 'DataDecl': scriptLines.push(genSvelteDataDecl(child as DataDecl, c)); break;
+      case 'FormDecl': scriptLines.push(genSvelteFormDecl(child as FormDecl, c)); break;
+      case 'RealtimeDecl': scriptLines.push(genSvelteRealtimeDecl(child as RealtimeDecl, c)); break;
       case 'TypeDecl': case 'StyleDecl': case 'Comment':
-      case 'Model': case 'DataDecl': case 'FormDecl':
-      case 'AuthDecl': case 'RealtimeDecl': case 'RouteDecl': break;
+      case 'Model': case 'AuthDecl': case 'RouteDecl': break;
       default:
         templateParts.push(genUINode(child as UINode, c));
         break;
@@ -934,5 +944,327 @@ function exprHasAwait(e: Expression): boolean {
     case 'object_expr': return e.properties.some(p => exprHasAwait(p.value));
     default: return false;
   }
+}
+
+// ── Phase 2: Store (localStorage persistence) ───────
+
+function genSvelteStore(node: StoreDecl, c: SvelteContext): string {
+  const init = genExpr(node.initial, c);
+  const lines = [
+    `let ${node.name} = $state(JSON.parse(localStorage.getItem('${node.name}') ?? 'null') ?? ${init});`,
+    `$effect(() => { localStorage.setItem('${node.name}', JSON.stringify(${node.name})); });`,
+  ];
+  c.states.set(node.name, node as any);
+  return lines.join('\n');
+}
+
+// ── Phase 2: Data Fetching ──────────────────────────
+
+function genSvelteDataDecl(node: DataDecl, c: SvelteContext): string {
+  c.needsOnMount = true;
+  const query = genExpr(node.query, c);
+  const lines: string[] = [];
+  lines.push(`let ${node.name} = $state([]);`);
+  lines.push(`let ${node.name}Loading = $state(true);`);
+  lines.push(`let ${node.name}Error = $state(null);`);
+  lines.push(`onMount(async () => {`);
+  lines.push(`  try {`);
+  lines.push(`    ${node.name} = await ${query};`);
+  lines.push(`    ${node.name}Error = null;`);
+  lines.push(`  } catch (e) {`);
+  lines.push(`    ${node.name}Error = e.message;`);
+  lines.push(`  } finally {`);
+  lines.push(`    ${node.name}Loading = false;`);
+  lines.push(`  }`);
+  lines.push(`});`);
+  c.states.set(node.name, { type: 'StateDecl', name: node.name, valueType: { kind: 'primitive', name: 'any' }, initial: { kind: 'array', elements: [] }, loc: node.loc } as any);
+  return lines.join('\n');
+}
+
+// ── Phase 2: Form ───────────────────────────────────
+
+function genSvelteFormDecl(node: FormDecl, c: SvelteContext): string {
+  const lines: string[] = [];
+
+  const initialValues = node.fields.map(f => `${f.name}: ${getFieldDefault(f.fieldType)}`).join(', ');
+  lines.push(`let ${node.name} = $state({ ${initialValues} });`);
+  lines.push(`let ${node.name}Errors = $state({});`);
+  lines.push(`let ${node.name}Submitting = $state(false);`);
+
+  lines.push(`function update${capitalize(node.name)}(field, value) {`);
+  lines.push(`  ${node.name}[field] = value;`);
+  lines.push(`  ${node.name}Errors[field] = null;`);
+  lines.push(`}`);
+
+  lines.push(`function validate${capitalize(node.name)}() {`);
+  lines.push(`  const errors = {};`);
+  for (const f of node.fields) {
+    for (const v of f.validations) {
+      switch (v.rule) {
+        case 'required':
+          lines.push(`  if (!${node.name}.${f.name}) errors.${f.name} = '${v.message}';`);
+          break;
+        case 'min':
+          lines.push(`  if (${node.name}.${f.name}.length < ${genExprStandalone(v.value!)}) errors.${f.name} = '${v.message}';`);
+          break;
+        case 'max':
+          lines.push(`  if (${node.name}.${f.name}.length > ${genExprStandalone(v.value!)}) errors.${f.name} = '${v.message}';`);
+          break;
+        case 'format':
+          if (v.value?.kind === 'string' && v.value.value === 'email') {
+            lines.push(`  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(${node.name}.${f.name})) errors.${f.name} = '${v.message}';`);
+          }
+          break;
+        case 'pattern':
+          if (v.value?.kind === 'string') {
+            lines.push(`  if (!/${v.value.value}/.test(${node.name}.${f.name})) errors.${f.name} = '${v.message}';`);
+          }
+          break;
+      }
+    }
+  }
+  lines.push(`  ${node.name}Errors = errors;`);
+  lines.push(`  return Object.keys(errors).length === 0;`);
+  lines.push(`}`);
+
+  if (node.submit) {
+    const action = genExpr(node.submit.action, c);
+    lines.push(`async function submit${capitalize(node.name)}() {`);
+    lines.push(`  if (!validate${capitalize(node.name)}()) return;`);
+    lines.push(`  ${node.name}Submitting = true;`);
+    lines.push(`  try {`);
+    lines.push(`    await ${action};`);
+    if (node.submit.success) {
+      lines.push(`    ${genExpr(node.submit.success, c)};`);
+    }
+    lines.push(`  } catch (e) {`);
+    if (node.submit.error) {
+      lines.push(`    ${genExpr(node.submit.error, c)};`);
+    }
+    lines.push(`  } finally {`);
+    lines.push(`    ${node.name}Submitting = false;`);
+    lines.push(`  }`);
+    lines.push(`}`);
+  }
+
+  return lines.join('\n');
+}
+
+// ── Phase 2: Realtime (WebSocket) ───────────────────
+
+function genSvelteRealtimeDecl(node: RealtimeDecl, c: SvelteContext): string {
+  c.needsOnMount = true;
+  const channel = genExpr(node.channel, c);
+  const lines: string[] = [];
+
+  lines.push(`let ${node.name} = $state([]);`);
+  lines.push(`let ${node.name}Ws = null;`);
+  lines.push(`onMount(() => {`);
+  lines.push(`  const ws = new WebSocket(${channel});`);
+  lines.push(`  ${node.name}Ws = ws;`);
+
+  for (const handler of node.handlers) {
+    if (handler.event === 'message') {
+      lines.push(`  ws.onmessage = (event) => {`);
+      lines.push(`    const message = JSON.parse(event.data);`);
+      const body = handler.body.map(s => genStmt(s, c)).join('\n    ');
+      lines.push(`    ${body}`);
+      lines.push(`  };`);
+    } else if (handler.event === 'error') {
+      lines.push(`  ws.onerror = (event) => {`);
+      const body = handler.body.map(s => genStmt(s, c)).join('\n    ');
+      lines.push(`    ${body}`);
+      lines.push(`  };`);
+    } else if (handler.event === 'open') {
+      lines.push(`  ws.onopen = () => {`);
+      const body = handler.body.map(s => genStmt(s, c)).join('\n    ');
+      lines.push(`    ${body}`);
+      lines.push(`  };`);
+    } else if (handler.event === 'close') {
+      lines.push(`  ws.onclose = () => {`);
+      const body = handler.body.map(s => genStmt(s, c)).join('\n    ');
+      lines.push(`    ${body}`);
+      lines.push(`  };`);
+    }
+  }
+
+  lines.push(`  return () => { ws.close(); };`);
+  lines.push(`});`);
+
+  c.states.set(node.name, { type: 'StateDecl', name: node.name, valueType: { kind: 'list', itemType: { kind: 'primitive', name: 'any' } }, initial: { kind: 'array', elements: [] }, loc: node.loc } as any);
+  return lines.join('\n');
+}
+
+// ── Phase 2: Auth (Svelte context) ──────────────────
+
+function genSvelteAuthCode(node: AuthDecl): string {
+  const lines: string[] = [
+    `// Generated by 0x — Svelte Auth: ${node.provider}`,
+    `<script>`,
+    `  import { setContext, getContext } from 'svelte';`,
+    '',
+    `  const AUTH_KEY = Symbol('auth');`,
+    '',
+    `  export function createAuth() {`,
+    `    let user = $state(null);`,
+    `    let loading = $state(false);`,
+    `    let error = $state(null);`,
+    '',
+  ];
+
+  if (node.loginFields.length > 0) {
+    const params = node.loginFields.join(', ');
+    lines.push(`    async function login(${params}) {`);
+    lines.push(`      loading = true; error = null;`);
+    lines.push(`      try {`);
+    lines.push(`        const res = await fetch('/api/auth/login', {`);
+    lines.push(`          method: 'POST',`);
+    lines.push(`          headers: { 'Content-Type': 'application/json' },`);
+    lines.push(`          body: JSON.stringify({ ${params} }),`);
+    lines.push(`        });`);
+    lines.push(`        const data = await res.json();`);
+    lines.push(`        if (!res.ok) throw new Error(data.message || 'Login failed');`);
+    lines.push(`        user = data.user;`);
+    lines.push(`        return data;`);
+    lines.push(`      } catch (e) { error = e.message; throw e; }`);
+    lines.push(`      finally { loading = false; }`);
+    lines.push(`    }`);
+    lines.push('');
+  }
+
+  if (node.signupFields.length > 0) {
+    const params = node.signupFields.join(', ');
+    lines.push(`    async function signup(${params}) {`);
+    lines.push(`      loading = true; error = null;`);
+    lines.push(`      try {`);
+    lines.push(`        const res = await fetch('/api/auth/signup', {`);
+    lines.push(`          method: 'POST',`);
+    lines.push(`          headers: { 'Content-Type': 'application/json' },`);
+    lines.push(`          body: JSON.stringify({ ${params} }),`);
+    lines.push(`        });`);
+    lines.push(`        const data = await res.json();`);
+    lines.push(`        if (!res.ok) throw new Error(data.message || 'Sign up failed');`);
+    lines.push(`        user = data.user;`);
+    lines.push(`        return data;`);
+    lines.push(`      } catch (e) { error = e.message; throw e; }`);
+    lines.push(`      finally { loading = false; }`);
+    lines.push(`    }`);
+    lines.push('');
+  }
+
+  lines.push(`    async function logout() {`);
+  lines.push(`      await fetch('/api/auth/logout', { method: 'POST' });`);
+  lines.push(`      user = null;`);
+  lines.push(`    }`);
+  lines.push('');
+  lines.push(`    const auth = {`);
+  lines.push(`      get user() { return user; },`);
+  lines.push(`      get loading() { return loading; },`);
+  lines.push(`      get error() { return error; },`);
+  lines.push(`      login, signup, logout,`);
+  lines.push(`    };`);
+  lines.push(`    setContext(AUTH_KEY, auth);`);
+  lines.push(`    return auth;`);
+  lines.push(`  }`);
+  lines.push('');
+  lines.push(`  export function useAuth() {`);
+  lines.push(`    return getContext(AUTH_KEY);`);
+  lines.push(`  }`);
+  lines.push(`</script>`);
+
+  return lines.join('\n');
+}
+
+// ── Phase 2: Route (SvelteKit-compatible config) ────
+
+function genSvelteRouteCode(node: RouteDecl): string {
+  const lines: string[] = [];
+  lines.push(`// Route: ${node.path} -> ${node.target}`);
+  if (node.guard) {
+    lines.push(`// Guard: ${node.guard}`);
+    lines.push(`// SvelteKit: create src/routes${node.path}/+page.svelte with ${node.target} component`);
+    lines.push(`// Add load guard in +page.server.js`);
+  } else {
+    lines.push(`// SvelteKit: create src/routes${node.path}/+page.svelte with ${node.target} component`);
+  }
+  return lines.join('\n');
+}
+
+// ── Phase 2: Model (CRUD API + Svelte stores) ───────
+
+function genSvelteModelCode(node: ModelNode): string {
+  const name = node.name;
+  const lower = name.toLowerCase();
+  const lines: string[] = [
+    `// Generated by 0x — Svelte Model: ${name}`,
+    '',
+  ];
+
+  // JSDoc type
+  lines.push(`/** @typedef {Object} ${name}`);
+  for (const f of node.fields) {
+    lines.push(` * @property {${typeExprToJs(f.fieldType)}} ${f.name}`);
+  }
+  lines.push(' */');
+  lines.push('');
+
+  // CRUD API (framework-agnostic)
+  lines.push(`const ${name}API = {`);
+  lines.push(`  findAll: async (params = {}) => {`);
+  lines.push(`    const query = new URLSearchParams(params).toString();`);
+  lines.push(`    const res = await fetch(\`/api/${lower}s\${query ? '?' + query : ''}\`);`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`  findById: async (id) => {`);
+  lines.push(`    const res = await fetch(\`/api/${lower}s/\${id}\`);`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`  create: async (data) => {`);
+  lines.push(`    const res = await fetch('/api/${lower}s', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`  update: async (id, data) => {`);
+  lines.push(`    const res = await fetch(\`/api/${lower}s/\${id}\`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`  delete: async (id) => {`);
+  lines.push(`    const res = await fetch(\`/api/${lower}s/\${id}\`, { method: 'DELETE' });`);
+  lines.push(`    return res.json();`);
+  lines.push(`  },`);
+  lines.push(`};`);
+  lines.push('');
+
+  // Svelte store-like functions using $state
+  lines.push(`function create${name}Store(params = {}) {`);
+  lines.push(`  let data = $state([]);`);
+  lines.push(`  let loading = $state(true);`);
+  lines.push(`  let error = $state(null);`);
+  lines.push(`  async function fetch${name}s() {`);
+  lines.push(`    loading = true;`);
+  lines.push(`    try {`);
+  lines.push(`      data = await ${name}API.findAll(params);`);
+  lines.push(`      error = null;`);
+  lines.push(`    } catch (e) {`);
+  lines.push(`      error = e.message;`);
+  lines.push(`    } finally {`);
+  lines.push(`      loading = false;`);
+  lines.push(`    }`);
+  lines.push(`  }`);
+  lines.push(`  return {`);
+  lines.push(`    get data() { return data; },`);
+  lines.push(`    get loading() { return loading; },`);
+  lines.push(`    get error() { return error; },`);
+  lines.push(`    refetch: fetch${name}s,`);
+  lines.push(`  };`);
+  lines.push(`}`);
+
+  return lines.join('\n');
+}
+
+// ── Standalone expression helper ────────────────────
+
+function genExprStandalone(expr: Expression): string {
+  const c = newCtx();
+  return genExpr(expr, c);
 }
 
