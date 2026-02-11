@@ -71,6 +71,8 @@ const KEYWORDS = new Set([
   'error', 'loading', 'offline', 'retry', 'log',
   // Phase 4: i18n keywords
   'i18n', 'locale', 'rtl',
+  // Theme keywords
+  'theme',
 ]);
 
 const HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);

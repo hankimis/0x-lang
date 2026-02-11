@@ -25,7 +25,7 @@ import type {
   EndpointNode, MiddlewareNode, QueueNode, CronNode, CacheNode, MigrateNode, SeedNode, WebhookNode, StorageNode,
   TestNode, E2eNode, MockNode, FixtureNode,
   ErrorNode, LoadingNode, OfflineNode, RetryNode, LogNode,
-  I18nNode, LocaleNode, RtlNode,
+  I18nNode, LocaleNode, RtlNode, ThemeDecl,
   TypeExpr, Expression, Statement, UINode, SourceLocation,
 } from './ast.js';
 
@@ -203,6 +203,8 @@ class Parser {
         nodes.push(this.parseLocale());
       } else if (this.match('KEYWORD', 'rtl')) {
         nodes.push(this.parseRtl());
+      } else if (this.match('KEYWORD', 'theme')) {
+        nodes.push(this.parseTheme());
       } else {
         const tok = this.current();
         let hint = '';
@@ -213,7 +215,7 @@ class Parser {
             'page', 'component', 'app', 'model', 'auth', 'route', 'roles', 'automation', 'dev',
             'deploy', 'env', 'docker', 'ci', 'domain', 'cdn', 'monitor', 'backup',
             'endpoint', 'middleware', 'queue', 'cron', 'cache', 'migrate', 'seed', 'webhook', 'storage',
-            'test', 'e2e', 'mock', 'fixture', 'i18n', 'locale', 'rtl',
+            'test', 'e2e', 'mock', 'fixture', 'i18n', 'locale', 'rtl', 'theme',
           ];
           const suggestion = suggestKeyword(tok.value, topKeywords);
           if (suggestion) hint = `\n  → Did you mean '${suggestion}'?`;
@@ -875,6 +877,20 @@ class Parser {
     this.expect('KEYWORD', 'from');
     const source = this.expect('STRING').value;
     return { type: 'UseImport', name, source, loc: location };
+  }
+
+  private parseTheme(): ThemeDecl {
+    const location = this.loc();
+    this.expect('KEYWORD', 'theme');
+    const name = this.expectName();
+    const validThemes = ['shadcn', 'mui', 'antd', 'chakra'];
+    if (!validThemes.includes(name)) {
+      throw new ParseError(
+        `Unknown theme '${name}'. Supported themes: ${validThemes.join(', ')}`,
+        location.line, location.column, this.nearby()
+      );
+    }
+    return { type: 'ThemeDecl', theme: name, loc: location };
   }
 
   // ── UI Elements ───────────────────────────────────────
