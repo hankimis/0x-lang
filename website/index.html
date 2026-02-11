@@ -815,7 +815,8 @@
         <!-- Blog -->
         <div class="example-panel active" id="example-blog">
           <div class="example-meta">
-            <span class="example-tag">64 lines</span>
+            <span class="example-tag">65 lines</span>
+            <span class="example-tag">shadcn</span>
             <span class="example-tag">CRUD</span>
             <span class="example-tag">API</span>
             <span class="example-tag">Component</span>
@@ -831,7 +832,9 @@
               <span class="code-filename">blog.ai</span>
               <span class="code-badge badge-0x">0x</span>
             </div>
-            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">Blog</span>:
+            <pre class="code-block example-code"><code><span class="kw">theme</span> shadcn
+
+<span class="kw">page</span> <span class="fn">Blog</span>:
   <span class="kw">type</span> <span class="type">Post</span> = {id: <span class="type">int</span>, title: <span class="type">str</span>, content: <span class="type">str</span>, date: <span class="type">str</span>}
 
   <span class="kw">state</span> posts: <span class="type">list</span>[<span class="type">Post</span>] = []
@@ -900,25 +903,25 @@
           <div class="view-preview">
             <div class="preview-frame">
               <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000/blog</span></div>
-              <div class="preview-body" style="max-width:600px;margin:0 auto">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><span style="font-size:24px;font-weight:bold;color:#222">Blog</span><span style="color:#666">3 posts</span></div>
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px">
-                  <div style="font-size:16px;font-weight:bold;color:#222;margin-bottom:8px">New Post</div>
-                  <input type="text" placeholder="Post title..." style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:8px;font-size:14px;box-sizing:border-box">
-                  <input type="text" placeholder="Write your content..." style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:12px;font-size:14px;box-sizing:border-box">
-                  <button style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer">Publish</button>
+              <div class="preview-body" style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><span style="font-size:24px;font-weight:600;color:#09090b;letter-spacing:-0.025em">Blog</span><span style="color:#71717a;font-size:14px">3 posts</span></div>
+                <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:24px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05)">
+                  <div style="font-size:16px;font-weight:600;color:#09090b;margin-bottom:12px">New Post</div>
+                  <input type="text" placeholder="Post title..." style="width:100%;padding:8px 12px;border:1px solid #e4e4e7;border-radius:6px;margin-bottom:8px;font-size:14px;box-sizing:border-box;outline:none;color:#09090b;background:#fff;transition:border-color 0.15s;height:36px">
+                  <input type="text" placeholder="Write your content..." style="width:100%;padding:8px 12px;border:1px solid #e4e4e7;border-radius:6px;margin-bottom:12px;font-size:14px;box-sizing:border-box;outline:none;color:#09090b;background:#fff;height:36px">
+                  <button style="background:#18181b;color:#fafafa;border:none;padding:0 16px;border-radius:6px;font-weight:500;font-size:14px;cursor:pointer;height:36px;letter-spacing:-0.01em">Publish</button>
                 </div>
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:10px">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:bold;color:#222">Getting Started with 0x</span><span style="font-size:12px;color:#999">2026-02-11</span></div>
-                  <div style="color:#666;font-size:14px">A quick guide to writing your first 0x component...</div>
+                <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:20px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,0.05);transition:box-shadow 0.15s">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:600;color:#09090b">Getting Started with 0x</span><span style="font-size:12px;color:#a1a1aa">2026-02-11</span></div>
+                  <div style="color:#71717a;font-size:14px;line-height:1.5">A quick guide to writing your first 0x component...</div>
                 </div>
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:10px">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:bold;color:#222">Why AI-First Languages Matter</span><span style="font-size:12px;color:#999">2026-02-10</span></div>
-                  <div style="color:#666;font-size:14px">How 0x reduces token usage by 80% while improving accuracy...</div>
+                <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:20px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,0.05)">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:600;color:#09090b">Why AI-First Languages Matter</span><span style="font-size:12px;color:#a1a1aa">2026-02-10</span></div>
+                  <div style="color:#71717a;font-size:14px;line-height:1.5">How 0x reduces token usage by 80% while improving accuracy...</div>
                 </div>
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:bold;color:#222">Multi-Framework Compilation</span><span style="font-size:12px;color:#999">2026-02-09</span></div>
-                  <div style="color:#666;font-size:14px">One source file, six output targets. React, Vue, Svelte and more...</div>
+                <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,0.05)">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:600;color:#09090b">Multi-Framework Compilation</span><span style="font-size:12px;color:#a1a1aa">2026-02-09</span></div>
+                  <div style="color:#71717a;font-size:14px;line-height:1.5">One source file, six output targets. React, Vue, Svelte and more...</div>
                 </div>
               </div>
             </div>
@@ -928,7 +931,8 @@
         <!-- CRM -->
         <div class="example-panel" id="example-crm">
           <div class="example-meta">
-            <span class="example-tag">80 lines</span>
+            <span class="example-tag">81 lines</span>
+            <span class="example-tag">shadcn</span>
             <span class="example-tag">Dashboard</span>
             <span class="example-tag">Search</span>
             <span class="example-tag">Modal</span>
@@ -944,7 +948,9 @@
               <span class="code-filename">crm.ai</span>
               <span class="code-badge badge-0x">0x</span>
             </div>
-            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">CRM</span>:
+            <pre class="code-block example-code"><code><span class="kw">theme</span> shadcn
+
+<span class="kw">page</span> <span class="fn">CRM</span>:
   <span class="kw">type</span> <span class="type">Customer</span> = {id: <span class="type">int</span>, name: <span class="type">str</span>, email: <span class="type">str</span>, status: <span class="type">str</span>}
 
   <span class="kw">state</span> customers: <span class="type">list</span>[<span class="type">Customer</span>] = []
@@ -1000,31 +1006,22 @@
           <div class="view-preview">
             <div class="preview-frame">
               <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000/crm</span></div>
-              <div class="preview-body">
-                <div style="font-size:24px;font-weight:bold;color:#222;margin-bottom:20px">CRM Dashboard</div>
+              <div class="preview-body" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+                <div style="font-size:24px;font-weight:600;color:#09090b;margin-bottom:20px;letter-spacing:-0.025em">CRM Dashboard</div>
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:28px;font-weight:bold;color:#333">24</div><div style="font-size:12px;color:#666">Total Customers</div></div>
-                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:28px;font-weight:bold;color:#27ae60">18</div><div style="font-size:12px;color:#666">Active</div></div>
-                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:28px;font-weight:bold;color:#999">6</div><div style="font-size:12px;color:#666">Inactive</div></div>
+                  <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:12px;font-weight:500;color:#71717a;margin-bottom:4px">Total Customers</div><div style="font-size:28px;font-weight:700;color:#09090b;letter-spacing:-0.025em">24</div></div>
+                  <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:12px;font-weight:500;color:#71717a;margin-bottom:4px">Active</div><div style="font-size:28px;font-weight:700;color:#16a34a;letter-spacing:-0.025em">18</div></div>
+                  <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:12px;font-weight:500;color:#71717a;margin-bottom:4px">Inactive</div><div style="font-size:28px;font-weight:700;color:#a1a1aa;letter-spacing:-0.025em">6</div></div>
                 </div>
                 <div style="display:flex;gap:8px;margin-bottom:16px">
-                  <input type="text" placeholder="Search customers..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
-                  <button style="background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;font-size:14px;white-space:nowrap;cursor:pointer">Add Customer</button>
+                  <input type="text" placeholder="Search customers..." style="flex:1;padding:8px 12px;border:1px solid #e4e4e7;border-radius:6px;font-size:14px;height:36px;outline:none;color:#09090b">
+                  <button style="background:#18181b;color:#fafafa;border:none;padding:0 16px;border-radius:6px;font-weight:500;font-size:14px;white-space:nowrap;cursor:pointer;height:36px">Add Customer</button>
                 </div>
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:16px">
-                  <div style="flex:1"><div style="font-weight:600;color:#222">Sarah Chen</div><div style="font-size:12px;color:#666">sarah@acme.co</div></div>
-                  <span style="color:#27ae60;font-size:13px;font-weight:500">active</span>
-                  <button style="background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer">Remove</button>
-                </div>
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:16px">
-                  <div style="flex:1"><div style="font-weight:600;color:#222">James Park</div><div style="font-size:12px;color:#666">james@startup.io</div></div>
-                  <span style="color:#27ae60;font-size:13px;font-weight:500">active</span>
-                  <button style="background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer">Remove</button>
-                </div>
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:16px">
-                  <div style="flex:1"><div style="font-weight:600;color:#222">Maria Garcia</div><div style="font-size:12px;color:#666">maria@corp.com</div></div>
-                  <span style="color:#999;font-size:13px;font-weight:500">inactive</span>
-                  <button style="background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer">Remove</button>
+                <div style="border:1px solid #e4e4e7;border-radius:8px;overflow:hidden">
+                  <div style="background:#fafafa;padding:10px 16px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #e4e4e7"><span style="flex:1;font-size:12px;font-weight:500;color:#71717a">Customer</span><span style="width:60px;font-size:12px;font-weight:500;color:#71717a">Status</span><span style="width:70px;font-size:12px;font-weight:500;color:#71717a">Action</span></div>
+                  <div style="padding:12px 16px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #f4f4f5"><div style="flex:1"><div style="font-weight:500;color:#09090b;font-size:14px">Sarah Chen</div><div style="font-size:12px;color:#a1a1aa">sarah@acme.co</div></div><span style="width:60px"><span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:500;background:#dcfce7;color:#16a34a">active</span></span><span style="width:70px"><button style="background:transparent;color:#ef4444;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500">Remove</button></span></div>
+                  <div style="padding:12px 16px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #f4f4f5"><div style="flex:1"><div style="font-weight:500;color:#09090b;font-size:14px">James Park</div><div style="font-size:12px;color:#a1a1aa">james@startup.io</div></div><span style="width:60px"><span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:500;background:#dcfce7;color:#16a34a">active</span></span><span style="width:70px"><button style="background:transparent;color:#ef4444;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500">Remove</button></span></div>
+                  <div style="padding:12px 16px;display:flex;align-items:center;gap:16px"><div style="flex:1"><div style="font-weight:500;color:#09090b;font-size:14px">Maria Garcia</div><div style="font-size:12px;color:#a1a1aa">maria@corp.com</div></div><span style="width:60px"><span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:500;background:#f4f4f5;color:#71717a">inactive</span></span><span style="width:70px"><button style="background:transparent;color:#ef4444;border:1px solid #fecaca;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500">Remove</button></span></div>
                 </div>
               </div>
             </div>
@@ -1034,7 +1031,8 @@
         <!-- Kanban -->
         <div class="example-panel" id="example-kanban">
           <div class="example-meta">
-            <span class="example-tag">77 lines</span>
+            <span class="example-tag">78 lines</span>
+            <span class="example-tag">shadcn</span>
             <span class="example-tag">Board</span>
             <span class="example-tag">Derived</span>
             <span class="example-tag">Component</span>
@@ -1050,7 +1048,9 @@
               <span class="code-filename">kanban.ai</span>
               <span class="code-badge badge-0x">0x</span>
             </div>
-            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">Kanban</span>:
+            <pre class="code-block example-code"><code><span class="kw">theme</span> shadcn
+
+<span class="kw">page</span> <span class="fn">Kanban</span>:
   <span class="kw">type</span> <span class="type">Task</span> = {id: <span class="type">int</span>, title: <span class="type">str</span>, status: <span class="type">str</span>}
 
   <span class="kw">state</span> tasks: <span class="type">list</span>[<span class="type">Task</span>] = []
@@ -1113,27 +1113,27 @@
           <div class="view-preview">
             <div class="preview-frame">
               <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000/kanban</span></div>
-              <div class="preview-body">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:24px;font-weight:bold;color:#222">Kanban Board</span><span style="color:#666">6 tasks</span></div>
+              <div class="preview-body" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:24px;font-weight:600;color:#09090b;letter-spacing:-0.025em">Kanban Board</span><span style="color:#71717a;font-size:14px">6 tasks</span></div>
                 <div style="display:flex;gap:8px;margin-bottom:20px">
-                  <input type="text" placeholder="New task..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
-                  <button style="background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer">Add</button>
+                  <input type="text" placeholder="New task..." style="flex:1;padding:8px 12px;border:1px solid #e4e4e7;border-radius:6px;font-size:14px;height:36px;outline:none;color:#09090b">
+                  <button style="background:#18181b;color:#fafafa;border:none;padding:0 16px;border-radius:6px;font-weight:500;font-size:14px;cursor:pointer;height:36px">Add</button>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-                  <div style="background:#f5f5f5;border-radius:12px;padding:14px">
-                    <div style="font-weight:bold;color:#e74c3c;margin-bottom:10px;font-size:14px">To Do (2)</div>
-                    <div style="background:#fff;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Design mockups</div><div style="display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Start</button><button style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Done</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
-                    <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Write tests</div><div style="display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Start</button><button style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Done</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                  <div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:14px">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block"></span><span style="font-weight:600;color:#09090b;font-size:13px">To Do</span><span style="color:#a1a1aa;font-size:12px">(2)</span></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:6px;padding:12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:13px;color:#09090b;font-weight:500;margin-bottom:8px">Design mockups</div><div style="display:flex;gap:4px"><button style="background:#fff;border:1px solid #e4e4e7;color:#09090b;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Start</button><button style="background:#18181b;color:#fafafa;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Done</button><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:6px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:13px;color:#09090b;font-weight:500;margin-bottom:8px">Write tests</div><div style="display:flex;gap:4px"><button style="background:#fff;border:1px solid #e4e4e7;color:#09090b;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Start</button><button style="background:#18181b;color:#fafafa;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Done</button><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></div></div>
                   </div>
-                  <div style="background:#f5f5f5;border-radius:12px;padding:14px">
-                    <div style="font-weight:bold;color:#f39c12;margin-bottom:10px;font-size:14px">In Progress (2)</div>
-                    <div style="background:#fff;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Set up database</div><div style="display:flex;gap:4px"><button style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Done</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
-                    <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Build API routes</div><div style="display:flex;gap:4px"><button style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Done</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                  <div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:14px">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span><span style="font-weight:600;color:#09090b;font-size:13px">In Progress</span><span style="color:#a1a1aa;font-size:12px">(2)</span></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:6px;padding:12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:13px;color:#09090b;font-weight:500;margin-bottom:8px">Set up database</div><div style="display:flex;gap:4px"><button style="background:#18181b;color:#fafafa;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Done</button><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:6px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:13px;color:#09090b;font-weight:500;margin-bottom:8px">Build API routes</div><div style="display:flex;gap:4px"><button style="background:#18181b;color:#fafafa;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Done</button><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></div></div>
                   </div>
-                  <div style="background:#f5f5f5;border-radius:12px;padding:14px">
-                    <div style="font-weight:bold;color:#27ae60;margin-bottom:10px;font-size:14px">Done (2)</div>
-                    <div style="background:#fff;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Write API docs</div><div style="display:flex;gap:4px"><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
-                    <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Project setup</div><div style="display:flex;gap:4px"><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                  <div style="background:#fafafa;border:1px solid #e4e4e7;border-radius:8px;padding:14px">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block"></span><span style="font-weight:600;color:#09090b;font-size:13px">Done</span><span style="color:#a1a1aa;font-size:12px">(2)</span></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:6px;padding:12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:13px;color:#09090b;font-weight:500;margin-bottom:8px">Write API docs</div><div style="display:flex;gap:4px"><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:6px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:13px;color:#09090b;font-weight:500;margin-bottom:8px">Project setup</div><div style="display:flex;gap:4px"><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></div></div>
                   </div>
                 </div>
               </div>
@@ -1144,7 +1144,8 @@
         <!-- SaaS Landing -->
         <div class="example-panel" id="example-saas">
           <div class="example-meta">
-            <span class="example-tag">77 lines</span>
+            <span class="example-tag">78 lines</span>
+            <span class="example-tag">shadcn</span>
             <span class="example-tag">Landing</span>
             <span class="example-tag">Pricing</span>
             <span class="example-tag">Nav + Footer</span>
@@ -1160,7 +1161,9 @@
               <span class="code-filename">saas-landing.ai</span>
               <span class="code-badge badge-0x">0x</span>
             </div>
-            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">SaasLanding</span>:
+            <pre class="code-block example-code"><code><span class="kw">theme</span> shadcn
+
+<span class="kw">page</span> <span class="fn">SaasLanding</span>:
   <span class="kw">type</span> <span class="type">Feature</span> = {title: <span class="type">str</span>, desc: <span class="type">str</span>, icon: <span class="type">str</span>}
 
   <span class="kw">state</span> features: <span class="type">list</span>[<span class="type">Feature</span>] = []
@@ -1216,27 +1219,27 @@
           <div class="view-preview">
             <div class="preview-frame">
               <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000</span></div>
-              <div class="preview-body" style="padding:0">
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#fff;border-bottom:1px solid #e5e7eb"><span style="font-weight:bold;font-size:16px;color:#222">LaunchPad</span><div style="display:flex;gap:20px;align-items:center"><a style="color:#666;font-size:13px;text-decoration:none">Features</a><a style="color:#666;font-size:13px;text-decoration:none">Pricing</a><button style="background:#3b82f6;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">Get Started</button></div></div>
-                <div style="text-align:center;padding:40px 20px;background:#f8f9fa">
-                  <div style="font-size:28px;font-weight:bold;color:#222;margin-bottom:8px">Build Products Faster</div>
-                  <div style="color:#666;font-size:14px;margin-bottom:20px">The all-in-one platform for modern teams.</div>
-                  <div style="display:flex;gap:8px;justify-content:center"><button style="background:#3b82f6;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">Start Free</button><button style="background:transparent;color:#333;border:1px solid #d1d5db;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">Learn More</button></div>
+              <div class="preview-body" style="padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#fff;border-bottom:1px solid #e4e4e7"><span style="font-weight:600;font-size:16px;color:#09090b;letter-spacing:-0.025em">LaunchPad</span><div style="display:flex;gap:24px;align-items:center"><a style="color:#71717a;font-size:14px;text-decoration:none;font-weight:500">Features</a><a style="color:#71717a;font-size:14px;text-decoration:none;font-weight:500">Pricing</a><button style="background:#18181b;color:#fafafa;border:none;padding:0 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;height:32px">Get Started</button></div></div>
+                <div style="text-align:center;padding:48px 20px;background:#fafafa">
+                  <div style="font-size:30px;font-weight:700;color:#09090b;margin-bottom:8px;letter-spacing:-0.03em">Build Products Faster</div>
+                  <div style="color:#71717a;font-size:16px;margin-bottom:24px">The all-in-one platform for modern teams.</div>
+                  <div style="display:flex;gap:8px;justify-content:center"><button style="background:#18181b;color:#fafafa;border:none;padding:0 20px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;height:36px">Start Free</button><button style="background:#fff;color:#09090b;border:1px solid #e4e4e7;padding:0 20px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;height:36px">Learn More</button></div>
                 </div>
-                <div style="padding:24px;text-align:center">
-                  <div style="font-size:20px;font-weight:bold;color:#222;margin-bottom:16px">Features</div>
+                <div style="padding:32px 24px;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:#09090b;margin-bottom:16px;letter-spacing:-0.025em">Features</div>
                   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#128640;</div><div style="font-weight:bold;color:#222;font-size:14px">Fast</div><div style="color:#666;font-size:12px">Lightning fast builds</div></div>
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#128737;</div><div style="font-weight:bold;color:#222;font-size:14px">Secure</div><div style="color:#666;font-size:12px">Enterprise-grade security</div></div>
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#128200;</div><div style="font-weight:bold;color:#222;font-size:14px">Scalable</div><div style="color:#666;font-size:12px">Scales to enterprise</div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:24px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:24px;margin-bottom:8px">&#128640;</div><div style="font-weight:600;color:#09090b;font-size:14px;margin-bottom:4px">Fast</div><div style="color:#71717a;font-size:12px">Lightning fast builds</div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:24px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:24px;margin-bottom:8px">&#128737;</div><div style="font-weight:600;color:#09090b;font-size:14px;margin-bottom:4px">Secure</div><div style="color:#71717a;font-size:12px">Enterprise-grade security</div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:24px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:24px;margin-bottom:8px">&#128200;</div><div style="font-weight:600;color:#09090b;font-size:14px;margin-bottom:4px">Scalable</div><div style="color:#71717a;font-size:12px">Scales to enterprise</div></div>
                   </div>
                 </div>
-                <div style="padding:24px;background:#f8f9fa;text-align:center">
-                  <div style="font-size:20px;font-weight:bold;color:#222;margin-bottom:16px">Pricing</div>
+                <div style="padding:32px 24px;background:#fafafa;text-align:center">
+                  <div style="font-size:22px;font-weight:700;color:#09090b;margin-bottom:16px;letter-spacing:-0.025em">Pricing</div>
                   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-weight:bold;color:#222;margin-bottom:4px">Starter</div><div style="font-size:24px;font-weight:bold;color:#333">$0<span style="font-size:12px;font-weight:400">/mo</span></div><div style="font-size:12px;color:#666;margin:6px 0">1 project</div><button style="background:transparent;color:#333;border:1px solid #d1d5db;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer">Get Started</button></div>
-                    <div style="background:#fff;border:2px solid #3b82f6;border-radius:12px;padding:20px;text-align:center"><div style="font-weight:bold;color:#222;margin-bottom:4px">Pro</div><div style="font-size:24px;font-weight:bold;color:#333">$29<span style="font-size:12px;font-weight:400">/mo</span></div><div style="font-size:12px;color:#666;margin:6px 0">10 projects</div><button style="background:#3b82f6;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Choose Pro</button></div>
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-weight:bold;color:#222;margin-bottom:4px">Enterprise</div><div style="font-size:24px;font-weight:bold;color:#333">$99<span style="font-size:12px;font-weight:400">/mo</span></div><div style="font-size:12px;color:#666;margin:6px 0">Unlimited</div><button style="background:#3b82f6;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Contact Sales</button></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:24px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-weight:600;color:#09090b;margin-bottom:4px;font-size:14px">Starter</div><div style="font-size:28px;font-weight:700;color:#09090b;letter-spacing:-0.025em">$0<span style="font-size:14px;font-weight:400;color:#71717a">/mo</span></div><div style="font-size:13px;color:#71717a;margin:8px 0 12px">1 project</div><button style="background:#fff;color:#09090b;border:1px solid #e4e4e7;padding:0 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:500;height:32px;width:100%">Get Started</button></div>
+                    <div style="background:#fff;border:2px solid #18181b;border-radius:8px;padding:24px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.05);position:relative"><div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#18181b;color:#fafafa;font-size:10px;font-weight:600;padding:2px 10px;border-radius:9999px">Popular</div><div style="font-weight:600;color:#09090b;margin-bottom:4px;font-size:14px">Pro</div><div style="font-size:28px;font-weight:700;color:#09090b;letter-spacing:-0.025em">$29<span style="font-size:14px;font-weight:400;color:#71717a">/mo</span></div><div style="font-size:13px;color:#71717a;margin:8px 0 12px">10 projects</div><button style="background:#18181b;color:#fafafa;border:none;padding:0 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;height:32px;width:100%">Choose Pro</button></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:24px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-weight:600;color:#09090b;margin-bottom:4px;font-size:14px">Enterprise</div><div style="font-size:28px;font-weight:700;color:#09090b;letter-spacing:-0.025em">$99<span style="font-size:14px;font-weight:400;color:#71717a">/mo</span></div><div style="font-size:13px;color:#71717a;margin:8px 0 12px">Unlimited</div><button style="background:#18181b;color:#fafafa;border:none;padding:0 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;height:32px;width:100%">Contact Sales</button></div>
                   </div>
                 </div>
               </div>
@@ -1247,7 +1250,8 @@
         <!-- Admin -->
         <div class="example-panel" id="example-admin">
           <div class="example-meta">
-            <span class="example-tag">91 lines</span>
+            <span class="example-tag">92 lines</span>
+            <span class="example-tag">shadcn</span>
             <span class="example-tag">Sidebar</span>
             <span class="example-tag">Table</span>
             <span class="example-tag">Tabs</span>
@@ -1263,7 +1267,9 @@
               <span class="code-filename">admin.ai</span>
               <span class="code-badge badge-0x">0x</span>
             </div>
-            <pre class="code-block example-code"><code><span class="kw">page</span> <span class="fn">Admin</span>:
+            <pre class="code-block example-code"><code><span class="kw">theme</span> shadcn
+
+<span class="kw">page</span> <span class="fn">Admin</span>:
   <span class="kw">type</span> <span class="type">User</span> = {id: <span class="type">int</span>, name: <span class="type">str</span>, email: <span class="type">str</span>, role: <span class="type">str</span>, active: <span class="type">bool</span>}
 
   <span class="kw">state</span> users: <span class="type">list</span>[<span class="type">User</span>] = []
@@ -1328,26 +1334,28 @@
           <div class="view-preview">
             <div class="preview-frame">
               <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000/admin</span></div>
-              <div class="preview-body" style="padding:0;display:flex;min-height:380px">
-                <div style="background:#2c3e50;padding:20px;width:180px;flex-shrink:0">
-                  <div style="color:#fff;font-weight:bold;font-size:15px;margin-bottom:20px">Admin Panel</div>
-                  <div style="display:flex;flex-direction:column;gap:4px">
-                    <button style="background:#3b82f6;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer;font-weight:600">Users</button>
-                    <button style="background:transparent;color:#94a3b8;border:none;padding:8px 14px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer">Settings</button>
-                    <button style="background:transparent;color:#94a3b8;border:none;padding:8px 14px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer">Logs</button>
+              <div class="preview-body" style="padding:0;display:flex;min-height:380px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+                <div style="background:#09090b;padding:16px;width:180px;flex-shrink:0;border-right:1px solid #27272a">
+                  <div style="color:#fafafa;font-weight:600;font-size:14px;margin-bottom:20px;letter-spacing:-0.025em">Admin Panel</div>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <button style="background:#27272a;color:#fafafa;border:none;padding:8px 12px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer;font-weight:500">Users</button>
+                    <button style="background:transparent;color:#a1a1aa;border:none;padding:8px 12px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer;font-weight:400">Settings</button>
+                    <button style="background:transparent;color:#a1a1aa;border:none;padding:8px 12px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer;font-weight:400">Logs</button>
                   </div>
                 </div>
-                <div style="flex:1;padding:20px;overflow:auto">
+                <div style="flex:1;padding:20px;overflow:auto;background:#fafafa">
                   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px"><div style="font-size:22px;font-weight:bold;color:#3498db">42</div><div style="font-size:11px;color:#666">Total Users</div></div>
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px"><div style="font-size:22px;font-weight:bold;color:#27ae60">38</div><div style="font-size:11px;color:#666">Active</div></div>
-                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px"><div style="font-size:22px;font-weight:bold;color:#9b59b6">5</div><div style="font-size:11px;color:#666">Admins</div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:12px;font-weight:500;color:#71717a;margin-bottom:4px">Total Users</div><div style="font-size:24px;font-weight:700;color:#09090b;letter-spacing:-0.025em">42</div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:12px;font-weight:500;color:#71717a;margin-bottom:4px">Active</div><div style="font-size:24px;font-weight:700;color:#16a34a;letter-spacing:-0.025em">38</div></div>
+                    <div style="background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><div style="font-size:12px;font-weight:500;color:#71717a;margin-bottom:4px">Admins</div><div style="font-size:24px;font-weight:700;color:#7c3aed;letter-spacing:-0.025em">5</div></div>
                   </div>
-                  <input type="text" placeholder="Search users..." style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;margin-bottom:12px;box-sizing:border-box">
-                  <div style="background:#f8f9fa;border-radius:8px;padding:10px 14px;display:flex;gap:12px;font-size:12px;font-weight:600;color:#666;margin-bottom:4px"><span style="flex:1">Name</span><span style="flex:1">Email</span><span style="width:50px">Role</span><span style="width:50px">Status</span><span style="width:100px">Actions</span></div>
-                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center;margin-bottom:4px"><span style="flex:1;font-weight:500;color:#222">Alice Kim</span><span style="flex:1;color:#666">alice@corp.com</span><span style="width:50px;color:#444">admin</span><span style="width:50px;color:#27ae60">Active</span><span style="width:100px;display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Toggle</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Delete</button></span></div>
-                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center;margin-bottom:4px"><span style="flex:1;font-weight:500;color:#222">Bob Lee</span><span style="flex:1;color:#666">bob@dev.io</span><span style="width:50px;color:#444">user</span><span style="width:50px;color:#27ae60">Active</span><span style="width:100px;display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Toggle</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Delete</button></span></div>
-                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center"><span style="flex:1;font-weight:500;color:#222">Carol Wang</span><span style="flex:1;color:#666">carol@org.co</span><span style="width:50px;color:#444">user</span><span style="width:50px;color:#999">Inactive</span><span style="width:100px;display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Toggle</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Delete</button></span></div>
+                  <input type="text" placeholder="Search users..." style="width:100%;padding:8px 12px;border:1px solid #e4e4e7;border-radius:6px;font-size:13px;margin-bottom:12px;box-sizing:border-box;height:36px;outline:none;color:#09090b;background:#fff">
+                  <div style="border:1px solid #e4e4e7;border-radius:8px;overflow:hidden;background:#fff">
+                    <div style="background:#fafafa;padding:10px 14px;display:flex;gap:12px;font-size:12px;font-weight:500;color:#71717a;border-bottom:1px solid #e4e4e7"><span style="flex:1">Name</span><span style="flex:1">Email</span><span style="width:50px">Role</span><span style="width:50px">Status</span><span style="width:100px">Actions</span></div>
+                    <div style="padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center;border-bottom:1px solid #f4f4f5"><span style="flex:1;font-weight:500;color:#09090b">Alice Kim</span><span style="flex:1;color:#71717a">alice@corp.com</span><span style="width:50px"><span style="display:inline-flex;padding:1px 6px;border-radius:9999px;font-size:10px;font-weight:500;background:#f3e8ff;color:#7c3aed">admin</span></span><span style="width:50px"><span style="display:inline-flex;padding:1px 6px;border-radius:9999px;font-size:10px;font-weight:500;background:#dcfce7;color:#16a34a">Active</span></span><span style="width:100px;display:flex;gap:4px"><button style="background:#fff;border:1px solid #e4e4e7;color:#09090b;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Toggle</button><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></span></div>
+                    <div style="padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center;border-bottom:1px solid #f4f4f5"><span style="flex:1;font-weight:500;color:#09090b">Bob Lee</span><span style="flex:1;color:#71717a">bob@dev.io</span><span style="width:50px"><span style="display:inline-flex;padding:1px 6px;border-radius:9999px;font-size:10px;font-weight:500;background:#f4f4f5;color:#71717a">user</span></span><span style="width:50px"><span style="display:inline-flex;padding:1px 6px;border-radius:9999px;font-size:10px;font-weight:500;background:#dcfce7;color:#16a34a">Active</span></span><span style="width:100px;display:flex;gap:4px"><button style="background:#fff;border:1px solid #e4e4e7;color:#09090b;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Toggle</button><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></span></div>
+                    <div style="padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center"><span style="flex:1;font-weight:500;color:#09090b">Carol Wang</span><span style="flex:1;color:#71717a">carol@org.co</span><span style="width:50px"><span style="display:inline-flex;padding:1px 6px;border-radius:9999px;font-size:10px;font-weight:500;background:#f4f4f5;color:#71717a">user</span></span><span style="width:50px"><span style="display:inline-flex;padding:1px 6px;border-radius:9999px;font-size:10px;font-weight:500;background:#f4f4f5;color:#a1a1aa">Inactive</span></span><span style="width:100px;display:flex;gap:4px"><button style="background:#fff;border:1px solid #e4e4e7;color:#09090b;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Toggle</button><button style="background:#fff;color:#ef4444;border:1px solid #fecaca;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:500">Delete</button></span></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1355,7 +1363,7 @@
         </div>
       </div>
 
-      <p class="examples-cta">All examples compile to <strong>React</strong>, <strong>Vue 3</strong>, and <strong>Svelte 5</strong> with zero changes. <a href="https://github.com/hankimis/0x-lang/tree/main/examples">View all on GitHub &rarr;</a></p>
+      <p class="examples-cta">All examples compile to <strong>React</strong>, <strong>Vue 3</strong>, and <strong>Svelte 5</strong> with zero changes. Add <code style="background:rgba(0,229,204,0.1);padding:2px 6px;border-radius:4px;color:var(--cyan)">theme shadcn</code> for shadcn/ui, MUI, Ant Design, or Chakra UI output. <a href="https://github.com/hankimis/0x-lang/tree/main/examples">View all on GitHub &rarr;</a></p>
     </section>
 
     <div class="section-divider"></div>
@@ -1436,8 +1444,8 @@
           <div class="feature-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/><line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="2 2"/></svg>
           </div>
-          <h3 class="feature-title">Library Interop</h3>
-          <p class="feature-desc">Import npm packages, custom hooks, and inline JS blocks. Use any library alongside 0x syntax.</p>
+          <h3 class="feature-title">Design Systems</h3>
+          <p class="feature-desc">One line: <code>theme shadcn</code>. Auto-generates shadcn/ui, MUI, Ant Design, or Chakra UI components instead of plain HTML.</p>
         </div>
 
         <div class="feature-card" data-animate style="--i:9">
