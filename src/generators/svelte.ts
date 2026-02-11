@@ -75,6 +75,19 @@ function generateSvelteComponent(node: PageNode | ComponentNode | AppNode): stri
       case 'WatchBlock': scriptLines.push(genWatch(child, c)); break;
       case 'CheckDecl': scriptLines.push(genCheck(child, c)); break;
       case 'ApiDecl': scriptLines.push(genApi(child, c)); break;
+      case 'JsImport': {
+        const ji = child as any;
+        if (ji.isDefault) c.extraScriptLines.push(`import ${ji.specifiers[0]} from '${ji.source}';`);
+        else c.extraScriptLines.push(`import { ${ji.specifiers.join(', ')} } from '${ji.source}';`);
+        break;
+      }
+      case 'UseImport': {
+        const ui = child as any;
+        c.extraScriptLines.push(`import ${ui.name} from '${ui.source}';`);
+        scriptLines.push(`const ${ui.name}Data = ${ui.name}();`);
+        break;
+      }
+      case 'JsBlock': scriptLines.push((child as any).code); break;
       case 'TypeDecl': case 'StyleDecl': case 'Comment':
       case 'Model': case 'DataDecl': case 'FormDecl':
       case 'AuthDecl': case 'RealtimeDecl': case 'RouteDecl': break;
@@ -698,6 +711,7 @@ function genExpr(expr: Expression, c: SvelteContext): string {
     }
     case 'array': return `[${expr.elements.map(e => genExpr(e, c)).join(', ')}]`;
     case 'object_expr': {
+      if (expr.properties.length === 0) return '{}';
       const ps = expr.properties.map(p => `${p.key}: ${genExpr(p.value, c)}`).join(', ');
       return `{ ${ps} }`;
     }
