@@ -43,9 +43,13 @@ export function compile(source: string, options: CompileOptions): GeneratedCode 
       throw new Error(`Unknown target: ${options.target}`);
   }
 
-  // Post-process: strip source map comments if disabled
+  // Post-process: strip source map comments and V3 source map if disabled
   if (options.sourceMap === false) {
-    result = { ...result, code: result.code.replace(/\{\/\* 0x:L\d+ \*\/\}/g, '').replace(/<!-- 0x:L\d+ -->/g, '') };
+    result = { ...result, code: result.code.replace(/\{\/\* 0x:L\d+ \*\/\}/g, '').replace(/<!-- 0x:L\d+ -->/g, ''), sourceMap: undefined };
+  } else if (result.sourceMap) {
+    // Append inline sourceMappingURL as base64 data URL
+    const b64 = Buffer.from(result.sourceMap).toString('base64');
+    result = { ...result, code: result.code + `\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,${b64}\n` };
   }
 
   // Post-process: strip 'use client' if explicitly disabled

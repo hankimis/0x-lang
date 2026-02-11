@@ -8,7 +8,7 @@ import type {
   LayoutNode, TextNode, ButtonNode, InputNode, ImageNode, LinkNode,
   ToggleNode, SelectNode, IfBlock, ForBlock, ShowBlock, HideBlock,
   StyleDecl, StyleProperty, ComponentCall, CommentNode,
-  JsImport, UseImport, JsBlock,
+  JsImport, UseImport, JsBlock, TopLevelVarDecl,
   ModelNode, ModelField, DataDecl, FormDecl, FormField, FormValidation, FormSubmit,
   TableNode, TableColumn,
   AuthDecl, ChartNode, StatNode, RealtimeDecl, RouteDecl, NavNode, NavItem,
@@ -309,6 +309,8 @@ class Parser {
         case 'js': return this.parseJsInterop();
         case 'import': return this.parseJsImport(this.loc());
         case 'use': return this.parseUseImport();
+        case 'const':
+        case 'let': return this.parseTopLevelVar();
         // Phase 1 advanced
         case 'data': return this.parseData();
         case 'form': return this.parseForm();
@@ -592,11 +594,35 @@ class Parser {
   private parseWatch(): WatchBlock {
     const location = this.loc();
     this.expect('KEYWORD', 'watch');
-    const variable = this.expectName();
+
+    // Support multi-variable watch: watch a, b, c: or watch (a, b, c):
+    const variables: string[] = [];
+    const hasParen = this.match('PUNCTUATION', '(');
+    if (hasParen) this.advance();
+
+    variables.push(this.expectName());
+    while (this.match('PUNCTUATION', ',')) {
+      this.advance();
+      variables.push(this.expectName());
+    }
+
+    if (hasParen) this.expect('PUNCTUATION', ')');
+
     this.expect('PUNCTUATION', ':');
     this.skipNewlines();
     const body = this.parseStatementBlock();
-    return { type: 'WatchBlock', variable, body, loc: location };
+    return { type: 'WatchBlock', variable: variables[0], variables, body, loc: location };
+  }
+
+  private parseTopLevelVar(): TopLevelVarDecl {
+    const location = this.loc();
+    const keyword = this.current().value as 'const' | 'let';
+    this.advance(); // consume const/let
+    const name = this.expectName();
+    this.expect('OPERATOR', '=');
+    const value = this.parseExpression();
+    this.skipNewlines();
+    return { type: 'TopLevelVarDecl', keyword, name, value, loc: location };
   }
 
   private parseStatementBlock(): Statement[] {

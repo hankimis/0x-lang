@@ -1,5 +1,6 @@
 // 0x → Svelte 5 Code Generator
 
+import { SourceMapBuilder } from './source-map.js';
 import type {
   ASTNode, PageNode, ComponentNode, AppNode,
   StateDecl, DerivedDecl, PropDecl, TypeDecl, FnDecl,
@@ -44,12 +45,27 @@ export function generateSvelte(ast: ASTNode[]): GeneratedCode {
     }
   }
   const code = parts.join('\n\n');
+
+  // Build V3 source map from 0x:L### comments
+  const sourceFile = ast.find(n => n.type === 'Page' || n.type === 'Component' || n.type === 'App') as any;
+  const srcName = sourceFile?.name ? `${sourceFile.name}.0x` : 'source.0x';
+  const smb = new SourceMapBuilder(srcName, 'Component.svelte');
+  const lines = code.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/<!-- 0x:L(\d+) -->/);
+    if (match) {
+      smb.addMapping(parseInt(match[1], 10), 0);
+    }
+    smb.advance(lines[i] + (i < lines.length - 1 ? '\n' : ''));
+  }
+
   return {
     code,
     filename: 'Component.svelte',
     imports: [],
-    lineCount: code.split('\n').length,
+    lineCount: lines.length,
     tokenCount: code.split(/\s+/).length,
+    sourceMap: smb.toJSON(),
   };
 }
 
@@ -88,6 +104,11 @@ function generateSvelteComponent(node: PageNode | ComponentNode | AppNode): stri
         break;
       }
       case 'JsBlock': scriptLines.push((child as any).code); break;
+      case 'TopLevelVarDecl': {
+        const tlv = child as any;
+        scriptLines.push(`${tlv.keyword} ${tlv.name} = ${genExpr(tlv.value, c)};`);
+        break;
+      }
       case 'TypeDecl': case 'StyleDecl': case 'Comment':
       case 'Model': case 'DataDecl': case 'FormDecl':
       case 'AuthDecl': case 'RealtimeDecl': case 'RouteDecl': break;
@@ -160,11 +181,13 @@ function genOnDestroy(node: OnDestroy, c: SvelteContext): string {
 
 function genWatch(node: WatchBlock, c: SvelteContext): string {
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
+  const vars = node.variables || [node.variable];
+  const varRefs = vars.map(v => `${v};`).join('\n  ');
   const hasAwait = bodyContainsAwait(node.body);
   if (hasAwait) {
-    return `$effect(() => {\n  ${node.variable};\n  (async () => {\n    ${body}\n  })();\n});`;
+    return `$effect(() => {\n  ${varRefs}\n  (async () => {\n    ${body}\n  })();\n});`;
   }
-  return `$effect(() => {\n  ${node.variable};\n  ${body}\n});`;
+  return `$effect(() => {\n  ${varRefs}\n  ${body}\n});`;
 }
 
 function genCheck(node: CheckDecl, c: SvelteContext): string {

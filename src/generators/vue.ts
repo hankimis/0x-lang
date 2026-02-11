@@ -1,5 +1,6 @@
 // 0x → Vue 3 (Composition API) Code Generator
 
+import { SourceMapBuilder } from './source-map.js';
 import type {
   ASTNode, PageNode, ComponentNode, AppNode,
   StateDecl, DerivedDecl, PropDecl, TypeDecl, FnDecl,
@@ -45,12 +46,27 @@ export function generateVue(ast: ASTNode[]): GeneratedCode {
     }
   }
   const code = parts.join('\n\n');
+
+  // Build V3 source map from 0x:L### comments
+  const sourceFile = ast.find(n => n.type === 'Page' || n.type === 'Component' || n.type === 'App') as any;
+  const srcName = sourceFile?.name ? `${sourceFile.name}.0x` : 'source.0x';
+  const smb = new SourceMapBuilder(srcName, 'Component.vue');
+  const lines = code.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/<!-- 0x:L(\d+) -->/);
+    if (match) {
+      smb.addMapping(parseInt(match[1], 10), 0);
+    }
+    smb.advance(lines[i] + (i < lines.length - 1 ? '\n' : ''));
+  }
+
   return {
     code,
     filename: 'Component.vue',
     imports: [],
-    lineCount: code.split('\n').length,
+    lineCount: lines.length,
     tokenCount: code.split(/\s+/).length,
+    sourceMap: smb.toJSON(),
   };
 }
 
@@ -91,6 +107,11 @@ function generateVueComponent(node: PageNode | ComponentNode | AppNode): string 
         break;
       }
       case 'JsBlock': scriptLines.push((child as any).code); break;
+      case 'TopLevelVarDecl': {
+        const tlv = child as any;
+        scriptLines.push(`${tlv.keyword} ${tlv.name} = ${genExpr(tlv.value, c, true)};`);
+        break;
+      }
       case 'TypeDecl': case 'StyleDecl': case 'Comment':
       case 'Model': case 'DataDecl': case 'FormDecl':
       case 'AuthDecl': case 'RealtimeDecl': case 'RouteDecl': break;
@@ -172,7 +193,11 @@ function genWatch(node: WatchBlock, c: VueContext): string {
   c.imports.add('watch');
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
   const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
-  return `watch(${node.variable}, ${asyncKw}() => {\n  ${body}\n});`;
+  const vars = node.variables || [node.variable];
+  if (vars.length === 1) {
+    return `watch(${vars[0]}, ${asyncKw}() => {\n  ${body}\n});`;
+  }
+  return `watch([${vars.join(', ')}], ${asyncKw}() => {\n  ${body}\n});`;
 }
 
 function genCheck(node: CheckDecl, c: VueContext): string {
