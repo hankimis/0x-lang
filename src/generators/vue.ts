@@ -19,7 +19,7 @@ import type {
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
 
-import { SIZE_MAP, unquote, capitalize, parseGradient, addPx } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS } from './shared.js';
 import { generateBackendCode } from './react.js';
 
 interface VueContext {
@@ -164,7 +164,8 @@ function genState(node: StateDecl, c: VueContext): string {
 
 function genDerived(node: DerivedDecl, c: VueContext): string {
   c.imports.add('computed');
-  return `const ${node.name} = computed(() => ${genExpr(node.expression, c, true)});`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
+  return `${sc}const ${node.name} = computed(() => ${genExpr(node.expression, c, true)});`;
 }
 
 // genProp is now handled by merged declaration in generateVueComponent
@@ -173,20 +174,23 @@ function genFunction(node: FnDecl, c: VueContext): string {
   const params = node.params.map(p => p.name).join(', ');
   const asyncKw = node.isAsync ? 'async ' : '';
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
-  return `${asyncKw}function ${node.name}(${params}) {\n  ${body}\n}`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
+  return `${sc}${asyncKw}function ${node.name}(${params}) {\n  ${body}\n}`;
 }
 
 function genOnMount(node: OnMount, c: VueContext): string {
   c.imports.add('onMounted');
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
   const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
-  return `onMounted(${asyncKw}() => {\n  ${body}\n});`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
+  return `${sc}onMounted(${asyncKw}() => {\n  ${body}\n});`;
 }
 
 function genOnDestroy(node: OnDestroy, c: VueContext): string {
   c.imports.add('onUnmounted');
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
-  return `onUnmounted(() => {\n  ${body}\n});`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
+  return `${sc}onUnmounted(() => {\n  ${body}\n});`;
 }
 
 function genWatch(node: WatchBlock, c: VueContext): string {
@@ -194,10 +198,11 @@ function genWatch(node: WatchBlock, c: VueContext): string {
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
   const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
   const vars = node.variables || [node.variable];
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
   if (vars.length === 1) {
-    return `watch(${vars[0]}, ${asyncKw}() => {\n  ${body}\n});`;
+    return `${sc}watch(${vars[0]}, ${asyncKw}() => {\n  ${body}\n});`;
   }
-  return `watch([${vars.join(', ')}], ${asyncKw}() => {\n  ${body}\n});`;
+  return `${sc}watch([${vars.join(', ')}], ${asyncKw}() => {\n  ${body}\n});`;
 }
 
 function genCheck(node: CheckDecl, c: VueContext): string {
@@ -351,9 +356,15 @@ function genLayout(node: LayoutNode, c: VueContext): string {
   if (dynamicEntries.length > 0) {
     attrs += ` :style="{ ${dynamicEntries.join(', ')} }"`;
   }
+  let className: string | null = null;
+  for (const [key, val] of Object.entries(node.props)) {
+    if (key === 'class') { className = unquote(genExpr(val, c)); break; }
+  }
+  if (className) attrs = `class="${className}" ${attrs}`;
+  const extra = getPassthroughProps(node.props, KNOWN_LAYOUT_PROPS, e => genExpr(e, c), 'vue');
   const children = node.children.map(ch => genUINode(ch, c)).join('\n  ');
   const sc = srcComment(node);
-  return `${sc}<div ${attrs}>\n  ${children}\n</div>`;
+  return `${sc}<div ${attrs}${extra}>\n  ${children}\n</div>`;
 }
 
 function genText(node: TextNode, c: VueContext): string {
@@ -366,11 +377,16 @@ function genText(node: TextNode, c: VueContext): string {
     styleAttr = ` style="${staticStyle}"`;
   }
   const content = genTextContent(node.content, c);
+  let classAttr = '';
+  for (const [key, val] of Object.entries(node.props)) {
+    if (key === 'class') { classAttr = ` class="${unquote(genExpr(val, c))}"`; break; }
+  }
+  const extra = getPassthroughProps(node.props, KNOWN_TEXT_PROPS, e => genExpr(e, c), 'vue');
 
   const badgeExpr = node.props['badge'];
   const tooltipExpr = node.props['tooltip'];
   const sc = srcComment(node);
-  let result = `${sc}<span${styleAttr}>${content}</span>`;
+  let result = `${sc}<span${classAttr}${styleAttr}${extra}>${content}</span>`;
 
   if (badgeExpr) {
     const badge = genExpr(badgeExpr, c);
@@ -389,65 +405,92 @@ function genButton(node: ButtonNode, c: VueContext): string {
   const label = genTextContent(node.label, c);
   const action = genActionExpr(node.action, c);
   const attrs: string[] = [];
+  let className: string | null = null;
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     switch (key) {
+      case 'class': className = unquote(v); break;
       case 'style': {
-        const uv = unquote(v);
-        if (uv === 'primary') attrs.push('style="background-color: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
-        else if (uv === 'danger') attrs.push('style="background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
+        const sv = unquote(v);
+        if (sv === 'primary') attrs.push('style="background-color: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
+        else if (sv === 'danger') attrs.push('style="background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
         break;
       }
       case 'disabled': attrs.push(`:disabled="${v}"`); break;
     }
   }
+  if (className) attrs.push(`class="${className}"`);
+  const extra = getPassthroughProps(node.props, KNOWN_BUTTON_PROPS, e => genExpr(e, c), 'vue');
   const attrStr = attrs.length > 0 ? ' ' + attrs.join(' ') : '';
   const sc = srcComment(node);
-  return `${sc}<button @click="${action}"${attrStr}>${label}</button>`;
+  return `${sc}<button @click="${action}"${attrStr}${extra}>${label}</button>`;
 }
 
 function genInput(node: InputNode, c: VueContext): string {
   const props: string[] = [`v-model="${node.binding}"`];
+  let className: string | null = null;
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
-    if (key === 'placeholder') props.push(`placeholder="${unquote(v)}"`);
-    if (key === 'type') props.push(`type="${unquote(v)}"`);
-    if (key === '@keypress') props.push(`@keypress="e => ${v}(e.key)"`);
-    if (key === 'grow') props.push(`style="flex-grow: ${v}"`);
+    if (key === 'class') className = unquote(v);
+    else if (key === 'placeholder') props.push(`placeholder="${unquote(v)}"`);
+    else if (key === 'type') props.push(`type="${unquote(v)}"`);
+    else if (key === '@keypress') props.push(`@keypress="e => ${v}(e.key)"`);
+    else if (key === 'grow') props.push(`style="flex-grow: ${v}"`);
   }
+  if (className) props.push(`class="${className}"`);
+  const extra = getPassthroughProps(node.props, KNOWN_INPUT_PROPS, e => genExpr(e, c), 'vue');
   const sc = srcComment(node);
-  return `${sc}<input ${props.join(' ')} />`;
+  return `${sc}<input ${props.join(' ')}${extra} />`;
 }
 
 function genImage(node: ImageNode, c: VueContext): string {
   const src = genExpr(node.src, c);
   const style: string[] = [];
+  let className: string | null = null;
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     switch (key) {
+      case 'class': className = unquote(v); break;
       case 'round': style.push('border-radius: 50%'); break;
       case 'radius': style.push(`border-radius: ${addPx(unquote(v))}`); break;
       case 'size': style.push(`width: ${addPx(unquote(v))}; height: ${addPx(unquote(v))}`); break;
     }
   }
   const alt = node.props['alt'] ? ` alt="${unquote(genExpr(node.props['alt'], c))}"` : '';
+  const classAttr = className ? ` class="${className}"` : '';
   const styleAttr = style.length > 0 ? ` style="${style.join('; ')}"` : '';
-  return `<img :src="${src}"${alt}${styleAttr} />`;
+  const extra = getPassthroughProps(node.props, KNOWN_IMAGE_PROPS, e => genExpr(e, c), 'vue');
+  return `<img :src="${src}"${classAttr}${alt}${styleAttr}${extra} />`;
 }
 
 function genLink(node: LinkNode, c: VueContext): string {
   const label = genTextContent(node.label, c);
   const href = genExpr(node.href, c);
-  return `<a :href="${href}">${label}</a>`;
+  let classAttr = '';
+  for (const [key, val] of Object.entries(node.props || {})) {
+    if (key === 'class') { classAttr = ` class="${unquote(genExpr(val, c))}"`; break; }
+  }
+  const extra = getPassthroughProps(node.props || {}, KNOWN_LINK_PROPS, e => genExpr(e, c), 'vue');
+  return `<a :href="${href}"${classAttr}${extra}>${label}</a>`;
 }
 
 function genToggle(node: ToggleNode, c: VueContext): string {
-  return `<input type="checkbox" v-model="${node.binding}" />`;
+  let classAttr = '';
+  for (const [key, val] of Object.entries(node.props || {})) {
+    if (key === 'class') { classAttr = ` class="${unquote(genExpr(val, c))}"`; break; }
+  }
+  const extra = getPassthroughProps(node.props || {}, KNOWN_TOGGLE_PROPS, e => genExpr(e, c), 'vue');
+  return `<input type="checkbox" v-model="${node.binding}"${classAttr}${extra} />`;
 }
 
 function genSelect(node: SelectNode, c: VueContext): string {
   const options = genExpr(node.options, c);
-  return `<select v-model="${node.binding}">\n  <option v-for="opt in ${options}" :key="opt" :value="opt">{{ opt }}</option>\n</select>`;
+  let classAttr = '';
+  for (const [key, val] of Object.entries(node.props || {})) {
+    if (key === 'class') { classAttr = ` class="${unquote(genExpr(val, c))}"`; break; }
+  }
+  const extra = getPassthroughProps(node.props || {}, KNOWN_SELECT_PROPS, e => genExpr(e, c), 'vue');
+  return `<select v-model="${node.binding}"${classAttr}${extra}>\n  <option v-for="opt in ${options}" :key="opt" :value="opt">{{ opt }}</option>\n</select>`;
 }
 
 function genComponentCall(node: ComponentCall, c: VueContext): string {

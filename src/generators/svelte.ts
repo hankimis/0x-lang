@@ -19,7 +19,7 @@ import type {
   Expression, Statement, UINode, GeneratedCode,
 } from '../ast.js';
 
-import { SIZE_MAP, unquote, capitalize, parseGradient, addPx } from './shared.js';
+import { SIZE_MAP, unquote, capitalize, parseGradient, addPx, getPassthroughProps, KNOWN_LAYOUT_PROPS, KNOWN_TEXT_PROPS, KNOWN_BUTTON_PROPS, KNOWN_INPUT_PROPS, KNOWN_IMAGE_PROPS, KNOWN_LINK_PROPS, KNOWN_TOGGLE_PROPS, KNOWN_SELECT_PROPS } from './shared.js';
 import { generateBackendCode } from './react.js';
 
 interface SvelteContext {
@@ -155,7 +155,8 @@ function genState(node: StateDecl, c: SvelteContext): string {
 }
 
 function genDerived(node: DerivedDecl, c: SvelteContext): string {
-  return `let ${node.name} = $derived(${genExpr(node.expression, c)});`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
+  return `${sc}let ${node.name} = $derived(${genExpr(node.expression, c)});`;
 }
 
 // genProp is now handled by merged declaration in generateSvelteComponent
@@ -164,19 +165,22 @@ function genFunction(node: FnDecl, c: SvelteContext): string {
   const params = node.params.map(p => p.name).join(', ');
   const asyncKw = node.isAsync ? 'async ' : '';
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
-  return `${asyncKw}function ${node.name}(${params}) {\n  ${body}\n}`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
+  return `${sc}${asyncKw}function ${node.name}(${params}) {\n  ${body}\n}`;
 }
 
 function genOnMount(node: OnMount, c: SvelteContext): string {
   c.needsOnMount = true;
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
   const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
-  return `onMount(${asyncKw}() => {\n  ${body}\n});`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
+  return `${sc}onMount(${asyncKw}() => {\n  ${body}\n});`;
 }
 
 function genOnDestroy(node: OnDestroy, c: SvelteContext): string {
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
-  return `$effect(() => {\n  return () => {\n    ${body}\n  };\n});`;
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
+  return `${sc}$effect(() => {\n  return () => {\n    ${body}\n  };\n});`;
 }
 
 function genWatch(node: WatchBlock, c: SvelteContext): string {
@@ -184,10 +188,11 @@ function genWatch(node: WatchBlock, c: SvelteContext): string {
   const vars = node.variables || [node.variable];
   const varRefs = vars.map(v => `${v};`).join('\n  ');
   const hasAwait = bodyContainsAwait(node.body);
+  const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
   if (hasAwait) {
-    return `$effect(() => {\n  ${varRefs}\n  (async () => {\n    ${body}\n  })();\n});`;
+    return `${sc}$effect(() => {\n  ${varRefs}\n  (async () => {\n    ${body}\n  })();\n});`;
   }
-  return `$effect(() => {\n  ${varRefs}\n  ${body}\n});`;
+  return `${sc}$effect(() => {\n  ${varRefs}\n  ${body}\n});`;
 }
 
 function genCheck(node: CheckDecl, c: SvelteContext): string {
@@ -335,20 +340,31 @@ function genLayout(node: LayoutNode, c: SvelteContext): string {
     }
   }
 
+  let className: string | null = null;
+  for (const [key, val] of Object.entries(node.props)) {
+    if (key === 'class') { className = unquote(genExpr(val, c)); break; }
+  }
+  const classAttr = className ? ` class="${className}"` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_LAYOUT_PROPS, e => genExpr(e, c), 'svelte');
   const children = node.children.map(ch => genUINode(ch, c)).join('\n  ');
   const sc = srcComment(node);
-  return `${sc}<div style="${style.join('; ')}">\n  ${children}\n</div>`;
+  return `${sc}<div${classAttr} style="${style.join('; ')}"${extra}>\n  ${children}\n</div>`;
 }
 
 function genText(node: TextNode, c: SvelteContext): string {
   const style = genTextStyle(node, c);
   const styleAttr = style ? ` style="${style}"` : '';
   const content = genTextContent(node.content, c);
+  let textClassAttr = '';
+  for (const [key, val] of Object.entries(node.props)) {
+    if (key === 'class') { textClassAttr = ` class="${unquote(genExpr(val, c))}"`; break; }
+  }
+  const textExtra = getPassthroughProps(node.props, KNOWN_TEXT_PROPS, e => genExpr(e, c), 'svelte');
 
   const badgeExpr = node.props['badge'];
   const tooltipExpr = node.props['tooltip'];
   const sc = srcComment(node);
-  let result = `${sc}<span${styleAttr}>${content}</span>`;
+  let result = `${sc}<span${textClassAttr}${styleAttr}${textExtra}>${content}</span>`;
 
   if (badgeExpr) {
     const badge = genExpr(badgeExpr, c);
@@ -367,65 +383,100 @@ function genButton(node: ButtonNode, c: SvelteContext): string {
   const label = genTextContent(node.label, c);
   const action = genActionExpr(node.action, c);
   const attrs: string[] = [];
+  let btnClassName = '';
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     switch (key) {
+      case 'class':
       case 'style': {
         const uv = unquote(v);
-        if (uv === 'primary') attrs.push('style="background-color: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
+        if (key === 'class') { btnClassName = uv; }
+        else if (uv === 'primary') attrs.push('style="background-color: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
         else if (uv === 'danger') attrs.push('style="background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer"');
         break;
       }
       case 'disabled': attrs.push(`disabled={${v}}`); break;
     }
   }
+  const classAttr = btnClassName ? ` class="${btnClassName}"` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_BUTTON_PROPS, e => genExpr(e, c), 'svelte');
   const attrStr = attrs.length > 0 ? ' ' + attrs.join(' ') : '';
   const sc = srcComment(node);
-  return `${sc}<button onclick={() => ${action}}${attrStr}>${label}</button>`;
+  return `${sc}<button onclick={() => ${action}}${classAttr}${attrStr}${extra}>${label}</button>`;
 }
 
 function genInput(node: InputNode, c: SvelteContext): string {
   const props: string[] = [`bind:value={${node.binding}}`];
+  let inputClassName = '';
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
-    if (key === 'placeholder') props.push(`placeholder="${unquote(v)}"`);
-    if (key === 'type') props.push(`type="${unquote(v)}"`);
-    if (key === '@keypress') props.push(`onkeypress={e => ${v}(e.key)}`);
-    if (key === 'grow') props.push(`style="flex-grow: ${v}"`);
+    if (key === 'class') { inputClassName = unquote(v); }
+    else if (key === 'placeholder') props.push(`placeholder="${unquote(v)}"`);
+    else if (key === 'type') props.push(`type="${unquote(v)}"`);
+    else if (key === '@keypress') props.push(`onkeypress={e => ${v}(e.key)}`);
+    else if (key === 'grow') props.push(`style="flex-grow: ${v}"`);
   }
+  const classAttr = inputClassName ? ` class="${inputClassName}"` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_INPUT_PROPS, e => genExpr(e, c), 'svelte');
   const sc = srcComment(node);
-  return `${sc}<input ${props.join(' ')} />`;
+  return `${sc}<input ${props.join(' ')}${classAttr}${extra} />`;
 }
 
 function genImage(node: ImageNode, c: SvelteContext): string {
   const src = genExpr(node.src, c);
   const style: string[] = [];
+  let imgClassName = '';
   for (const [key, val] of Object.entries(node.props)) {
     const v = genExpr(val, c);
     switch (key) {
+      case 'class': imgClassName = unquote(v); break;
       case 'round': style.push('border-radius: 50%'); break;
       case 'radius': style.push(`border-radius: ${addPx(unquote(v))}`); break;
       case 'size': style.push(`width: ${addPx(unquote(v))}; height: ${addPx(unquote(v))}`); break;
     }
   }
   const alt = node.props['alt'] ? ` alt="${unquote(genExpr(node.props['alt'], c))}"` : '';
+  const classAttr = imgClassName ? ` class="${imgClassName}"` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_IMAGE_PROPS, e => genExpr(e, c), 'svelte');
   const styleAttr = style.length > 0 ? ` style="${style.join('; ')}"` : '';
-  return `<img src={${src}}${alt}${styleAttr} />`;
+  const sc = srcComment(node);
+  return `${sc}<img src={${src}}${alt}${classAttr}${styleAttr}${extra} />`;
 }
 
 function genLink(node: LinkNode, c: SvelteContext): string {
   const label = genTextContent(node.label, c);
   const href = genExpr(node.href, c);
-  return `<a href={${href}}>${label}</a>`;
+  let linkClassName = '';
+  for (const [key, val] of Object.entries(node.props)) {
+    if (key === 'class') { linkClassName = unquote(genExpr(val, c)); break; }
+  }
+  const classAttr = linkClassName ? ` class="${linkClassName}"` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_LINK_PROPS, e => genExpr(e, c), 'svelte');
+  const sc = srcComment(node);
+  return `${sc}<a href={${href}}${classAttr}${extra}>${label}</a>`;
 }
 
 function genToggle(node: ToggleNode, c: SvelteContext): string {
-  return `<input type="checkbox" bind:checked={${node.binding}} />`;
+  let toggleClassName = '';
+  for (const [key, val] of Object.entries(node.props)) {
+    if (key === 'class') { toggleClassName = unquote(genExpr(val, c)); break; }
+  }
+  const classAttr = toggleClassName ? ` class="${toggleClassName}"` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_TOGGLE_PROPS, e => genExpr(e, c), 'svelte');
+  const sc = srcComment(node);
+  return `${sc}<input type="checkbox" bind:checked={${node.binding}}${classAttr}${extra} />`;
 }
 
 function genSelect(node: SelectNode, c: SvelteContext): string {
   const options = genExpr(node.options, c);
-  return `<select bind:value={${node.binding}}>\n  {#each ${options} as opt}\n    <option value={opt}>{opt}</option>\n  {/each}\n</select>`;
+  let selectClassName = '';
+  for (const [key, val] of Object.entries(node.props)) {
+    if (key === 'class') { selectClassName = unquote(genExpr(val, c)); break; }
+  }
+  const classAttr = selectClassName ? ` class="${selectClassName}"` : '';
+  const extra = getPassthroughProps(node.props, KNOWN_SELECT_PROPS, e => genExpr(e, c), 'svelte');
+  const sc = srcComment(node);
+  return `${sc}<select bind:value={${node.binding}}${classAttr}${extra}>\n  {#each ${options} as opt}\n    <option value={opt}>{opt}</option>\n  {/each}\n</select>`;
 }
 
 function genComponentCall(node: ComponentCall, c: SvelteContext): string {
