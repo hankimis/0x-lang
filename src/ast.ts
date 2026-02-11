@@ -247,6 +247,12 @@ export interface TopLevelVarDecl extends BaseNode {
   value: Expression;
 }
 
+// Theme declaration
+export interface ThemeDecl extends BaseNode {
+  type: 'ThemeDecl';
+  theme: string; // 'shadcn' | 'mui' | 'antd' | 'chakra'
+}
+
 // Comment
 export interface CommentNode extends BaseNode {
   type: 'Comment';
@@ -1081,6 +1087,7 @@ export type ASTNode =
   | I18nNode
   | LocaleNode
   | RtlNode
+  | ThemeDecl
   | UINode;
 
 // Code generator interface
