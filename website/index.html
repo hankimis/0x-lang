@@ -820,6 +820,11 @@
             <span class="example-tag">API</span>
             <span class="example-tag">Component</span>
           </div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="code">Code</button>
+            <button class="view-btn" data-view="preview">Preview</button>
+          </div>
+          <div class="view-code active">
           <div class="code-panel">
             <div class="code-header">
               <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
@@ -891,6 +896,33 @@
       <span class="el">text</span> post.date size=sm color=#999
     <span class="el">text</span> post.content color=#444</code></pre>
           </div>
+          </div>
+          <div class="view-preview">
+            <div class="preview-frame">
+              <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000/blog</span></div>
+              <div class="preview-body" style="max-width:600px;margin:0 auto">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><span style="font-size:24px;font-weight:bold;color:#222">Blog</span><span style="color:#666">3 posts</span></div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px">
+                  <div style="font-size:16px;font-weight:bold;color:#222;margin-bottom:8px">New Post</div>
+                  <input type="text" placeholder="Post title..." style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:8px;font-size:14px;box-sizing:border-box">
+                  <input type="text" placeholder="Write your content..." style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:12px;font-size:14px;box-sizing:border-box">
+                  <button style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer">Publish</button>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:10px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:bold;color:#222">Getting Started with 0x</span><span style="font-size:12px;color:#999">2026-02-11</span></div>
+                  <div style="color:#666;font-size:14px">A quick guide to writing your first 0x component...</div>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:10px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:bold;color:#222">Why AI-First Languages Matter</span><span style="font-size:12px;color:#999">2026-02-10</span></div>
+                  <div style="color:#666;font-size:14px">How 0x reduces token usage by 80% while improving accuracy...</div>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:16px;font-weight:bold;color:#222">Multi-Framework Compilation</span><span style="font-size:12px;color:#999">2026-02-09</span></div>
+                  <div style="color:#666;font-size:14px">One source file, six output targets. React, Vue, Svelte and more...</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- CRM -->
@@ -901,6 +933,11 @@
             <span class="example-tag">Search</span>
             <span class="example-tag">Modal</span>
           </div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="code">Code</button>
+            <button class="view-btn" data-view="preview">Preview</button>
+          </div>
+          <div class="view-code active">
           <div class="code-panel">
             <div class="code-header">
               <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
@@ -959,6 +996,39 @@
           <span class="el">text</span> customer.email size=sm color=#666
         <span class="el">text</span> customer.status size=sm</code></pre>
           </div>
+          </div>
+          <div class="view-preview">
+            <div class="preview-frame">
+              <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000/crm</span></div>
+              <div class="preview-body">
+                <div style="font-size:24px;font-weight:bold;color:#222;margin-bottom:20px">CRM Dashboard</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:28px;font-weight:bold;color:#333">24</div><div style="font-size:12px;color:#666">Total Customers</div></div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:28px;font-weight:bold;color:#27ae60">18</div><div style="font-size:12px;color:#666">Active</div></div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:28px;font-weight:bold;color:#999">6</div><div style="font-size:12px;color:#666">Inactive</div></div>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:16px">
+                  <input type="text" placeholder="Search customers..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+                  <button style="background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;font-size:14px;white-space:nowrap;cursor:pointer">Add Customer</button>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:16px">
+                  <div style="flex:1"><div style="font-weight:600;color:#222">Sarah Chen</div><div style="font-size:12px;color:#666">sarah@acme.co</div></div>
+                  <span style="color:#27ae60;font-size:13px;font-weight:500">active</span>
+                  <button style="background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer">Remove</button>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:16px">
+                  <div style="flex:1"><div style="font-weight:600;color:#222">James Park</div><div style="font-size:12px;color:#666">james@startup.io</div></div>
+                  <span style="color:#27ae60;font-size:13px;font-weight:500">active</span>
+                  <button style="background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer">Remove</button>
+                </div>
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:16px">
+                  <div style="flex:1"><div style="font-weight:600;color:#222">Maria Garcia</div><div style="font-size:12px;color:#666">maria@corp.com</div></div>
+                  <span style="color:#999;font-size:13px;font-weight:500">inactive</span>
+                  <button style="background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Kanban -->
@@ -969,6 +1039,11 @@
             <span class="example-tag">Derived</span>
             <span class="example-tag">Component</span>
           </div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="code">Code</button>
+            <button class="view-btn" data-view="preview">Preview</button>
+          </div>
+          <div class="view-code active">
           <div class="code-panel">
             <div class="code-header">
               <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
@@ -1034,6 +1109,36 @@
         <span class="el">button</span> <span class="str">"Done"</span> size=sm style=primary -&gt; moveTask(task.id, <span class="str">"done"</span>)
       <span class="el">button</span> <span class="str">"Delete"</span> size=sm style=danger -&gt; deleteTask(task.id)</code></pre>
           </div>
+          </div>
+          <div class="view-preview">
+            <div class="preview-frame">
+              <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000/kanban</span></div>
+              <div class="preview-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:24px;font-weight:bold;color:#222">Kanban Board</span><span style="color:#666">6 tasks</span></div>
+                <div style="display:flex;gap:8px;margin-bottom:20px">
+                  <input type="text" placeholder="New task..." style="flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+                  <button style="background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer">Add</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                  <div style="background:#f5f5f5;border-radius:12px;padding:14px">
+                    <div style="font-weight:bold;color:#e74c3c;margin-bottom:10px;font-size:14px">To Do (2)</div>
+                    <div style="background:#fff;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Design mockups</div><div style="display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Start</button><button style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Done</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                    <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Write tests</div><div style="display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Start</button><button style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Done</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                  </div>
+                  <div style="background:#f5f5f5;border-radius:12px;padding:14px">
+                    <div style="font-weight:bold;color:#f39c12;margin-bottom:10px;font-size:14px">In Progress (2)</div>
+                    <div style="background:#fff;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Set up database</div><div style="display:flex;gap:4px"><button style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Done</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                    <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Build API routes</div><div style="display:flex;gap:4px"><button style="background:#3b82f6;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Done</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                  </div>
+                  <div style="background:#f5f5f5;border-radius:12px;padding:14px">
+                    <div style="font-weight:bold;color:#27ae60;margin-bottom:10px;font-size:14px">Done (2)</div>
+                    <div style="background:#fff;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Write API docs</div><div style="display:flex;gap:4px"><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                    <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08)"><div style="font-size:13px;color:#333;margin-bottom:8px">Project setup</div><div style="display:flex;gap:4px"><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer">Delete</button></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- SaaS Landing -->
@@ -1044,6 +1149,11 @@
             <span class="example-tag">Pricing</span>
             <span class="example-tag">Nav + Footer</span>
           </div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="code">Code</button>
+            <button class="view-btn" data-view="preview">Preview</button>
+          </div>
+          <div class="view-code active">
           <div class="code-panel">
             <div class="code-header">
               <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
@@ -1102,6 +1212,36 @@
           <span class="el">text</span> <span class="str">"10 projects"</span> size=sm color=#666
           <span class="el">button</span> <span class="str">"Choose Pro"</span> style=primary</code></pre>
           </div>
+          </div>
+          <div class="view-preview">
+            <div class="preview-frame">
+              <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000</span></div>
+              <div class="preview-body" style="padding:0">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#fff;border-bottom:1px solid #e5e7eb"><span style="font-weight:bold;font-size:16px;color:#222">LaunchPad</span><div style="display:flex;gap:20px;align-items:center"><a style="color:#666;font-size:13px;text-decoration:none">Features</a><a style="color:#666;font-size:13px;text-decoration:none">Pricing</a><button style="background:#3b82f6;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">Get Started</button></div></div>
+                <div style="text-align:center;padding:40px 20px;background:#f8f9fa">
+                  <div style="font-size:28px;font-weight:bold;color:#222;margin-bottom:8px">Build Products Faster</div>
+                  <div style="color:#666;font-size:14px;margin-bottom:20px">The all-in-one platform for modern teams.</div>
+                  <div style="display:flex;gap:8px;justify-content:center"><button style="background:#3b82f6;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">Start Free</button><button style="background:transparent;color:#333;border:1px solid #d1d5db;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">Learn More</button></div>
+                </div>
+                <div style="padding:24px;text-align:center">
+                  <div style="font-size:20px;font-weight:bold;color:#222;margin-bottom:16px">Features</div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#128640;</div><div style="font-weight:bold;color:#222;font-size:14px">Fast</div><div style="color:#666;font-size:12px">Lightning fast builds</div></div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#128737;</div><div style="font-weight:bold;color:#222;font-size:14px">Secure</div><div style="color:#666;font-size:12px">Enterprise-grade security</div></div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-size:24px;margin-bottom:6px">&#128200;</div><div style="font-weight:bold;color:#222;font-size:14px">Scalable</div><div style="color:#666;font-size:12px">Scales to enterprise</div></div>
+                  </div>
+                </div>
+                <div style="padding:24px;background:#f8f9fa;text-align:center">
+                  <div style="font-size:20px;font-weight:bold;color:#222;margin-bottom:16px">Pricing</div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-weight:bold;color:#222;margin-bottom:4px">Starter</div><div style="font-size:24px;font-weight:bold;color:#333">$0<span style="font-size:12px;font-weight:400">/mo</span></div><div style="font-size:12px;color:#666;margin:6px 0">1 project</div><button style="background:transparent;color:#333;border:1px solid #d1d5db;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer">Get Started</button></div>
+                    <div style="background:#fff;border:2px solid #3b82f6;border-radius:12px;padding:20px;text-align:center"><div style="font-weight:bold;color:#222;margin-bottom:4px">Pro</div><div style="font-size:24px;font-weight:bold;color:#333">$29<span style="font-size:12px;font-weight:400">/mo</span></div><div style="font-size:12px;color:#666;margin:6px 0">10 projects</div><button style="background:#3b82f6;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Choose Pro</button></div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;text-align:center"><div style="font-weight:bold;color:#222;margin-bottom:4px">Enterprise</div><div style="font-size:24px;font-weight:bold;color:#333">$99<span style="font-size:12px;font-weight:400">/mo</span></div><div style="font-size:12px;color:#666;margin:6px 0">Unlimited</div><button style="background:#3b82f6;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">Contact Sales</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Admin -->
@@ -1112,6 +1252,11 @@
             <span class="example-tag">Table</span>
             <span class="example-tag">Tabs</span>
           </div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="code">Code</button>
+            <button class="view-btn" data-view="preview">Preview</button>
+          </div>
+          <div class="view-code active">
           <div class="code-panel">
             <div class="code-header">
               <div class="code-dots"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span></div>
@@ -1178,6 +1323,34 @@
             <span class="kw">layout</span> row gap=<span class="num">4</span>:
               <span class="el">button</span> <span class="str">"Toggle"</span> size=sm -&gt; toggleStatus(user.id)
               <span class="el">button</span> <span class="str">"Delete"</span> size=sm style=danger -&gt; deleteUser(user.id)</code></pre>
+          </div>
+          </div>
+          <div class="view-preview">
+            <div class="preview-frame">
+              <div class="preview-bar"><span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span><span class="preview-url">localhost:3000/admin</span></div>
+              <div class="preview-body" style="padding:0;display:flex;min-height:380px">
+                <div style="background:#2c3e50;padding:20px;width:180px;flex-shrink:0">
+                  <div style="color:#fff;font-weight:bold;font-size:15px;margin-bottom:20px">Admin Panel</div>
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <button style="background:#3b82f6;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer;font-weight:600">Users</button>
+                    <button style="background:transparent;color:#94a3b8;border:none;padding:8px 14px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer">Settings</button>
+                    <button style="background:transparent;color:#94a3b8;border:none;padding:8px 14px;border-radius:6px;font-size:13px;text-align:left;cursor:pointer">Logs</button>
+                  </div>
+                </div>
+                <div style="flex:1;padding:20px;overflow:auto">
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px"><div style="font-size:22px;font-weight:bold;color:#3498db">42</div><div style="font-size:11px;color:#666">Total Users</div></div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px"><div style="font-size:22px;font-weight:bold;color:#27ae60">38</div><div style="font-size:11px;color:#666">Active</div></div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px"><div style="font-size:22px;font-weight:bold;color:#9b59b6">5</div><div style="font-size:11px;color:#666">Admins</div></div>
+                  </div>
+                  <input type="text" placeholder="Search users..." style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;margin-bottom:12px;box-sizing:border-box">
+                  <div style="background:#f8f9fa;border-radius:8px;padding:10px 14px;display:flex;gap:12px;font-size:12px;font-weight:600;color:#666;margin-bottom:4px"><span style="flex:1">Name</span><span style="flex:1">Email</span><span style="width:50px">Role</span><span style="width:50px">Status</span><span style="width:100px">Actions</span></div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center;margin-bottom:4px"><span style="flex:1;font-weight:500;color:#222">Alice Kim</span><span style="flex:1;color:#666">alice@corp.com</span><span style="width:50px;color:#444">admin</span><span style="width:50px;color:#27ae60">Active</span><span style="width:100px;display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Toggle</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Delete</button></span></div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center;margin-bottom:4px"><span style="flex:1;font-weight:500;color:#222">Bob Lee</span><span style="flex:1;color:#666">bob@dev.io</span><span style="width:50px;color:#444">user</span><span style="width:50px;color:#27ae60">Active</span><span style="width:100px;display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Toggle</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Delete</button></span></div>
+                  <div style="background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;display:flex;gap:12px;font-size:12px;align-items:center"><span style="flex:1;font-weight:500;color:#222">Carol Wang</span><span style="flex:1;color:#666">carol@org.co</span><span style="width:50px;color:#444">user</span><span style="width:50px;color:#999">Inactive</span><span style="width:100px;display:flex;gap:4px"><button style="background:#eee;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Toggle</button><button style="background:#ef4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer">Delete</button></span></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2072,6 +2245,25 @@
         tab.setAttribute('aria-selected', 'true');
         const panel = document.getElementById('example-' + tab.dataset.example);
         if (panel) panel.classList.add('active');
+      });
+    });
+
+    // Code/Preview toggle
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const panel = btn.closest('.example-panel');
+        panel.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const view = btn.dataset.view;
+        const codeEl = panel.querySelector('.view-code');
+        const prevEl = panel.querySelector('.view-preview');
+        if (view === 'preview') {
+          codeEl.classList.remove('active');
+          prevEl.classList.add('active');
+        } else {
+          prevEl.classList.remove('active');
+          codeEl.classList.add('active');
+        }
       });
     });
 
