@@ -8,7 +8,7 @@
 - **Type**: Programming language / compiler
 - **Install**: `npm install -g 0x-lang`
 - **License**: ISC (free for all use)
-- **Version**: 0.1.15
+- **Version**: 0.1.19
 - **Requirements**: Node.js >= 18
 - **Targets**: React, Vue 3, Svelte 5, Express.js, React Native, Terraform
 
@@ -99,6 +99,9 @@ page ComponentName:
 - **Elements**: text, button, input, image, link, toggle, select, divider, progress
 - **Control flow**: if/elif/else, for...in
 - **Styles**: size=xl, bold, color=blue, bg=gray-100, rounded=lg
+- **CSS Classes**: `class="tailwind classes"` on any element for framework CSS
+- **Passthrough**: `data-testid="x" aria-label="y"` — unknown props pass through to HTML
+- **Raw Block**: `raw:` inserts raw JSX/Vue/Svelte directly into template output
 - **Events**: `-> functionName()` or `-> stateVar = value`
 - **API**: `api getData = GET "/endpoint"`
 - **Lifecycle**: `on mount:`, `on destroy:`
@@ -116,14 +119,16 @@ page ComponentName:
 | React Native | View + StyleSheet | `0x build app.ai --target react-native` |
 | Terraform | HCL + providers | `0x build infra.ai --target terraform` |
 
-## v0.1.15 New Features
+## v0.1.19 New Features
 
-- **Backend Generator**: Express.js with JWT auth, CRUD, middleware, background jobs, caching, webhooks
-- **React Native Generator**: Mobile apps with View, StyleSheet, TouchableOpacity, native components
-- **Terraform Generator**: IaC for AWS, Vercel, Fly.io, Docker, GCP, Cloudflare, Datadog, Sentry
+- **Raw Escape Hatch**: `raw:` block inserts framework-specific code directly into JSX/template output
+- **Component Children**: `component Dialog(title="Hi"):` wraps children inside component tags
+- **useCallback**: All `fn` declarations auto-wrapped in `useCallback` with extracted deps (React)
+- **React.memo**: Components with props auto-wrapped in `React.memo` for performance
+- **CSS Classes**: `class="..."` prop on all UI elements — works with Tailwind, Bootstrap, etc.
+- **Passthrough Props**: Unknown props (data-*, aria-*, role) passed as HTML attributes
+- **Did You Mean?**: Typo suggestions in error messages with Levenshtein distance matching
 - **AI Bridge**: `getLanguageSpec()`, `generatePrompt()`, `compileFromDescription()` for AI agents
-- **Compact Mode**: `compact: true` strips comments and whitespace for minimal token output
-- **V3 Source Maps**: Inline base64 source maps for debugging generated code
 
 ## Code Reduction Benchmarks
 

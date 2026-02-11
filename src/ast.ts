@@ -170,6 +170,7 @@ export interface ComponentCall extends BaseNode {
   type: 'ComponentCall';
   name: string;
   args: Record<string, Expression>;
+  children?: UINode[];
 }
 
 // Control flow (UI)
@@ -230,6 +231,11 @@ export interface UseImport extends BaseNode {
 
 export interface JsBlock extends BaseNode {
   type: 'JsBlock';
+  code: string;
+}
+
+export interface RawBlock extends BaseNode {
+  type: 'RawBlock';
   code: string;
 }
 
@@ -1013,7 +1019,8 @@ export type UINode =
   | LoadingNode
   | OfflineNode
   | RetryNode
-  | LogNode;
+  | LogNode
+  | RawBlock;
 
 // All AST nodes
 export type ASTNode =
@@ -1035,6 +1042,7 @@ export type ASTNode =
   | JsImport
   | UseImport
   | JsBlock
+  | RawBlock
   | TopLevelVarDecl
   | ModelNode
   | DataDecl

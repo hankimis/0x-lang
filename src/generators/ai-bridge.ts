@@ -106,6 +106,39 @@ api userApi:
 - \`chart\` — data visualization (bar, line, pie)
 - \`upload\` — file upload handler
 
+### CSS Classes & Passthrough Props
+\`\`\`
+layout col class="container mx-auto p-4":
+  text "Title" class="text-xl font-bold"
+  button "Save" -> save() class="btn btn-primary"
+  input name class="input" aria-label="Name" data-testid="name-input"
+\`\`\`
+- \`class\` prop adds className (React) or class (Vue/Svelte) — works with Tailwind, Bootstrap, etc.
+- Unknown props (data-*, aria-*, role, etc.) are passed through as HTML attributes.
+
+### Raw Block (Framework Escape Hatch)
+\`\`\`
+raw:
+  <CustomComponent onSpecialEvent={handler} />
+raw { <div dangerouslySetInnerHTML={{__html: content}} /> }
+\`\`\`
+- \`raw:\` inserts code directly into JSX/template output (different from \`js:\` which goes into script).
+- Use for framework-specific code that 0x doesn't abstract.
+
+### Component with Children
+\`\`\`
+component Dialog(title="Settings"):
+  text "Content inside dialog"
+  button "Close" -> close()
+\`\`\`
+- When \`component\` call has \`:\`, children are wrapped inside the component tags.
+- Without \`:\`, component renders as self-closing: \`component Card(item)\`
+
+### Performance (React Target)
+- \`fn\` declarations are automatically wrapped in \`useCallback\` with auto-extracted deps.
+- Components with props are wrapped in \`React.memo\` for render optimization.
+- \`derived\` values use \`useMemo\` with auto-extracted deps.
+
 ### Styles
 \`\`\`
 style card:

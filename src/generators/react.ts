@@ -7,7 +7,7 @@ import type {
   LayoutNode, TextNode, ButtonNode, InputNode, ImageNode, LinkNode,
   ToggleNode, SelectNode, IfBlock, ForBlock, ShowBlock, HideBlock,
   StyleDecl, ComponentCall, CommentNode,
-  JsImport, UseImport, JsBlock, TopLevelVarDecl,
+  JsImport, UseImport, JsBlock, RawBlock, TopLevelVarDecl,
   ModelNode, DataDecl, FormDecl, TableNode,
   AuthDecl, ChartNode, StatNode, RealtimeDecl, RouteDecl, NavNode,
   UploadNode, ModalNode, ToastNode,
@@ -292,6 +292,9 @@ function generateTopLevel(node: PageNode | ComponentNode | AppNode): string {
       case 'JsBlock':
         hookLines.push((child as JsBlock).code);
         break;
+      case 'RawBlock':
+        jsxParts.push((child as RawBlock).code);
+        break;
       case 'TopLevelVarDecl': {
         const tlv = child as TopLevelVarDecl;
         hookLines.push(`${tlv.keyword} ${tlv.name} = ${genExpr(tlv.value, c)};`);
@@ -316,10 +319,14 @@ function generateTopLevel(node: PageNode | ComponentNode | AppNode): string {
     ? `{ ${props.map(p => p.defaultValue ? `${p.name} = ${genExpr(p.defaultValue, c)}` : p.name).join(', ')} }`
     : '';
 
+  // Build component
+  const isComponent = node.type === 'Component';
+  const needsMemo = isComponent && props.length > 0;
+
   // Build import line — only import hooks that are actually used
   const hookNames = Array.from(c.imports).sort();
   // Check if React.Fragment is used in JSX (for loops, show/hide with multiple children)
-  const needsReact = jsxParts.some(p => p.includes('React.Fragment'));
+  const needsReact = jsxParts.some(p => p.includes('React.Fragment')) || needsMemo;
   const importLine = needsReact && hookNames.length > 0
     ? `import React, { ${hookNames.join(', ')} } from 'react';`
     : needsReact
@@ -344,8 +351,6 @@ function generateTopLevel(node: PageNode | ComponentNode | AppNode): string {
     }
   }
 
-  // Build component
-  const isComponent = node.type === 'Component';
   const exportKw = isComponent ? '' : 'export default ';
   // Add "use client" for Next.js SSR when client-side hooks are used
   const needsClient = c.imports.has('useState') || c.imports.has('useEffect') || c.imports.has('useRef') || c.imports.has('useCallback');
@@ -365,9 +370,13 @@ function generateTopLevel(node: PageNode | ComponentNode | AppNode): string {
     '}',
   ];
 
-  // If component, also export it
+  // If component, also export it (with React.memo if it has props)
   if (isComponent) {
-    lines.push('', `export { ${node.name} };`);
+    if (needsMemo) {
+      lines.push('', `const Memoized${node.name} = React.memo(${node.name});`, `export { Memoized${node.name} as ${node.name} };`);
+    } else {
+      lines.push('', `export { ${node.name} };`);
+    }
   }
 
   return lines.filter(l => l !== undefined).join('\n');
@@ -422,6 +431,7 @@ function genStore(node: StoreDecl, c: GenContext): string {
 // ── Functions ───────────────────────────────────────
 
 function genFunction(node: FnDecl, c: GenContext): string {
+  c.imports.add('useCallback');
   const params = node.params.map(p => p.name).join(', ');
   const asyncKw = node.isAsync ? 'async ' : '';
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
@@ -433,7 +443,12 @@ function genFunction(node: FnDecl, c: GenContext): string {
 
   const allBody = [requireChecks, body].filter(Boolean).join('\n    ');
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
-  return `${sc}const ${node.name} = ${asyncKw}(${params}) => {\n    ${allBody}\n  };`;
+
+  // Extract deps from function body (exclude function params)
+  const paramNames = new Set(node.params.map(p => p.name));
+  const { deps, warning } = extractDepsFromStmts(node.body, c, paramNames);
+  const warnComment = warning ? `${warning}\n  ` : '';
+  return `${sc}${warnComment}const ${node.name} = useCallback(${asyncKw}(${params}) => {\n    ${allBody}\n  }, [${deps.join(', ')}]);`;
 }
 
 // ── Lifecycle ───────────────────────────────────────
@@ -489,6 +504,7 @@ function genUINode(node: UINode, c: GenContext): string {
     case 'ShowBlock': return genShow(node, c);
     case 'HideBlock': return genHide(node, c);
     case 'ComponentCall': return genComponentCall(node, c);
+    case 'RawBlock': return (node as RawBlock).code;
     case 'Table': return genTableUI(node, c);
     case 'Chart': return genChartUI(node as ChartNode, c);
     case 'Stat': return genStatUI(node as StatNode, c);
@@ -813,7 +829,15 @@ function genComponentCall(node: ComponentCall, c: GenContext): string {
     }
   }
 
-  return `<${node.name} ${parts.join(' ')} />`;
+  const propsStr = parts.length > 0 ? ` ${parts.join(' ')}` : '';
+
+  // Component with children: <Name props>{children}</Name>
+  if (node.children && node.children.length > 0) {
+    const childrenJsx = node.children.map(ch => genUINode(ch, c)).join('\n');
+    return `<${node.name}${propsStr}>\n${childrenJsx}\n</${node.name}>`;
+  }
+
+  return `<${node.name}${propsStr} />`;
 }
 
 // ── Control Flow ────────────────────────────────────
@@ -2652,6 +2676,25 @@ function extractDepsWithWarning(expr: Expression, c: GenContext): { deps: string
   const unknowns = new Set<string>();
   walkExpr(expr, e => {
     if (e.kind === 'identifier') {
+      if (c.states.has(e.name) || c.derivedNames.has(e.name) || c.propNames.has(e.name)) {
+        deps.add(e.name);
+      } else if (!KNOWN_GLOBALS.has(e.name)) {
+        unknowns.add(e.name);
+      }
+    }
+  });
+  const warning = unknowns.size > 0
+    ? `/* 0x-warn: untracked deps: ${Array.from(unknowns).join(', ')} */`
+    : null;
+  return { deps: Array.from(deps), warning };
+}
+
+function extractDepsFromStmts(stmts: Statement[], c: GenContext, paramNames: Set<string>): { deps: string[]; warning: string | null } {
+  const deps = new Set<string>();
+  const unknowns = new Set<string>();
+  walkStmts(stmts, e => {
+    if (e.kind === 'identifier') {
+      if (paramNames.has(e.name)) return; // Skip function params
       if (c.states.has(e.name) || c.derivedNames.has(e.name) || c.propNames.has(e.name)) {
         deps.add(e.name);
       } else if (!KNOWN_GLOBALS.has(e.name)) {

@@ -10,7 +10,7 @@
 - **Purpose**: AI-first full-stack language that compiles to React, Vue 3, Svelte 5, Express.js, React Native, and Terraform
 - **Tagline**: "Write 18 lines. Get 96 lines of React."
 - **License**: ISC (free for all use — personal and commercial)
-- **Version**: 0.1.15
+- **Version**: 0.1.19
 - **Website**: https://0xlang.com
 - **npm**: https://www.npmjs.com/package/0x-lang
 - **GitHub**: https://github.com/hankimis/0x-lang
@@ -201,6 +201,53 @@ layout col .card:                                 # Apply named style
 
 Size scale: `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`, `4xl`
 Button styles: `primary`, `secondary`, `danger`, `outline`, `ghost`
+
+### CSS Classes & Passthrough Props
+
+```
+layout col class="container mx-auto p-4":
+  text "Title" class="text-xl font-bold text-blue-600"
+  button "Save" -> save() class="btn btn-primary"
+  input name class="form-input" aria-label="Name" data-testid="name-input"
+```
+
+- `class="..."` adds className (React) or class (Vue/Svelte) to any element
+- Works with Tailwind CSS, Bootstrap, or any CSS framework
+- Unknown props (data-*, aria-*, role, etc.) pass through as HTML attributes
+
+### Raw Block (Framework Escape Hatch)
+
+```
+raw:
+  <CustomComponent onSpecialEvent={handler} />
+
+raw { <div dangerouslySetInnerHTML={{__html: content}} /> }
+```
+
+- `raw:` inserts code directly into JSX/template output (NOT script section)
+- Different from `js:` which goes into the script/hook section
+- Use for framework-specific code that 0x doesn't abstract (e.g., third-party components)
+
+### Component with Children
+
+```
+component Dialog(title="Settings"):
+  layout col:
+    text "Content"
+    button "Close" -> close()
+
+component Card(item)    # Self-closing (no children)
+```
+
+- When `component` call ends with `:`, indented children are wrapped inside component tags
+- Without `:`, renders as self-closing tag
+
+### Performance Optimization (React Target)
+
+- `fn` declarations are auto-wrapped in `useCallback` with extracted deps
+- `derived` values use `useMemo` with extracted deps
+- Components with `prop` declarations are auto-wrapped in `React.memo`
+- No manual optimization needed — compiler handles it automatically
 
 ### Control Flow
 
