@@ -28,7 +28,7 @@ import type {
 import { SIZE_MAP, unquote, capitalize, parseGradient, addPx } from './shared.js';
 import { SourceMapBuilder } from './source-map.js';
 
-interface GenContext {
+export interface GenContext {
   imports: Set<string>; // React hooks to import
   states: Map<string, StateDecl>;
   derivedNames: Set<string>;
@@ -39,7 +39,7 @@ interface GenContext {
   smb: SourceMapBuilder | null; // Source map builder for V3 source maps
 }
 
-function ctx(): GenContext {
+export function ctx(): GenContext {
   return {
     imports: new Set(),
     states: new Map(),
@@ -829,7 +829,7 @@ function genHide(node: HideBlock, c: GenContext): string {
 
 // ── Statements ──────────────────────────────────────
 
-function genStatement(stmt: Statement, c: GenContext): string {
+export function genStatement(stmt: Statement, c: GenContext): string {
   switch (stmt.kind) {
     case 'expr_stmt':
       return genExpr(stmt.expression, c) + ';';
@@ -899,7 +899,7 @@ function genStatement(stmt: Statement, c: GenContext): string {
 
 // ── Expressions ─────────────────────────────────────
 
-function genExpr(expr: Expression, c: GenContext): string {
+export function genExpr(expr: Expression, c: GenContext): string {
   switch (expr.kind) {
     case 'number': return String(expr.value);
     case 'string': return `'${expr.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
@@ -1010,7 +1010,7 @@ function genExpr(expr: Expression, c: GenContext): string {
   }
 }
 
-function genTextContent(expr: Expression, c: GenContext): string {
+export function genTextContent(expr: Expression, c: GenContext): string {
   if (expr.kind === 'string') return expr.value;
   if (expr.kind === 'template') {
     return expr.parts.map(p => {
@@ -1021,7 +1021,7 @@ function genTextContent(expr: Expression, c: GenContext): string {
   return `{${genExpr(expr, c)}}`;
 }
 
-function genActionExpr(expr: Expression | Statement[], c: GenContext): string {
+export function genActionExpr(expr: Expression | Statement[], c: GenContext): string {
   if (Array.isArray(expr)) {
     return `{ ${(expr as Statement[]).map(s => genStatement(s, c)).join('; ')} }`;
   }
@@ -2526,7 +2526,7 @@ function genRtlCode(node: RtlNode): string {
 
 // ── Helpers ─────────────────────────────────────────
 
-function bodyContainsAwait(stmts: Statement[]): boolean {
+export function bodyContainsAwait(stmts: Statement[]): boolean {
   for (const stmt of stmts) {
     if (stmtContainsAwait(stmt)) return true;
   }
@@ -2708,7 +2708,7 @@ function formatStyleValue(prop: string, val: string): string {
   return val;
 }
 
-function quoteJsx(v: string): string {
+export function quoteJsx(v: string): string {
   // If the value is already a quoted string literal like 'xxx', extract it and use double quotes
   if (v.startsWith("'") && v.endsWith("'")) {
     const inner = v.slice(1, -1);
