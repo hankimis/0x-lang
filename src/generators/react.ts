@@ -773,13 +773,15 @@ function genFor(node: ForBlock, c: GenContext): string {
 function genShow(node: ShowBlock, c: GenContext): string {
   const cond = genExpr(node.condition, c);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n');
-  return `<div style={{ display: ${cond} ? 'block' : 'none' }}>\n${body}\n</div>`;
+  const wrapped = node.body.length === 1 ? body : `<>\n${body}\n</>`;
+  return `{${cond} && (\n${wrapped}\n)}`;
 }
 
 function genHide(node: HideBlock, c: GenContext): string {
   const cond = genExpr(node.condition, c);
   const body = node.body.map(ch => genUINode(ch, c)).join('\n');
-  return `<div style={{ display: ${cond} ? 'none' : 'block' }}>\n${body}\n</div>`;
+  const wrapped = node.body.length === 1 ? body : `<>\n${body}\n</>`;
+  return `{!${cond} && (\n${wrapped}\n)}`;
 }
 
 // ── Statements ──────────────────────────────────────
@@ -1261,16 +1263,17 @@ function genTableUI(node: TableNode, c: GenContext): string {
   lines.push(`<table style={{ width: '100%', borderCollapse: 'collapse' }}>`);
 
   // Header
+  const thStyle = `padding: '12px 8px', borderBottom: '2px solid #e2e8f0', textAlign: 'left', fontWeight: 600`;
   lines.push(`<thead>`);
   lines.push(`<tr>`);
   for (const col of node.columns) {
     if (col.kind === 'select') {
-      lines.push(`<th style={{ padding: '12px 8px', borderBottom: '2px solid #e2e8f0', textAlign: 'left' }}><input type="checkbox" /></th>`);
+      lines.push(`<th style={{ ${thStyle} }}><input type="checkbox" /></th>`);
     } else if (col.kind === 'field') {
-      const sortAttr = col.sortable ? ` style={{ cursor: 'pointer', padding: '12px 8px', borderBottom: '2px solid #e2e8f0', textAlign: 'left', fontWeight: 600 }}` : ` style={{ padding: '12px 8px', borderBottom: '2px solid #e2e8f0', textAlign: 'left', fontWeight: 600 }}`;
+      const sortAttr = col.sortable ? ` style={{ cursor: 'pointer', ${thStyle} }}` : ` style={{ ${thStyle} }}`;
       lines.push(`<th${sortAttr}>${col.label || col.field}</th>`);
     } else if (col.kind === 'actions') {
-      lines.push(`<th style={{ padding: '12px 8px', borderBottom: '2px solid #e2e8f0', textAlign: 'right', fontWeight: 600 }}>Actions</th>`);
+      lines.push(`<th style={{ ${thStyle}, textAlign: 'right' }}>Actions</th>`);
     }
   }
   lines.push(`</tr>`);
@@ -1448,23 +1451,30 @@ function genChartUI(node: ChartNode, c: GenContext): string {
   lines.push(`  {/* Data: ${data}, X: ${x}, Y: ${y} */}`);
 
   if (node.chartType === 'bar') {
-    lines.push(`  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100%', padding: '20px 0' }}>`);
-    lines.push(`    <span style={{ fontSize: '14px', fontWeight: 'bold', position: 'absolute', top: 0 }}>{${title}}</span>`);
-    lines.push(`    {${data}.map((item, i) => (`);
-    lines.push(`      <div key={item?.id ?? i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>`);
-    lines.push(`        <span style={{ fontSize: '12px', marginBottom: '4px' }}>{item[${y}]}</span>`);
-    lines.push(`        <div style={{ width: '100%', backgroundColor: ${color ? `item[${color}] || '#3182ce'` : "'#3182ce'"}, height: \`\${(item[${y}] / Math.max(...${data}.map(d => d[${y}]))) * 100}%\`, borderRadius: '4px 4px 0 0', minHeight: '4px' }} />`);
-    lines.push(`        <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>{item[${x}]}</span>`);
+    c.imports.add('useMemo');
+    lines.push(`  {(() => {`);
+    lines.push(`    const maxVal = Math.max(...${data}.map(d => d[${y}]));`);
+    lines.push(`    return (`);
+    lines.push(`      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100%', padding: '20px 0' }}>`);
+    lines.push(`        <span style={{ fontSize: '14px', fontWeight: 'bold', position: 'absolute', top: 0 }}>{${title}}</span>`);
+    lines.push(`        {${data}.map((item, i) => (`);
+    lines.push(`          <div key={item?.id ?? i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>`);
+    lines.push(`            <span style={{ fontSize: '12px', marginBottom: '4px' }}>{item[${y}]}</span>`);
+    lines.push(`            <div style={{ width: '100%', backgroundColor: ${color ? `item[${color}] || '#3182ce'` : "'#3182ce'"}, height: \`\${(item[${y}] / maxVal) * 100}%\`, borderRadius: '4px 4px 0 0', minHeight: '4px' }} />`);
+    lines.push(`            <span style={{ fontSize: '11px', marginTop: '4px', color: '#666' }}>{item[${x}]}</span>`);
+    lines.push(`          </div>`);
+    lines.push(`        ))}`);
     lines.push(`      </div>`);
-    lines.push(`    ))}`);
-    lines.push(`  </div>`);
+    lines.push(`    );`);
+    lines.push(`  })()}`);
+
   } else if (node.chartType === 'pie') {
     lines.push(`  <div style={{ position: 'relative', width: '200px', height: '200px', margin: '0 auto' }}>`);
     lines.push(`    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{${title}}</span>`);
     lines.push(`    {/* Pie chart - use recharts/chart.js for production */}`);
     lines.push(`    {${data}.map((item, i) => (`);
     lines.push(`      <div key={item?.id ?? i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>`);
-    lines.push(`        <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: ['#3182ce','#38a169','#d69e2e','#e53e3e','#805ad5'][i % 5] }} />`);
+    lines.push(`        <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: ${color ? `item[${color}]` : `['#3182ce','#38a169','#d69e2e','#e53e3e','#805ad5'][i % 5]`} }} />`);
     lines.push(`        <span>{item[${x}]}: {item[${y}]}</span>`);
     lines.push(`      </div>`);
     lines.push(`    ))}`);
@@ -1825,7 +1835,7 @@ function genMediaUI(node: MediaNode, c: GenContext): string {
   const src = genExpr(node.src, c);
   if (node.mediaType === 'gallery') {
     const cols = node.props['cols'] ? genExpr(node.props['cols'], c) : '3';
-    return `<div style={{ display: 'grid', gridTemplateColumns: \`repeat(\${${cols}}, 1fr)\`, gap: '8px' }}>\n  {${src}.map((img, i) => <img key={i} src={img} style={{ width: '100%', borderRadius: '8px', objectFit: 'cover' }} />)}\n</div>`;
+    return `<div style={{ display: 'grid', gridTemplateColumns: \`repeat(\${${cols}}, 1fr)\`, gap: '8px' }}>\n  {${src}.map((img, i) => <img key={img ?? i} src={img} style={{ width: '100%', borderRadius: '8px', objectFit: 'cover' }} />)}\n</div>`;
   }
   if (node.mediaType === 'video') {
     return `<video src={${src}} controls style={{ width: '100%', borderRadius: '12px' }} />`;
