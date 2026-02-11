@@ -30,7 +30,7 @@ const KEYWORDS = new Set([
   'link', 'toggle', 'select', 'if', 'elif', 'else', 'for', 'in',
   'show', 'hide', 'on', 'watch', 'check', 'requires', 'ensures',
   'api', 'store', 'use', 'js', 'style', 'import', 'from', 'return',
-  'mount', 'destroy', 'await', 'true', 'false', 'null',
+  'mount', 'destroy', 'await', 'true', 'false', 'null', 'let',
   'row', 'col', 'grid', 'stack', 'center', 'middle', 'between', 'end',
   'list', 'map', 'set',
   // Phase 1 advanced keywords
@@ -248,6 +248,52 @@ export function tokenize(source: string): Token[] {
         }
         if (!closed) {
           throw new TokenizerError(`Unterminated string literal`, lineNum, colNum);
+        }
+        tokens.push({ type: 'STRING', value: str, line: lineNum, column: colNum });
+        col = j;
+        continue;
+      }
+
+      // Template literal (backtick)
+      if (ch === '`') {
+        let str = '';
+        let j = col + 1;
+        let closed = false;
+        while (j < lineContent.length) {
+          if (lineContent[j] === '\\' && j + 1 < lineContent.length) {
+            const escaped = lineContent[j + 1];
+            if (escaped === '`') str += '`';
+            else if (escaped === 'n') str += '\n';
+            else if (escaped === 't') str += '\t';
+            else if (escaped === '\\') str += '\\';
+            else if (escaped === '$') str += '$';
+            else str += escaped;
+            j += 2;
+          } else if (lineContent[j] === '$' && j + 1 < lineContent.length && lineContent[j + 1] === '{') {
+            // Convert ${expr} to {expr} for template parsing
+            str += '{';
+            j += 2; // skip ${
+            let depth = 1;
+            while (j < lineContent.length && depth > 0) {
+              if (lineContent[j] === '{') depth++;
+              else if (lineContent[j] === '}') {
+                depth--;
+                if (depth === 0) { j++; str += '}'; break; }
+              }
+              str += lineContent[j];
+              j++;
+            }
+          } else if (lineContent[j] === '`') {
+            closed = true;
+            j++;
+            break;
+          } else {
+            str += lineContent[j];
+            j++;
+          }
+        }
+        if (!closed) {
+          throw new TokenizerError(`Unterminated template literal`, lineNum, colNum);
         }
         tokens.push({ type: 'STRING', value: str, line: lineNum, column: colNum });
         col = j;

@@ -296,6 +296,7 @@ class Parser {
         case 'check': return this.parseCheck();
         case 'style': return this.parseStyle();
         case 'js': return this.parseJsInterop();
+        case 'import': return this.parseJsImport(this.loc());
         case 'use': return this.parseUseImport();
         // Phase 1 advanced
         case 'data': return this.parseData();
@@ -676,7 +677,24 @@ class Parser {
       return { type: 'JsBlock', code: code.trim(), loc: location };
     }
 
-    throw new ParseError(`Expected 'import' or '{' after 'js'`, this.current().line, this.current().column);
+    // JS block: js: (indented block)
+    if (this.match('PUNCTUATION', ':')) {
+      this.advance();
+      this.skipNewlines();
+      let code = '';
+      if (this.match('INDENT')) {
+        this.advance();
+        while (!this.match('DEDENT') && !this.match('EOF')) {
+          if (this.match('NEWLINE')) { this.advance(); code += '\n'; continue; }
+          const tok = this.advance();
+          code += tok.value + ' ';
+        }
+        if (this.match('DEDENT')) this.advance();
+      }
+      return { type: 'JsBlock', code: code.trim(), loc: location };
+    }
+
+    throw new ParseError(`Expected 'import', '{', or ':' after 'js'`, this.current().line, this.current().column);
   }
 
   private parseJsImport(location: SourceLocation): JsImport {
@@ -782,6 +800,10 @@ class Parser {
         action = expr;
       }
     }
+
+    // Parse props after action (e.g., button "Save" -> save() disabled=loading)
+    const postProps = this.parseInlineProps();
+    Object.assign(props, postProps);
 
     return { type: 'Button', label, action, props, loc: location };
   }
@@ -1154,7 +1176,8 @@ class Parser {
       while (!this.match('DEDENT') && !this.match('EOF')) {
         if (this.match('NEWLINE')) { this.advance(); continue; }
         const key = this.expectName();
-        this.expect('PUNCTUATION', ':');
+        // Colon is optional for form field properties
+        if (this.match('PUNCTUATION', ':')) this.advance();
 
         if (key === 'label') {
           label = this.expect('STRING').value;
@@ -2533,6 +2556,15 @@ class Parser {
     // For statement (imperative)
     if (this.match('KEYWORD', 'for')) {
       return this.parseForStmt();
+    }
+
+    // Variable declaration: let name = expr
+    if (this.match('KEYWORD', 'let')) {
+      this.advance();
+      const name = this.expectName();
+      this.expect('OPERATOR', '=');
+      const value = this.parseExpression();
+      return { kind: 'var_decl', name, value };
     }
 
     // Variable-like: identifier = expr or expression statement
