@@ -1,6 +1,6 @@
 {
   "name": "0x-lang",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "0x — AI-First Programming Language Compiler",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,10 +17,12 @@
     "./generators/backend": "./dist/generators/backend.js",
     "./generators/react-native": "./dist/generators/react-native.js",
     "./generators/terraform": "./dist/generators/terraform.js",
-    "./generators/ai-bridge": "./dist/generators/ai-bridge.js"
+    "./generators/ai-bridge": "./dist/generators/ai-bridge.js",
+    "./lsp": "./dist/lsp/server.js"
   },
   "bin": {
-    "0x": "./dist/cli.js"
+    "0x": "./dist/cli.js",
+    "0x-lsp": "./dist/lsp/server.js"
   },
   "files": [
     "dist",
@@ -49,7 +51,11 @@
     "ui",
     "frontend",
     "backend",
-    "fullstack"
+    "fullstack",
+    "lsp",
+    "ide",
+    "vscode",
+    "language-server"
   ],
   "author": "0x-lang contributors",
   "license": "ISC",
