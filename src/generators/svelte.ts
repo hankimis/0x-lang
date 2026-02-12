@@ -32,13 +32,14 @@ interface SvelteContext {
   props: PropDecl[];
   theme: ThemeName | null;
   themeImports: Set<string>;
+  debug: boolean;
 }
 
-function newCtx(): SvelteContext {
-  return { states: new Map(), styles: new Map(), needsOnMount: false, extraScriptLines: [], props: [], theme: null, themeImports: new Set() };
+function newCtx(debug = false): SvelteContext {
+  return { states: new Map(), styles: new Map(), needsOnMount: false, extraScriptLines: [], props: [], theme: null, themeImports: new Set(), debug };
 }
 
-export function generateSvelte(ast: ASTNode[]): GeneratedCode {
+export function generateSvelte(ast: ASTNode[], debug = false): GeneratedCode {
   const parts: string[] = [];
   const themeNode = ast.find(n => n.type === 'ThemeDecl') as any;
   const theme: ThemeName | null = themeNode ? themeNode.theme as ThemeName : null;
@@ -47,7 +48,7 @@ export function generateSvelte(ast: ASTNode[]): GeneratedCode {
     if (node.type === 'ThemeDecl') {
       // Handled above
     } else if (node.type === 'Page' || node.type === 'Component' || node.type === 'App') {
-      parts.push(generateSvelteComponent(node, theme));
+      parts.push(generateSvelteComponent(node, theme, debug));
     } else if (node.type === 'Model') {
       parts.push(genSvelteModelCode(node as ModelNode));
     } else if (node.type === 'AuthDecl') {
@@ -84,8 +85,8 @@ export function generateSvelte(ast: ASTNode[]): GeneratedCode {
   };
 }
 
-function generateSvelteComponent(node: PageNode | ComponentNode | AppNode, theme: ThemeName | null = null): string {
-  const c = newCtx();
+function generateSvelteComponent(node: PageNode | ComponentNode | AppNode, theme: ThemeName | null = null, debug = false): string {
+  const c = newCtx(debug);
   c.theme = theme;
 
   for (const child of node.body) {
@@ -175,6 +176,9 @@ function generateSvelteComponent(node: PageNode | ComponentNode | AppNode, theme
 // ── Declarations ────────────────────────────────────
 
 function genState(node: StateDecl, c: SvelteContext): string {
+  if (c.debug) {
+    return `let ${node.name} = $state(${genExpr(node.initial, c)});\n$effect(() => { console.log('[0x] ${node.name} =', ${node.name}); });`;
+  }
   return `let ${node.name} = $state(${genExpr(node.initial, c)});`;
 }
 
@@ -188,23 +192,26 @@ function genDerived(node: DerivedDecl, c: SvelteContext): string {
 function genFunction(node: FnDecl, c: SvelteContext): string {
   const params = node.params.map(p => p.name).join(', ');
   const asyncKw = node.isAsync ? 'async ' : '';
+  const debugLog = c.debug ? `console.log('[0x] ${node.name}()', ${params ? `{${params}}` : ''});\n  ` : '';
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
-  return `${sc}${asyncKw}function ${node.name}(${params}) {\n  ${body}\n}`;
+  return `${sc}${asyncKw}function ${node.name}(${params}) {\n  ${debugLog}${body}\n}`;
 }
 
 function genOnMount(node: OnMount, c: SvelteContext): string {
   c.needsOnMount = true;
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
   const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
+  const debugLog = c.debug ? `console.log('[0x] mounted');\n  ` : '';
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
-  return `${sc}onMount(${asyncKw}() => {\n  ${body}\n});`;
+  return `${sc}onMount(${asyncKw}() => {\n  ${debugLog}${body}\n});`;
 }
 
 function genOnDestroy(node: OnDestroy, c: SvelteContext): string {
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
+  const debugLog = c.debug ? `console.log('[0x] unmounting');\n    ` : '';
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
-  return `${sc}$effect(() => {\n  return () => {\n    ${body}\n  };\n});`;
+  return `${sc}$effect(() => {\n  return () => {\n    ${debugLog}${body}\n  };\n});`;
 }
 
 function genWatch(node: WatchBlock, c: SvelteContext): string {
@@ -224,6 +231,9 @@ function genCheck(node: CheckDecl, c: SvelteContext): string {
 }
 
 function genApi(node: ApiDecl, c: SvelteContext): string {
+  if (c.debug) {
+    return `async function ${node.name}(params) {\n  console.log('[0x] ${node.method} ${node.url}', params);\n  const res = await fetch('${node.url}', { method: '${node.method}' });\n  const data = await res.json();\n  console.log('[0x] ${node.name} response:', data);\n  return data;\n}`;
+  }
   return `async function ${node.name}(params) {\n  const res = await fetch('${node.url}', { method: '${node.method}' });\n  return res.json();\n}`;
 }
 

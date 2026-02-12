@@ -33,13 +33,14 @@ interface VueContext {
   props: PropDecl[];
   theme: ThemeName | null;
   themeImports: Set<string>;
+  debug: boolean;
 }
 
-function newCtx(): VueContext {
-  return { imports: new Set(), states: new Map(), derivedNames: new Set(), styles: new Map(), extraScriptLines: [], props: [], theme: null, themeImports: new Set() };
+function newCtx(debug = false): VueContext {
+  return { imports: new Set(), states: new Map(), derivedNames: new Set(), styles: new Map(), extraScriptLines: [], props: [], theme: null, themeImports: new Set(), debug };
 }
 
-export function generateVue(ast: ASTNode[]): GeneratedCode {
+export function generateVue(ast: ASTNode[], debug = false): GeneratedCode {
   const parts: string[] = [];
   const themeNode = ast.find(n => n.type === 'ThemeDecl') as any;
   const theme: ThemeName | null = themeNode ? themeNode.theme as ThemeName : null;
@@ -48,7 +49,7 @@ export function generateVue(ast: ASTNode[]): GeneratedCode {
     if (node.type === 'ThemeDecl') {
       // Handled above
     } else if (node.type === 'Page' || node.type === 'Component' || node.type === 'App') {
-      parts.push(generateVueComponent(node, theme));
+      parts.push(generateVueComponent(node, theme, debug));
     } else if (node.type === 'Model') {
       parts.push(genVueModelCode(node as ModelNode));
     } else if (node.type === 'AuthDecl') {
@@ -85,8 +86,8 @@ export function generateVue(ast: ASTNode[]): GeneratedCode {
   };
 }
 
-function generateVueComponent(node: PageNode | ComponentNode | AppNode, theme: ThemeName | null = null): string {
-  const c = newCtx();
+function generateVueComponent(node: PageNode | ComponentNode | AppNode, theme: ThemeName | null = null, debug = false): string {
+  const c = newCtx(debug);
   c.theme = theme;
 
   for (const child of node.body) {
@@ -183,6 +184,10 @@ function generateVueComponent(node: PageNode | ComponentNode | AppNode, theme: T
 
 function genState(node: StateDecl, c: VueContext): string {
   c.imports.add('ref');
+  if (c.debug) {
+    c.imports.add('watch');
+    return `const ${node.name} = ref(${genExpr(node.initial, c)});\nwatch(${node.name}, (v) => console.log('[0x] ${node.name} =', v));`;
+  }
   return `const ${node.name} = ref(${genExpr(node.initial, c)});`;
 }
 
@@ -197,24 +202,27 @@ function genDerived(node: DerivedDecl, c: VueContext): string {
 function genFunction(node: FnDecl, c: VueContext): string {
   const params = node.params.map(p => p.name).join(', ');
   const asyncKw = node.isAsync ? 'async ' : '';
+  const debugLog = c.debug ? `console.log('[0x] ${node.name}()', ${params ? `{${params}}` : ''});\n  ` : '';
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
-  return `${sc}${asyncKw}function ${node.name}(${params}) {\n  ${body}\n}`;
+  return `${sc}${asyncKw}function ${node.name}(${params}) {\n  ${debugLog}${body}\n}`;
 }
 
 function genOnMount(node: OnMount, c: VueContext): string {
   c.imports.add('onMounted');
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
   const asyncKw = bodyContainsAwait(node.body) ? 'async ' : '';
+  const debugLog = c.debug ? `console.log('[0x] mounted');\n  ` : '';
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
-  return `${sc}onMounted(${asyncKw}() => {\n  ${body}\n});`;
+  return `${sc}onMounted(${asyncKw}() => {\n  ${debugLog}${body}\n});`;
 }
 
 function genOnDestroy(node: OnDestroy, c: VueContext): string {
   c.imports.add('onUnmounted');
   const body = node.body.map(s => genStmt(s, c)).join('\n  ');
+  const debugLog = c.debug ? `console.log('[0x] unmounting');\n  ` : '';
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n` : '';
-  return `${sc}onUnmounted(() => {\n  ${body}\n});`;
+  return `${sc}onUnmounted(() => {\n  ${debugLog}${body}\n});`;
 }
 
 function genWatch(node: WatchBlock, c: VueContext): string {
@@ -234,6 +242,9 @@ function genCheck(node: CheckDecl, c: VueContext): string {
 }
 
 function genApi(node: ApiDecl, c: VueContext): string {
+  if (c.debug) {
+    return `async function ${node.name}(params) {\n  console.log('[0x] ${node.method} ${node.url}', params);\n  const res = await fetch('${node.url}', { method: '${node.method}' });\n  const data = await res.json();\n  console.log('[0x] ${node.name} response:', data);\n  return data;\n}`;
+  }
   return `async function ${node.name}(params) {\n  const res = await fetch('${node.url}', { method: '${node.method}' });\n  return res.json();\n}`;
 }
 

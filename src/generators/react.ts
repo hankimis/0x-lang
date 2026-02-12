@@ -40,9 +40,10 @@ export interface GenContext {
   smb: SourceMapBuilder | null; // Source map builder for V3 source maps
   theme: ThemeName | null; // Active UI theme (shadcn, mui, antd, chakra)
   themeImports: Set<string>; // Theme-specific import lines
+  debug: boolean; // Add runtime debug logging
 }
 
-export function ctx(): GenContext {
+export function ctx(debug = false): GenContext {
   return {
     imports: new Set(),
     states: new Map(),
@@ -54,6 +55,7 @@ export function ctx(): GenContext {
     smb: null,
     theme: null,
     themeImports: new Set(),
+    debug,
   };
 }
 
@@ -61,7 +63,7 @@ function ind(c: GenContext): string {
   return '  '.repeat(c.indent);
 }
 
-export function generateReact(ast: ASTNode[]): GeneratedCode {
+export function generateReact(ast: ASTNode[], debug = false): GeneratedCode {
   const parts: string[] = [];
 
   // Detect theme declaration
@@ -136,7 +138,7 @@ export function generateReact(ast: ASTNode[]): GeneratedCode {
     } else if (node.type === 'Rtl') {
       parts.push(genRtlCode(node));
     } else if (node.type === 'Page' || node.type === 'Component' || node.type === 'App') {
-      parts.push(generateTopLevel(node, theme));
+      parts.push(generateTopLevel(node, theme, debug));
     }
   }
 
@@ -203,8 +205,8 @@ export function generateBackendCode(node: ASTNode): string | null {
   }
 }
 
-function generateTopLevel(node: PageNode | ComponentNode | AppNode, theme: ThemeName | null = null): string {
-  const c = ctx();
+function generateTopLevel(node: PageNode | ComponentNode | AppNode, theme: ThemeName | null = null, debug = false): string {
+  const c = ctx(debug);
   c.theme = theme;
 
   // First pass: collect states, derived, props, styles
@@ -405,6 +407,10 @@ function genState(node: StateDecl, c: GenContext): string {
   c.imports.add('useState');
   const setter = 'set' + capitalize(node.name);
   const init = genExpr(node.initial, c);
+  if (c.debug) {
+    c.imports.add('useEffect');
+    return `const [${node.name}, ${setter}] = useState(${init});\n  useEffect(() => { console.log('[0x] ${node.name} =', ${node.name}); }, [${node.name}]);`;
+  }
   return `const [${node.name}, ${setter}] = useState(${init});`;
 }
 
@@ -427,6 +433,9 @@ function genCheck(node: CheckDecl, c: GenContext): string {
 }
 
 function genApi(node: ApiDecl, c: GenContext): string {
+  if (c.debug) {
+    return `const ${node.name} = async (params) => {\n    console.log('[0x] ${node.method} ${node.url}', params);\n    const res = await fetch('${node.url}' + (params ? '?' + new URLSearchParams(params).toString() : ''), { method: '${node.method}' });\n    const data = await res.json();\n    console.log('[0x] ${node.name} response:', data);\n    return data;\n  };`;
+  }
   return `const ${node.name} = async (params) => {\n    const res = await fetch('${node.url}' + (params ? '?' + new URLSearchParams(params).toString() : ''), { method: '${node.method}' });\n    return res.json();\n  };`;
 }
 
@@ -451,6 +460,7 @@ function genFunction(node: FnDecl, c: GenContext): string {
   c.imports.add('useCallback');
   const params = node.params.map(p => p.name).join(', ');
   const asyncKw = node.isAsync ? 'async ' : '';
+  const debugLog = c.debug ? `console.log('[0x] ${node.name}()', ${params ? `{${params}}` : ''});\n    ` : '';
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
 
   // requires
@@ -458,7 +468,7 @@ function genFunction(node: FnDecl, c: GenContext): string {
     `if (!(${genExpr(r, c)})) throw new Error('Precondition failed');`
   ).join('\n    ');
 
-  const allBody = [requireChecks, body].filter(Boolean).join('\n    ');
+  const allBody = [requireChecks, debugLog + body].filter(Boolean).join('\n    ');
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
 
   // Extract deps from function body (exclude function params)
@@ -472,20 +482,22 @@ function genFunction(node: FnDecl, c: GenContext): string {
 
 function genOnMount(node: OnMount, c: GenContext): string {
   c.imports.add('useEffect');
+  const debugLog = c.debug ? `console.log('[0x] mounted');\n    ` : '';
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
   const hasAwait = bodyContainsAwait(node.body);
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
   if (hasAwait) {
-    return `${sc}useEffect(() => {\n    (async () => {\n      ${body}\n    })();\n  }, []);`;
+    return `${sc}useEffect(() => {\n    ${debugLog}(async () => {\n      ${body}\n    })();\n  }, []);`;
   }
-  return `${sc}useEffect(() => {\n    ${body}\n  }, []);`;
+  return `${sc}useEffect(() => {\n    ${debugLog}${body}\n  }, []);`;
 }
 
 function genOnDestroy(node: OnDestroy, c: GenContext): string {
   c.imports.add('useEffect');
   const body = node.body.map(s => genStatement(s, c)).join('\n    ');
+  const debugLog = c.debug ? `console.log('[0x] unmounting');\n      ` : '';
   const sc = node.loc?.line ? `// 0x:L${node.loc.line}\n  ` : '';
-  return `${sc}useEffect(() => {\n    return () => {\n      ${body}\n    };\n  }, []);`;
+  return `${sc}useEffect(() => {\n    return () => {\n      ${debugLog}${body}\n    };\n  }, []);`;
 }
 
 function genWatch(node: WatchBlock, c: GenContext): string {
