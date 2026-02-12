@@ -1,5 +1,6 @@
 // 0x Compiler Pipeline
 
+import { tokenize, type Token } from './tokenizer.js';
 import { parse } from './parser.js';
 import { generateReact } from './generators/react.js';
 import { generateVue } from './generators/vue.js';
@@ -7,8 +8,8 @@ import { generateSvelte } from './generators/svelte.js';
 import { generateBackend } from './generators/backend.js';
 import { generateReactNative } from './generators/react-native.js';
 import { generateTerraform } from './generators/terraform.js';
-import { validate } from './validator.js';
-import type { GeneratedCode } from './ast.js';
+import { validate, type ValidationError } from './validator.js';
+import type { ASTNode, GeneratedCode } from './ast.js';
 
 export type CompileTarget = 'react' | 'vue' | 'svelte' | 'backend' | 'react-native' | 'terraform';
 
@@ -21,6 +22,18 @@ export interface CompileOptions {
   useClient?: boolean;
   // AI-optimized compact output — strips comments, minimizes whitespace
   compact?: boolean;
+  // Add runtime debug logging (console.log) to generated code
+  debug?: boolean;
+}
+
+export interface DebugInfo {
+  source: string;
+  tokens: Token[];
+  ast: ASTNode[];
+  validation: { errors: ValidationError[] };
+  generated: Record<string, GeneratedCode>;
+  timing: { tokenize: number; parse: number; validate: number; generate: Record<string, number> };
+  stats: { sourceLines: number; tokenCount: number; nodeCount: number };
 }
 
 export function compile(source: string, options: CompileOptions): GeneratedCode {
@@ -35,16 +48,18 @@ export function compile(source: string, options: CompileOptions): GeneratedCode 
     }
   }
 
+  const debug = options.debug ?? false;
+
   let result: GeneratedCode;
   switch (options.target) {
     case 'react':
-      result = generateReact(ast);
+      result = generateReact(ast, debug);
       break;
     case 'vue':
-      result = generateVue(ast);
+      result = generateVue(ast, debug);
       break;
     case 'svelte':
-      result = generateSvelte(ast);
+      result = generateSvelte(ast, debug);
       break;
     case 'backend':
       result = generateBackend(ast);
@@ -79,6 +94,66 @@ export function compile(source: string, options: CompileOptions): GeneratedCode 
   }
 
   return result;
+}
+
+function countASTNodes(nodes: ASTNode[]): number {
+  let count = 0;
+  function walk(node: any) {
+    if (!node || typeof node !== 'object') return;
+    if (node.type) count++;
+    if (Array.isArray(node.body)) node.body.forEach(walk);
+    if (Array.isArray(node.children)) node.children.forEach(walk);
+    if (node.elseBody) walk(node.elseBody);
+    if (node.consequent) walk(node.consequent);
+    if (node.alternate) walk(node.alternate);
+  }
+  nodes.forEach(walk);
+  return count;
+}
+
+export function compileDebug(source: string): DebugInfo {
+  const t0 = performance.now();
+  const tokens = tokenize(source);
+  const t1 = performance.now();
+
+  const ast = parse(source);
+  const t2 = performance.now();
+
+  const validationResult = validate(ast);
+  const t3 = performance.now();
+
+  const targets: CompileTarget[] = ['react', 'vue', 'svelte'];
+  const generated: Record<string, GeneratedCode> = {};
+  const genTiming: Record<string, number> = {};
+
+  for (const target of targets) {
+    const g0 = performance.now();
+    try {
+      generated[target] = compile(source, { target, validate: false, sourceMap: false });
+    } catch (err) {
+      generated[target] = { code: `// Error: ${(err as Error).message}`, filename: '', imports: [], lineCount: 0, tokenCount: 0 };
+    }
+    genTiming[target] = performance.now() - g0;
+  }
+
+  return {
+    source,
+    tokens,
+    ast,
+    validation: { errors: validationResult.errors },
+    generated,
+    timing: {
+      tokenize: t1 - t0,
+      parse: t2 - t1,
+      validate: t3 - t2,
+      generate: genTiming,
+    },
+    stats: {
+      sourceLines: source.split('\n').filter(l => l.trim().length > 0).length,
+      tokenCount: tokens.length,
+      nodeCount: countASTNodes(ast),
+    },
+  };
 }
 
 function compactify(result: GeneratedCode): GeneratedCode {

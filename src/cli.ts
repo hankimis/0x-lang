@@ -4,7 +4,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, watchFile } from 'fs';
 import { resolve, basename, join } from 'path';
-import { compile } from './compiler.js';
+import { compile, compileDebug } from './compiler.js';
 import type { CompileTarget } from './compiler.js';
 import { initProject } from './init.js';
 import { getLanguageSpec } from './generators/ai-bridge.js';
@@ -15,8 +15,10 @@ const HELP = `
 0x Compiler CLI
 
 Usage:
-  0x build <file.ai> --target <target> [--output <dir>] [--compact]
+  0x build <file.ai> --target <target> [--output <dir>] [--compact] [--debug]
   0x dev <file.ai> --target <target>
+  0x debug <file.ai>
+  0x inspect <file.ai>
   0x bench <file.ai>
   0x spec
   0x init [project-name]
@@ -24,6 +26,8 @@ Usage:
 Commands:
   build    Compile .ai file to target framework code
   dev      Watch mode — recompile on file changes
+  debug    Show full compilation pipeline (tokens, AST, validation, timing)
+  inspect  Show generated code for all 3 targets (react, vue, svelte)
   bench    Show token efficiency benchmark
   spec     Print the 0x language specification (for AI/LLM agents)
   init     Create a new 0x project
@@ -40,15 +44,19 @@ Options:
   --target <target>    Target framework (comma-separated for multiple)
   --output <dir>       Output directory (default: ./dist/)
   --compact            AI-optimized compact output (strips comments, minimizes whitespace)
+  --debug              Add runtime debug logging ([0x] console.log) to generated code
   --no-sourcemap       Disable source maps
   --help               Show this help message
 
 Examples:
   0x build todo.ai --target react
+  0x build todo.ai --target react --debug
   0x build api.ai --target backend
   0x build infra.ai --target terraform
   0x build todo.ai --target react,vue,svelte --output ./dist/
   0x build todo.ai --target react --compact
+  0x debug todo.ai
+  0x inspect todo.ai
   0x dev todo.ai --target react
   0x bench todo.ai
   0x spec
@@ -71,6 +79,12 @@ function main(): void {
       break;
     case 'dev':
       devCommand(args.slice(1));
+      break;
+    case 'debug':
+      debugCommand(args.slice(1));
+      break;
+    case 'inspect':
+      inspectCommand(args.slice(1));
       break;
     case 'bench':
       benchCommand(args.slice(1));
@@ -137,7 +151,8 @@ function buildCommand(args: string[]): void {
     try {
       const compact = process.argv.includes('--compact');
       const noSourceMap = process.argv.includes('--no-sourcemap');
-      const result = compile(source, { target: target as CompileTarget, compact, sourceMap: noSourceMap ? false : undefined });
+      const debug = process.argv.includes('--debug');
+      const result = compile(source, { target: target as CompileTarget, compact, sourceMap: noSourceMap ? false : undefined, debug });
       const extMap: Record<string, string> = { react: 'jsx', vue: 'vue', svelte: 'svelte', backend: 'ts', 'react-native': 'tsx', terraform: 'tf' };
       const ext = extMap[target] || 'js';
       const outDir = resolve(output, target);
@@ -234,6 +249,119 @@ function benchCommand(args: string[]): void {
       console.log(`  0x: ${srcLines} lines / ${srcTokens} tokens → ${target}: ${genLines} lines / ${genTokens} tokens (${tokenSavings}% token savings)\n`);
     } catch (err) {
       console.error(`  ${target}: Error — ${(err as Error).message}\n`);
+    }
+  }
+}
+
+function debugCommand(args: string[]): void {
+  const file = args.find(a => !a.startsWith('-'));
+  if (!file) {
+    console.error('Error: No input file specified');
+    process.exit(1);
+  }
+  const filePath = resolve(file);
+  if (!existsSync(filePath)) {
+    console.error(`Error: File not found: ${filePath}`);
+    process.exit(1);
+  }
+
+  const source = readFileSync(filePath, 'utf-8');
+
+  console.log(`\n\x1b[36m━━━ 0x Debug: ${file} ━━━\x1b[0m\n`);
+
+  const info = compileDebug(source);
+
+  // 1. TOKENS (first 30)
+  console.log(`\x1b[33m▸ TOKENS\x1b[0m (${info.tokens.length} total, showing first 30)\n`);
+  const tokenSlice = info.tokens.slice(0, 30);
+  console.log('  Line  Col  Type            Value');
+  console.log('  ────  ───  ──────────────  ─────────────────────');
+  for (const t of tokenSlice) {
+    const val = t.value.replace(/\n/g, '\\n').slice(0, 24);
+    console.log(`  ${String(t.line).padStart(4)}  ${String(t.column).padStart(3)}  ${t.type.padEnd(14)}  ${val}`);
+  }
+  if (info.tokens.length > 30) console.log(`  ... +${info.tokens.length - 30} more tokens`);
+
+  // 2. AST (first 50 lines of JSON)
+  console.log(`\n\x1b[33m▸ AST\x1b[0m (${info.stats.nodeCount} nodes)\n`);
+  const astJson = JSON.stringify(info.ast, null, 2).split('\n');
+  const astSlice = astJson.slice(0, 50);
+  for (const line of astSlice) {
+    console.log(`  ${line}`);
+  }
+  if (astJson.length > 50) console.log(`  ... +${astJson.length - 50} more lines`);
+
+  // 3. VALIDATION
+  console.log(`\n\x1b[33m▸ VALIDATION\x1b[0m`);
+  if (info.validation.errors.length === 0) {
+    console.log(`  \x1b[32m✓ Passed\x1b[0m (no errors)`);
+  } else {
+    console.log(`  \x1b[31m✗ ${info.validation.errors.length} errors:\x1b[0m`);
+    for (const e of info.validation.errors) {
+      console.log(`    Line ${e.line}, Col ${e.column}: ${e.message}`);
+    }
+  }
+
+  // 4. GENERATED CODE
+  console.log(`\n\x1b[33m▸ GENERATED CODE\x1b[0m\n`);
+  for (const [target, gen] of Object.entries(info.generated)) {
+    const badge = target === 'react' ? '\x1b[36m' : target === 'vue' ? '\x1b[32m' : '\x1b[31m';
+    console.log(`  ${badge}${target}\x1b[0m: ${gen.lineCount} lines / ${gen.tokenCount} tokens`);
+    const preview = gen.code.split('\n').slice(0, 20);
+    for (const line of preview) {
+      console.log(`    ${line}`);
+    }
+    if (gen.code.split('\n').length > 20) console.log(`    ...`);
+    console.log('');
+  }
+
+  // 5. TIMING
+  console.log(`\x1b[33m▸ TIMING\x1b[0m\n`);
+  console.log(`  Tokenize:  ${info.timing.tokenize.toFixed(2)}ms`);
+  console.log(`  Parse:     ${info.timing.parse.toFixed(2)}ms`);
+  console.log(`  Validate:  ${info.timing.validate.toFixed(2)}ms`);
+  for (const [target, ms] of Object.entries(info.timing.generate)) {
+    console.log(`  Generate (${target}): ${ms.toFixed(2)}ms`);
+  }
+  const totalMs = info.timing.tokenize + info.timing.parse + info.timing.validate + Object.values(info.timing.generate).reduce((a, b) => a + b, 0);
+  console.log(`  \x1b[1mTotal:     ${totalMs.toFixed(2)}ms\x1b[0m`);
+
+  // 6. SUMMARY
+  console.log(`\n\x1b[33m▸ SUMMARY\x1b[0m\n`);
+  console.log(`  Source:  ${info.stats.sourceLines} lines / ${info.stats.tokenCount} tokens / ${info.stats.nodeCount} AST nodes`);
+  for (const [target, gen] of Object.entries(info.generated)) {
+    const ratio = (gen.lineCount / info.stats.sourceLines).toFixed(1);
+    console.log(`  → ${target}: ${gen.lineCount} lines (${ratio}x expansion)`);
+  }
+  console.log('');
+}
+
+function inspectCommand(args: string[]): void {
+  const file = args.find(a => !a.startsWith('-'));
+  if (!file) {
+    console.error('Error: No input file specified');
+    process.exit(1);
+  }
+  const filePath = resolve(file);
+  if (!existsSync(filePath)) {
+    console.error(`Error: File not found: ${filePath}`);
+    process.exit(1);
+  }
+
+  const source = readFileSync(filePath, 'utf-8');
+  const targets: CompileTarget[] = ['react', 'vue', 'svelte'];
+
+  console.log(`\n\x1b[36m━━━ 0x Inspect: ${file} ━━━\x1b[0m\n`);
+
+  for (const target of targets) {
+    const badge = target === 'react' ? '\x1b[36m' : target === 'vue' ? '\x1b[32m' : '\x1b[31m';
+    try {
+      const result = compile(source, { target, validate: false, sourceMap: false });
+      console.log(`${badge}── ${target.toUpperCase()} ──\x1b[0m (${result.lineCount} lines / ${result.tokenCount} tokens)\n`);
+      console.log(result.code);
+      console.log('');
+    } catch (err) {
+      console.error(`${badge}── ${target.toUpperCase()} ──\x1b[0m \x1b[31mError: ${(err as Error).message}\x1b[0m\n`);
     }
   }
 }
