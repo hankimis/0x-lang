@@ -51,19 +51,37 @@ construction.
 |---|---:|
 | Naive prompting (spec + grammar in prompt) | **1 / 5** |
 | Constrained (JSON-schema AST → render) | **3 / 5** |
+| + JS-idiom canonicalization + tokenizer fix | **4 / 5** |
 
-The improvement is real and it isolates the remaining problem precisely: the
-residual failures are **never structural** anymore — they're 0x **expression-grammar**
-limits the model trips on (JS spread `...`, `if(){}` on one line, `;`, `//`, `!==`).
-0x's expression/statement syntax is a strict, JS-divergent subset.
+The improvement is real (**4×**) and it isolates the remaining problem precisely:
+once structure is enforced, the failures are **never structural** — they're 0x's
+**expression sublanguage being narrower than JS**. We closed the common gaps:
+
+- **Canonicalization** (in the renderer, general — any model emits these): array
+  spread `[...xs, y]` → `xs.concat([y])`, strict-eq `===`/`!==` → `==`/`!=`,
+  strip `//` comments and `;`.
+- **A real compiler bug, fixed:** the eval surfaced that `arr[i].prop` mis-lexed
+  the `.prop` as a CSS style-class (the tokenizer treated `]` as a non-word char).
+  One-char fix in `src/tokenizer.ts`; all 303 tests still pass.
 
 **Why GBNF wasn't the answer:** 0x is indentation-sensitive; a context-free GBNF
 can't count indentation, so it can't fully constrain 0x. JSON-schema-AST sidesteps
 this (see `scripts/constrained/README.md`).
 
-**Path to ~5/5 (actionable):** model function bodies as a recursive statement AST
-too (not flat strings), and broaden 0x's expression parser toward JS. I.e.,
-0x-as-verifiable-target works *in proportion to how completely you model its AST*.
+### The honest ceiling at n=5
+
+The residual 1/5 is the **"toggle an item in a list"** task. It keeps failing in a
+*different* way each run (object spread `{...t, done:!t.done}`, member-target
+assignment in an arrow `t => t.done = !t.done`, …) because immutable list-item
+updates hit whichever narrow spot of 0x's expression grammar the model's phrasing
+lands on. At n=5 with stochastic generation, 4/5↔5/5 is **noise** — and forcing a
+green 5/5 with task-specific hacks would be overfitting, not a result. The honest
+claim is the 4× lift and a precisely characterized residual.
+
+**Path to a *real* 5/5 (compiler work, not prompt tricks):** broaden 0x's
+expression parser toward JS where it's narrow — object spread, member-target
+assignment in arrow bodies — and re-measure on a larger task set (n≥20). That's a
+genuine compiler-roadmap item, the same lever every residual failure points to.
 
 ## Honest limitations
 
