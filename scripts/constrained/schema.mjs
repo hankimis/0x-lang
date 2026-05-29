@@ -3,37 +3,33 @@
 // WHY NOT GBNF: 0x is indentation-sensitive (INDENT/DEDENT). A context-free GBNF
 // grammar cannot count indentation, so it can't fully constrain 0x. The right
 // tool is to constrain the model to a JSON *AST* (schema-guaranteed) and render
-// canonical 0x ourselves — indentation correct by construction. This sidesteps
-// the exact syntax errors naive prompting produced (see EVAL.md).
+// canonical 0x ourselves — indentation correct by construction.
 //
-// scripts/constrained/0x.gbnf keeps a line-level GBNF for runtimes that want it,
-// but JSON-schema-AST is the approach that actually fixes first-try validity.
+// NOTE ON SCHEMA WEIGHT: an earlier version modeled function bodies as a fully
+// recursive statement AST. Under OpenAI strict mode (every field required, all
+// nullable) that ballooned the JSON until it truncated mid-output ("unterminated
+// string"). Lesson: keep the constrained schema LEAN. Bodies are statement
+// strings; we canonicalize the few forms 0x's parser lacks (spread, // comments,
+// multi-statement lines) in the renderer.
 
 const ENUM_TYPE = ['int', 'str', 'bool', 'float', 'list[any]', 'any'];
 const ENUM_SIZE = ['sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl'];
 const ENUM_DIR = ['row', 'col'];
 const ENUM_STYLE = ['primary', 'danger', 'ghost', 'default'];
 
-// OpenAI strict structured-output schema: every property required,
-// additionalProperties:false, optionals expressed as nullable.
 const nodeDef = {
-  type: 'object',
-  additionalProperties: false,
+  type: 'object', additionalProperties: false,
   properties: {
     kind: { type: 'string', enum: ['text', 'button', 'input', 'layout'] },
-    // text
     value: { type: ['string', 'null'] },
     size: { type: ['string', 'null'], enum: [...ENUM_SIZE, null] },
     bold: { type: ['boolean', 'null'] },
     color: { type: ['string', 'null'] },
-    // button
     label: { type: ['string', 'null'] },
     style: { type: ['string', 'null'], enum: [...ENUM_STYLE, null] },
     action: { type: ['string', 'null'] },
-    // input
     model: { type: ['string', 'null'] },
     placeholder: { type: ['string', 'null'] },
-    // layout
     dir: { type: ['string', 'null'], enum: [...ENUM_DIR, null] },
     gap: { type: ['integer', 'null'] },
     padding: { type: ['integer', 'null'] },
@@ -47,8 +43,7 @@ export const OX_SCHEMA = {
   name: 'ox_page',
   strict: true,
   schema: {
-    type: 'object',
-    additionalProperties: false,
+    type: 'object', additionalProperties: false,
     $defs: { node: nodeDef },
     properties: {
       page: { type: 'string' },
@@ -72,7 +67,12 @@ export const OX_SCHEMA = {
         type: 'array',
         items: {
           type: 'object', additionalProperties: false,
-          properties: { name: { type: 'string' }, params: { type: 'array', items: { type: 'string' } }, body: { type: 'array', items: { type: 'string' } } },
+          properties: {
+            name: { type: 'string' },
+            params: { type: 'array', items: { type: 'string' } },
+            // one simple 0x statement per entry (assignment or call)
+            body: { type: 'array', items: { type: 'string' } },
+          },
           required: ['name', 'params', 'body'],
         },
       },
@@ -82,7 +82,32 @@ export const OX_SCHEMA = {
   },
 };
 
-// ---- renderer: AST → canonical 0x (indentation correct by construction) ----
+// ---- expression canonicalization (leaf strings) ----
+// 0x's expression parser lacks JS spread; rewrite the common array-spread forms.
+function expr(s) {
+  let x = String(s ?? '').replace(/\/\/.*$/, '').trim().replace(/;+$/, '');
+  x = x.replace(/!==/g, '!=').replace(/===/g, '=='); // 0x has ==/!= only, not strict eq
+  x = x.replace(/^\[\s*\.\.\.([A-Za-z_$][\w$]*)\s*,\s*([\s\S]+)\]$/, '$1.concat([$2])'); // [...X, y] -> X.concat([y])
+  x = x.replace(/^\[\s*\.\.\.([A-Za-z_$][\w$]*)\s*\]$/, '$1.slice()'); // [...X] -> X.slice()
+  return x;
+}
+
+// 0x is one-statement-per-line, `#` comments (not `//`), no `;`. Canonicalize.
+function sanitizeBody(lines) {
+  const out = [];
+  for (const raw of lines || []) {
+    let s = String(raw).replace(/\/\/.*$/, '').trim(); // drop // comments
+    if (!s) continue;
+    for (let part of s.split(';')) { part = expr(part); if (part) out.push(part); }
+  }
+  return out;
+}
+
+// page names must be a single identifier; models sometimes return "Contact Form"
+const toIdent = (s) =>
+  ((s || 'App').replace(/[^A-Za-z0-9_]+/g, ' ').trim().split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('') || 'App');
+
 const pad = (n) => '  '.repeat(n);
 
 function renderNode(node, depth) {
@@ -97,7 +122,7 @@ function renderNode(node, depth) {
   if (node.kind === 'button') {
     let s = `${i}button "${node.label ?? ''}"`;
     if (node.style && node.style !== 'default') s += ` style=${node.style}`;
-    if (node.action) s += ` -> ${node.action}`;
+    if (node.action) s += ` -> ${expr(node.action)}`;
     return s;
   }
   if (node.kind === 'input') {
@@ -117,27 +142,10 @@ function renderNode(node, depth) {
   return `${i}text ""`;
 }
 
-// 0x is one-statement-per-line, uses `#` comments (not `//`), and no `;`.
-// Models emit JS-ish bodies; canonicalize them so structural validity holds.
-function sanitizeBody(lines) {
-  const out = [];
-  for (const raw of lines || []) {
-    let s = String(raw).replace(/\/\/.*$/, '').trim(); // drop // comments
-    if (!s) continue;
-    for (let part of s.split(';')) { part = part.trim(); if (part) out.push(part); }
-  }
-  return out;
-}
-
-// page names must be a single identifier; models sometimes return "Contact Form"
-const toIdent = (s) =>
-  ((s || 'App').replace(/[^A-Za-z0-9_]+/g, ' ').trim().split(/\s+/)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('') || 'App');
-
 export function renderOx(ast) {
   const L = [`page ${toIdent(ast.page)}:`];
-  for (const s of ast.state || []) L.push(`  state ${s.name}: ${s.type} = ${s.init}`);
-  for (const d of ast.derived || []) L.push(`  derived ${d.name} = ${d.expr}`);
+  for (const s of ast.state || []) L.push(`  state ${s.name}: ${s.type} = ${expr(s.init)}`);
+  for (const d of ast.derived || []) L.push(`  derived ${d.name} = ${expr(d.expr)}`);
   for (const f of ast.functions || []) {
     L.push('');
     L.push(`  fn ${f.name}(${(f.params || []).join(', ')}):`);

@@ -28,12 +28,12 @@ const TASKS = [
 const SYS =
   'You design small UI apps as a structured AST for the 0x language. ' +
   'Use state for mutable values, derived for computed values, functions for actions, ' +
-  'and view for the UI tree. Keep expressions as plain JS strings (e.g. "count + 1"). ' +
-  'Reference state by name in text via "{name}". ' +
-  'IMPORTANT: each function body entry must be ONE simple statement — an assignment ' +
-  'or a call (e.g. "count += 1", "items = items.filter(i => !i.done)"). ' +
-  'Do NOT use if/for blocks, semicolons, // comments, or multi-statement lines; ' +
-  'express conditionals as a ternary inside an assignment when needed.';
+  'and view for the UI tree. Reference state by name in text via "{name}". ' +
+  'Each function body entry is ONE simple statement string — an assignment or a call ' +
+  '(e.g. "count += 1", "items.push({id: Date.now(), text: input})", "items = items.filter(i => !i.done)"). ' +
+  'To add to a list, use "list.push(item)". To remove, "list = list.filter(...)". ' +
+  'Do NOT use JS spread (...), if/for blocks, semicolons, // comments, or multi-statement lines; ' +
+  'use a ternary inside an assignment for conditionals.';
 
 async function genAst(task) {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -41,6 +41,7 @@ async function genAst(task) {
     headers: { 'content-type': 'application/json', authorization: `Bearer ${KEY}` },
     body: JSON.stringify({
       model: MODEL,
+      max_tokens: 4096,
       messages: [{ role: 'system', content: SYS }, { role: 'user', content: `Design: ${task}` }],
       response_format: { type: 'json_schema', json_schema: OX_SCHEMA },
     }),

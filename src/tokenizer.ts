@@ -196,7 +196,7 @@ export function tokenize(source: string): Token[] {
       if (ch === '.' && col + 1 < lineContent.length && /[a-zA-Z_]/.test(lineContent[col + 1])) {
         // Check if previous non-whitespace char was part of an identifier/number
         const prevChar = col > 0 ? lineContent[col - 1] : ' ';
-        const prevIsWord = /[a-zA-Z0-9_)]/.test(prevChar);
+        const prevIsWord = /[a-zA-Z0-9_)\]]/.test(prevChar); // ] too: arr[i].prop is member access, not a style class
         if (!prevIsWord) {
           let cls = '.';
           let j = col + 1;

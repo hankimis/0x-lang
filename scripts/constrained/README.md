@@ -17,15 +17,21 @@ npm run build
 OPENAI_API_KEY=sk-... node scripts/constrained/eval.mjs
 ```
 
-**Result (gpt-4o, 5 tasks):** first-try compile **1/5 (naive) → 3/5 (constrained)**.
+**Result (gpt-4o, 5 tasks):** first-try compile **1/5 (naive) → 3/5 (raw constrained)
+→ 4/5 (+ canonicalization + a tokenizer fix)**.
 
-The residual failures are NOT structural — they're 0x **expression-grammar**
-limits the model trips on (JS spread `...`, `if(){}` on a line, `;`, `//`, `!==`).
-0x's expression/statement syntax is a strict, JS-divergent subset.
+Canonicalization (general, in the renderer — any model emits these): array spread
+`[...xs, y]` → `xs.concat([y])`, `===`/`!==` → `==`/`!=`, strip `//` and `;`.
+The eval also surfaced a real compiler bug — `arr[i].prop` lexed `.prop` as a CSS
+style-class — fixed in `src/tokenizer.ts` (303 tests still pass).
 
-**Path to ~5/5 (clear, actionable):**
-- Model function bodies as a recursive *statement* AST too (currently flat strings) — close the last nesting gap.
-- Broaden 0x's expression parser toward JS (spread, ternary, etc.) so common idioms parse.
+**Honest ceiling:** the residual 1/5 is the "toggle item in a list" task, which
+fails a *different* way each run (object spread, arrow member-assignment, …)
+because immutable list updates hit 0x's narrow expression grammar. At n=5 this is
+noise; forcing 5/5 with task hacks would be overfitting.
+
+**Path to a real 5/5 (compiler work, not prompt tricks):** broaden 0x's expression
+parser (object spread, member-target assignment in arrows) and re-measure at n≥20.
 
 ### 2. GBNF (line-level) — `0x.gbnf`  ⚠️ partial
 Grammar-constrained sampling for llama.cpp / vLLM. **Honest limitation:** 0x is
