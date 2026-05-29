@@ -34,6 +34,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "compile": "node --loader ts-node/esm src/cli.ts",
+    "benchmark": "node scripts/benchmark.mjs",
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
@@ -79,6 +80,8 @@
   },
   "devDependencies": {
     "@types/node": "^25.2.2",
+    "gpt-tokenizer": "^3.4.0",
+    "prettier": "^3.8.3",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }

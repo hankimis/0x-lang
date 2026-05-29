@@ -1,0 +1,37 @@
+# 0x — line-level GBNF (DRAFT) for grammar-constrained decoding (llama.cpp / vLLM).
+#
+# ⚠️ HONEST LIMITATION: 0x is INDENTATION-SENSITIVE (INDENT/DEDENT). GBNF is
+# context-free and cannot count indentation, so this grammar CANNOT fully
+# constrain valid 0x — it constrains the per-line token structure (which is what
+# the observed naive-prompting failures actually were: `button "x" :`, `[map]=[`).
+# Nesting correctness is NOT enforced here.
+#
+# For FULL structural validity, prefer the JSON-schema-AST approach in
+# schema.mjs (indentation correct by construction). See README.md.
+#
+# Usage (llama.cpp server):
+#   llama-server -m model.gguf
+#   curl .../completion -d '{"prompt":"...","grammar":"<contents of this file>"}'
+
+root        ::= "page " ident ":" nl line+
+line        ::= ws (statedecl | derivedecl | viewline) nl
+statedecl   ::= "state " ident ":" ws type ws "=" ws expr
+derivedecl  ::= "derived " ident ws "=" ws expr
+viewline    ::= layout | text | button | input
+layout      ::= ("row" | "col" | "grid" | "stack") attrs ":"
+text        ::= "text " string size? bold?
+button      ::= "button " string style? arrow?
+input       ::= "input " ident placeholder?
+attrs       ::= (ws "gap=" int | ws "padding=" int | ws "center")*
+size        ::= ws "size=" ("sm"|"md"|"lg"|"xl"|"2xl"|"3xl"|"4xl")
+bold        ::= ws "bold"
+style       ::= ws "style=" ("primary"|"danger"|"ghost")
+arrow       ::= ws "-> " ident "(" ")"
+placeholder ::= ws "placeholder=" string
+type        ::= "int" | "str" | "bool" | "float" | "any" | "list[any]"
+expr        ::= [^\n]+
+ident       ::= [a-zA-Z_] [a-zA-Z0-9_]*
+string      ::= "\"" [^"]* "\""
+int         ::= [0-9]+
+ws          ::= [ \t]*
+nl          ::= "\n"

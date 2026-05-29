@@ -1,0 +1,17 @@
+page Counter:
+  state count: int = 0
+  derived doubled = count * 2
+
+  fn increment():
+    count += 1
+
+  fn reset():
+    count = 0
+
+  layout col gap=16 padding=24 center:
+    text "Counter" size=2xl bold
+    text "{count}" size=4xl bold color=#06b6d4
+    text "doubled: {doubled}" size=md color=#64748b
+    layout row gap=8:
+      button "reset" -> reset()
+      button "+1" style=primary -> increment()

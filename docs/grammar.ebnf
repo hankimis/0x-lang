@@ -1,0 +1,85 @@
+(* 0x — core grammar (EBNF), derived from src/tokenizer.ts + src/parser.ts.
+ *
+ * SCOPE (honest): this covers the CORE subset that the examples actually
+ * exercise — declarations, layout, primitives, control flow, events, lifecycle.
+ * The tokenizer defines ~150 keywords (model/auth/realtime/route/chart/deploy/…);
+ * most are NOT in this grammar because they are unexercised by any example and
+ * their parser paths are unverified. Extend deliberately, with tests.
+ *
+ * USE: convert to a constrained-decoding format for your runtime —
+ *   - llama.cpp / vLLM:  EBNF → GBNF
+ *   - OpenAI/structured: derive a JSON-schema "AST emit" variant
+ * Grammar-constrained sampling makes invalid 0x UNREPRESENTABLE at decode time,
+ * which is the point: it removes syntax errors for a DSL the model never saw.
+ *)
+
+program      = { import_stmt } , { top_decl } ;
+
+import_stmt  = "import" , ident , { "," , ident } , "from" , string ;
+
+top_decl     = page | component | app ;
+page         = "page" , ident , ":" , INDENT , { member } , DEDENT ;
+component    = "component" , ident , ":" , INDENT , { prop_decl } , { member } , DEDENT ;
+app          = "app" , ident , ":" , INDENT , { member } , DEDENT ;
+
+member       = state_decl | derived_decl | fn_decl | lifecycle | node ;
+
+state_decl   = "state" , ident , [ ":" , type ] , [ "=" , expr ] ;
+derived_decl = "derived" , ident , "=" , expr ;
+prop_decl    = "prop" , ident , [ "=" , expr ] ;
+
+fn_decl      = [ "async" ] , "fn" , ident , "(" , [ params ] , ")" , ":" ,
+               INDENT , { statement } , DEDENT ;
+params       = ident , { "," , ident } ;
+
+lifecycle    = ( "mount" | "destroy" ) , ":" , INDENT , { statement } , DEDENT ;
+
+(* ---- view nodes ---- *)
+node         = layout | text | button | input | image | link | control ;
+
+layout       = ( "row" | "col" | "grid" | "stack" ) , { layout_attr } , ":" ,
+               INDENT , { node } , DEDENT ;
+layout_attr  = "gap" , "=" , number
+             | "padding" , "=" , number
+             | ( "center" | "middle" | "between" | "end" ) ;
+
+text         = "text" , ( string | interp ) , { style_attr } ;
+button       = "button" , string , { style_attr } , [ "->" , action ] ;
+input        = "input" , ident , { input_attr } ;
+image        = "image" , ( string | ident ) , { style_attr } ;
+link         = "link" , string , { style_attr } ;
+
+style_attr   = "size" , "=" , size_val
+             | "color" , "=" , ( color | ident )
+             | "bold" | "italic"
+             | "style" , "=" , ( "primary" | "danger" | "ghost" | ident ) ;
+size_val     = "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" ;
+input_attr   = "placeholder" , "=" , string ;
+
+(* ---- control flow ---- *)
+control      = if_stmt | for_stmt | show_stmt ;
+if_stmt      = "if" , expr , ":" , INDENT , { node } , DEDENT ,
+               { "elif" , expr , ":" , INDENT , { node } , DEDENT } ,
+               [ "else" , ":" , INDENT , { node } , DEDENT ] ;
+for_stmt     = "for" , ident , "in" , expr , ":" , INDENT , { node } , DEDENT ;
+show_stmt    = ( "show" | "hide" ) , "when" , expr , ":" , INDENT , { node } , DEDENT ;
+
+(* ---- actions / statements ---- *)
+action       = call | assignment ;
+statement    = assignment | call | ret | [ "await" ] expr ;
+assignment   = ident , ( "=" | "+=" | "-=" | "*=" | "/=" ) , expr ;
+call         = ident , "(" , [ args ] , ")" ;
+ret          = "return" , [ expr ] ;
+args         = expr , { "," , expr } ;
+
+(* ---- expressions (delegated to host JS expr; kept loose on purpose) ---- *)
+expr         = (* JS-like expression: literals, ident, member, call, binops, arrow fns *) ;
+interp       = '"' , { char | "{" , expr , "}" } , '"' ;
+type         = "int" | "str" | "bool" | "float" | "any"
+             | "list" , "[" , type , "]" | "map" | "set" ;
+
+(* ---- terminals ---- *)
+ident        = letter , { letter | digit | "_" } ;   (* Unicode letters allowed *)
+string       = '"' , { char } , '"' ;
+number       = digit , { digit } , [ "." , { digit } ] ;
+color        = "#" , 3 * 6 hexdigit | ident ;
