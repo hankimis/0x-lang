@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: "0x-lang: an AI-first language compiling to React, Vue, Svelte, React Native, Express and Terraform"
+message: "If you use this software, please cite it."
+type: software
+authors:
+  - family-names: Kim
+    given-names: Han
+    affiliation: IOV LABS
+repository-code: "https://github.com/hankimis/0x-lang"
+url: "https://github.com/hankimis/0x-lang"
+version: "0.1.29"
+license: ISC
+keywords:
+  - compiler
+  - DSL
+  - LLM code generation
+  - multi-target
+  - verifiable codegen
