@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-05
+
+### Added
+
+- **Honest token benchmark** (`npm run benchmark`, `scripts/benchmark.mjs`) — measures 0x source vs the framework code it compiles to using a real BPE tokenizer (`gpt-tokenizer`), across all 10 examples × React/Vue/Svelte. Writes a reproducible `REPORT.md`.
+- **LLM eval harness stub** (`scripts/llm-eval.mjs`) — given an API key, generates apps in 0x vs React and checks 0x first-try compile rate + output tokens. (React correctness gate still a stub.)
+
+### Changed
+
+- **Corrected the headline numbers.** The old README claimed "18 → 96 lines, ~80% savings," which compared 0x against a maximally-verbose hand-written React. The honest, reproducible figure is **~2.4× fewer tokens than the generated React (58%)** — a conservative lower bound. Lines/chars are secondary; tokens are the metric that matters for LLM codegen cost. Marketing now matches the benchmark.
+
+### Housekeeping
+
+- Moved 13 root `debug-*.mjs` scripts into `scripts/debug/`.
+
 ## [0.1.23] - 2026-02-11
 
 ### Added
