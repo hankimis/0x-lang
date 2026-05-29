@@ -3065,6 +3065,14 @@ class Parser {
     return expr;
   }
 
+  // `...` lookahead (three PUNCTUATION dots) for JS spread desugaring
+  private isSpreadAhead(): boolean {
+    return this.match('PUNCTUATION', '.') &&
+      this.peek(1).type === 'PUNCTUATION' && this.peek(1).value === '.' &&
+      this.peek(2).type === 'PUNCTUATION' && this.peek(2).value === '.';
+  }
+  private consumeSpread(): void { this.advance(); this.advance(); this.advance(); }
+
   private parsePrimary(): Expression {
     const tok = this.current();
 
@@ -3135,39 +3143,61 @@ class Parser {
       return expr;
     }
 
-    // Array literal
+    // Array literal — desugars JS spread: [...xs, y] -> xs.concat([y])
     if (tok.type === 'PUNCTUATION' && tok.value === '[') {
       this.advance();
-      const elements: Expression[] = [];
+      const parts: Expression[] = [];
+      let buffer: Expression[] = [];
+      const flushArr = () => { if (buffer.length) { parts.push({ kind: 'array', elements: buffer }); buffer = []; } };
       while (!this.match('PUNCTUATION', ']') && !this.match('EOF')) {
-        elements.push(this.parseExpression());
+        if (this.isSpreadAhead()) { this.consumeSpread(); flushArr(); parts.push(this.parseExpression()); }
+        else { buffer.push(this.parseExpression()); }
         if (this.match('PUNCTUATION', ',')) this.advance();
       }
       this.expect('PUNCTUATION', ']');
-      return { kind: 'array', elements };
+      if (parts.length === 0) return { kind: 'array', elements: buffer };
+      flushArr();
+      let acc = parts[0];
+      for (let i = 1; i < parts.length; i++) {
+        acc = { kind: 'call', callee: { kind: 'member', object: acc, property: 'concat' }, args: [parts[i]] };
+      }
+      return acc;
     }
 
-    // Object literal
+    // Object literal — desugars JS spread: {...o, k: v} -> Object.assign({}, o, {k: v})
     if (tok.type === 'PUNCTUATION' && tok.value === '{') {
       this.advance();
-      const properties: { key: string; value: Expression }[] = [];
+      const parts: Expression[] = [];
+      let props: { key: string; value: Expression }[] = [];
+      let hadSpread = false;
+      const flushObj = () => { if (props.length) { parts.push({ kind: 'object_expr', properties: props }); props = []; } };
       this.skipNewlines();
       while (!this.match('PUNCTUATION', '}') && !this.match('EOF')) {
         this.skipNewlines();
-        const key = this.advance().value;
-        if (this.match('PUNCTUATION', ':')) {
-          this.advance();
-          const value = this.parseExpression();
-          properties.push({ key, value });
+        if (this.match('PUNCTUATION', '}')) break;
+        if (this.isSpreadAhead()) {
+          this.consumeSpread();
+          hadSpread = true;
+          flushObj();
+          parts.push(this.parseExpression());
         } else {
-          // Shorthand: {name} = {name: name}
-          properties.push({ key, value: { kind: 'identifier', name: key } });
+          const key = this.advance().value;
+          if (this.match('PUNCTUATION', ':')) {
+            this.advance();
+            props.push({ key, value: this.parseExpression() });
+          } else {
+            // Shorthand: {name} = {name: name}
+            props.push({ key, value: { kind: 'identifier', name: key } });
+          }
         }
         if (this.match('PUNCTUATION', ',')) this.advance();
         this.skipNewlines();
       }
       this.expect('PUNCTUATION', '}');
-      return { kind: 'object_expr', properties };
+      if (!hadSpread) return { kind: 'object_expr', properties: props };
+      flushObj();
+      const args: Expression[] = [{ kind: 'object_expr', properties: [] }, ...parts];
+      return { kind: 'call', callee: { kind: 'member', object: { kind: 'identifier', name: 'Object' }, property: 'assign' }, args };
     }
 
     throw new ParseError(`Unexpected token '${tok.value}' (${tok.type})`, tok.line, tok.column, this.nearby());
@@ -3225,13 +3255,22 @@ class Parser {
 
     if (tok.type === 'PUNCTUATION' && tok.value === '[') {
       this.advance();
-      const elements: Expression[] = [];
+      const parts: Expression[] = [];
+      let buffer: Expression[] = [];
+      const flushArr = () => { if (buffer.length) { parts.push({ kind: 'array', elements: buffer }); buffer = []; } };
       while (!this.match('PUNCTUATION', ']') && !this.match('EOF')) {
-        elements.push(this.parseExpression());
+        if (this.isSpreadAhead()) { this.consumeSpread(); flushArr(); parts.push(this.parseExpression()); }
+        else { buffer.push(this.parseExpression()); }
         if (this.match('PUNCTUATION', ',')) this.advance();
       }
       this.expect('PUNCTUATION', ']');
-      return { kind: 'array', elements };
+      if (parts.length === 0) return { kind: 'array', elements: buffer };
+      flushArr();
+      let acc = parts[0];
+      for (let i = 1; i < parts.length; i++) {
+        acc = { kind: 'call', callee: { kind: 'member', object: acc, property: 'concat' }, args: [parts[i]] };
+      }
+      return acc;
     }
 
     if (tok.type === 'PUNCTUATION' && tok.value === '{') {

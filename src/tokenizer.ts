@@ -196,8 +196,8 @@ export function tokenize(source: string): Token[] {
       if (ch === '.' && col + 1 < lineContent.length && /[a-zA-Z_]/.test(lineContent[col + 1])) {
         // Check if previous non-whitespace char was part of an identifier/number
         const prevChar = col > 0 ? lineContent[col - 1] : ' ';
-        const prevIsWord = /[a-zA-Z0-9_)]/.test(prevChar);
-        if (!prevIsWord) {
+        const prevIsWord = /[a-zA-Z0-9_)\]]/.test(prevChar); // ] too: arr[i].prop is member access, not a style class
+        if (!prevIsWord && prevChar !== '.') { // a dot right after a dot is spread (...), never a style class
           let cls = '.';
           let j = col + 1;
           while (j < lineContent.length && /[a-zA-Z0-9_-]/.test(lineContent[j])) {
@@ -331,6 +331,16 @@ export function tokenize(source: string): Token[] {
         tokens.push({ type: 'NUMBER', value: num, line: lineNum, column: colNum });
         col = j;
         continue;
+      }
+
+      // Three-char operators: normalize JS strict (in)equality to 0x's ==/!=
+      if (col + 2 < lineContent.length) {
+        const threeChar = lineContent.slice(col, col + 3);
+        if (threeChar === '===' || threeChar === '!==') {
+          tokens.push({ type: 'OPERATOR', value: threeChar === '===' ? '==' : '!=', line: lineNum, column: colNum });
+          col += 3;
+          continue;
+        }
       }
 
       // Two-char operators

@@ -5,9 +5,9 @@
 <h1 align="center">0x</h1>
 
 <p align="center">
-  <strong>Write 18 lines. Get 96 lines of production React.</strong><br/>
-  A full-stack language that compiles to React, Vue 3, Svelte 5, Express, React Native, and Terraform.<br/>
-  Now with <strong>LSP/IDE support</strong> and full Vue/Svelte feature parity.
+  <strong>One source → React, Vue 3, Svelte 5, Express, React Native & Terraform.</strong><br/>
+  ~<strong>2.4× fewer tokens</strong> than the React it compiles to — measured, not marketing.<br/>
+  With <strong>LSP/IDE support</strong>, an <strong>MCP server</strong>, and full Vue/Svelte feature parity.
 </p>
 
 <p align="center">
@@ -19,6 +19,10 @@
 
 <p align="center">
   <a href="https://0xlang.com">Website</a> · <a href="#quick-start">Quick Start</a> · <a href="#language-reference">Docs</a> · <a href="https://www.npmjs.com/package/0x-lang">npm</a> · <a href="mcp-server/">MCP Server</a> · <a href="https://server.smithery.ai/hankim/ox-lang">Smithery Server</a>
+</p>
+
+<p align="center">
+  <img src="website/assets/demo.gif" alt="0x demo — 18 lines of one source compiling to React, Vue, and Svelte" width="820" />
 </p>
 
 ---
@@ -46,15 +50,20 @@ That's a complete component. Run `0x build counter.ai --target react` and you ge
 
 ## The numbers
 
-| Component | 0x | React | You save |
-|:---|:---:|:---:|:---:|
-| Counter | 18 lines | 96 lines | **81%** |
-| Todo App | 24 lines | 136 lines | **82%** |
-| Dashboard | 37 lines | ~185 lines | **80%** |
-| Chat App | 31 lines | ~155 lines | **80%** |
-| E-commerce | 44 lines | ~210 lines | **79%** |
+Measured with a real BPE tokenizer (`gpt-tokenizer`) — **0x source vs the React it compiles to**. This is a conservative lower bound: a human or LLM hand-writing idiomatic React emits even more.
 
-> Compared against production TypeScript React with full inline styling, types, and component structure.
+| App | 0x tokens | React tokens | React / 0x |
+|:---|:---:|:---:|:---:|
+| Counter | 156 | 476 | **3.05×** |
+| Todo | 258 | 697 | **2.70×** |
+| Dashboard | 311 | 782 | **2.51×** |
+| E-commerce | 476 | 1,104 | **2.32×** |
+| SaaS landing | 825 | 2,231 | **2.70×** |
+| **All 10 examples** | **5,030** | **12,100** | **2.41×** (58% fewer) |
+
+Vue: **1.88×** · Svelte: **1.80×** across the same 10 examples.
+
+> Reproduce it yourself: `npm run benchmark` → writes [`REPORT.md`](REPORT.md). Method, per-example tokens, and correctness checks all included.
 
 ## Quick Start
 
@@ -790,7 +799,7 @@ const server = compile(source, { target: 'backend', compact: true });
 
 Why this matters for AI:
 
-- **80% fewer output tokens** — less generation cost, lower latency
+- **~2.4× fewer tokens** (58% less, measured) — lower generation cost and latency
 - **One syntax, zero decisions** — no "which React pattern?" hallucinations
 - **Full-stack** — frontend, backend, mobile, and infrastructure from one language
 - **Compact mode** — strips comments and whitespace for minimal token usage
