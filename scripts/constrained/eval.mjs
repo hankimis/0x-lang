@@ -23,6 +23,9 @@ const TASKS = [
   'A contact form with name/email/message fields and a submit button.',
   'A product grid with a few cards, each with an add-to-cart button and a cart total.',
   'A simple dashboard with three stat cards and a recent-activity list.',
+  'A settings panel with several toggle switches and a save button.',
+  'A shopping cart: list line items with quantities, update quantity, and a running total.',
+  'A tabbed profile page with an editable bio field and a follower count.',
 ];
 
 const SYS =

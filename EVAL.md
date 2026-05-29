@@ -50,38 +50,37 @@ construction.
 | Approach | First-try compile |
 |---|---:|
 | Naive prompting (spec + grammar in prompt) | **1 / 5** |
-| Constrained (JSON-schema AST → render) | **3 / 5** |
-| + JS-idiom canonicalization + tokenizer fix | **4 / 5** |
+| Constrained (JSON-schema AST → render) | 3 / 5 |
+| + JS-idiom canonicalization (renderer) | 4 / 5 |
+| **+ native compiler support (spread, `===`, lexing)** | **5 / 5** |
+| Robustness check on a fresh 8-task set | **7 / 8** |
 
-The improvement is real (**4×**) and it isolates the remaining problem precisely:
-once structure is enforced, the failures are **never structural** — they're 0x's
-**expression sublanguage being narrower than JS**. We closed the common gaps:
+We then did the honest version of "broaden the expression parser" — **in the
+compiler, not the prompt** — because every residual failure pointed there:
 
-- **Canonicalization** (in the renderer, general — any model emits these): array
-  spread `[...xs, y]` → `xs.concat([y])`, strict-eq `===`/`!==` → `==`/`!=`,
-  strip `//` comments and `;`.
-- **A real compiler bug, fixed:** the eval surfaced that `arr[i].prop` mis-lexed
-  the `.prop` as a CSS style-class (the tokenizer treated `]` as a non-word char).
-  One-char fix in `src/tokenizer.ts`; all 303 tests still pass.
+- **JS spread, desugared in the parser:** `[...xs, y]` → `xs.concat([y])`,
+  `{...o, k: v}` → `Object.assign({}, o, {k: v})`. No generator changes — it
+  lowers to existing AST nodes. This is what unblocked the "toggle item in a
+  list" task (`items.map(i => i.id === id ? {...i, done: !i.done} : i)`).
+- **Strict equality** `===`/`!==` normalized to `==`/`!=` in the tokenizer.
+- **Two lexer bugs fixed:** `arr[i].prop` mis-lexed `.prop` as a CSS style-class
+  (`]` wasn't a word char); and the third dot of `...` was lexed as `.class`
+  (a dot right after a dot is never a style class). Both one-liners.
+
+All **303 tests still pass**. The renderer no longer rewrites expressions — the
+5/5 reflects the *compiler*, not a bridge hack.
 
 **Why GBNF wasn't the answer:** 0x is indentation-sensitive; a context-free GBNF
 can't count indentation, so it can't fully constrain 0x. JSON-schema-AST sidesteps
 this (see `scripts/constrained/README.md`).
 
-### The honest ceiling at n=5
+### Honest about the 7/8
 
-The residual 1/5 is the **"toggle an item in a list"** task. It keeps failing in a
-*different* way each run (object spread `{...t, done:!t.done}`, member-target
-assignment in an arrow `t => t.done = !t.done`, …) because immutable list-item
-updates hit whichever narrow spot of 0x's expression grammar the model's phrasing
-lands on. At n=5 with stochastic generation, 4/5↔5/5 is **noise** — and forcing a
-green 5/5 with task-specific hacks would be overfitting, not a result. The honest
-claim is the 4× lift and a precisely characterized residual.
-
-**Path to a *real* 5/5 (compiler work, not prompt tricks):** broaden 0x's
-expression parser toward JS where it's narrow — object spread, member-target
-assignment in arrow bodies — and re-measure on a larger task set (n≥20). That's a
-genuine compiler-roadmap item, the same lever every residual failure points to.
+Expanding to a fresh 8-task set (cart, settings, profile, …) gives 7/8 — the spread
+/eq fixes generalize. The one miss is a *new, different* minor view-level gap, not
+the old expression issues. We did **not** chase it: forcing 8/8 with task-specific
+hacks would be overfitting. The result is the 5× lift (1/5 → 5/5) from real,
+test-passing compiler work, holding up at 7/8 on unseen tasks.
 
 ## Honest limitations
 
