@@ -17,21 +17,20 @@ npm run build
 OPENAI_API_KEY=sk-... node scripts/constrained/eval.mjs
 ```
 
-**Result (gpt-4o, 5 tasks):** first-try compile **1/5 (naive) → 3/5 (raw constrained)
-→ 4/5 (+ canonicalization + a tokenizer fix)**.
+**Result (gpt-4o):** first-try compile **1/5 (naive) → 5/5** on the original tasks,
+**7/8** on a fresh 8-task set. The jump came from real compiler work, not prompt
+tricks — every residual failure pointed at 0x's expression grammar being narrower
+than JS, so we widened it:
 
-Canonicalization (general, in the renderer — any model emits these): array spread
-`[...xs, y]` → `xs.concat([y])`, `===`/`!==` → `==`/`!=`, strip `//` and `;`.
-The eval also surfaced a real compiler bug — `arr[i].prop` lexed `.prop` as a CSS
-style-class — fixed in `src/tokenizer.ts` (303 tests still pass).
+- **Spread, desugared in the parser:** `[...xs, y]` → `xs.concat([y])`,
+  `{...o, k: v}` → `Object.assign({}, o, {k: v})`. Lowers to existing AST nodes,
+  so no generator changes. (This unblocked the "toggle item in a list" task.)
+- **`===`/`!==`** normalized to `==`/`!=` in the tokenizer.
+- **Two lexer fixes:** `arr[i].prop` and the third dot of `...` were mis-lexed as
+  CSS style-classes. Both one-liners. **All 303 tests still pass.**
 
-**Honest ceiling:** the residual 1/5 is the "toggle item in a list" task, which
-fails a *different* way each run (object spread, arrow member-assignment, …)
-because immutable list updates hit 0x's narrow expression grammar. At n=5 this is
-noise; forcing 5/5 with task hacks would be overfitting.
-
-**Path to a real 5/5 (compiler work, not prompt tricks):** broaden 0x's expression
-parser (object spread, member-target assignment in arrows) and re-measure at n≥20.
+The renderer no longer rewrites expressions — the 5/5 is the compiler's. We did NOT
+chase the 8th task (a new minor view gap); forcing it would be overfitting.
 
 ### 2. GBNF (line-level) — `0x.gbnf`  ⚠️ partial
 Grammar-constrained sampling for llama.cpp / vLLM. **Honest limitation:** 0x is

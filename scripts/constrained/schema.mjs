@@ -82,14 +82,11 @@ export const OX_SCHEMA = {
   },
 };
 
-// ---- expression canonicalization (leaf strings) ----
-// 0x's expression parser lacks JS spread; rewrite the common array-spread forms.
+// ---- leaf-string cleanup ----
+// 0x now handles JS spread and ===/!== natively in the compiler (parser desugar +
+// tokenizer). We only strip things that aren't expressions: // comments and `;`.
 function expr(s) {
-  let x = String(s ?? '').replace(/\/\/.*$/, '').trim().replace(/;+$/, '');
-  x = x.replace(/!==/g, '!=').replace(/===/g, '=='); // 0x has ==/!= only, not strict eq
-  x = x.replace(/^\[\s*\.\.\.([A-Za-z_$][\w$]*)\s*,\s*([\s\S]+)\]$/, '$1.concat([$2])'); // [...X, y] -> X.concat([y])
-  x = x.replace(/^\[\s*\.\.\.([A-Za-z_$][\w$]*)\s*\]$/, '$1.slice()'); // [...X] -> X.slice()
-  return x;
+  return String(s ?? '').replace(/\/\/.*$/, '').trim().replace(/;+$/, '');
 }
 
 // 0x is one-statement-per-line, `#` comments (not `//`), no `;`. Canonicalize.
