@@ -95,7 +95,7 @@ The result reframes what makes a language a good LLM target. It is not enough to
 
 == Roadmap
 
-Section 2 reviews LLM code generation, DSLs, token efficiency, and constrained decoding. Section 3 describes the 0x language and its compiler. Section 4 reports the token-efficiency benchmark. Section 5 reports the naive-generation study and the all-syntactic-failure finding. Section 6 reports the constrained-decoding results and the compiler fixes. Section 7 discusses the compactness-versus-familiarity trade-off and the compiler-as-verifier thesis. Sections 8–10 cover limitations, reproducibility, and future work. Appendices give per-example data and a language sketch.
+Section 2 reviews LLM code generation, DSLs, token efficiency, and constrained decoding. Section 3 describes the 0x language and its compiler. Section 4 reports the token-efficiency benchmark. Section 5 reports the naive-generation study and the all-syntactic-failure finding. Section 6 reports the constrained-decoding results and the compiler fixes. Section 7 discusses the compactness-versus-familiarity trade-off and the compiler-as-verifier thesis, and Section 8 draws out the broader epistemics. Sections 9–11 cover limitations, reproducibility, and future work. Appendices give per-example size data, a note on why grammar constraints are insufficient, and a worked end-to-end example.
 
 // ================= 2 BACKGROUND =================
 = Background and related work
@@ -115,6 +115,25 @@ Transformer inference cost scales with sequence length @vaswani2017, so the toke
 == Constrained and structured decoding
 
 A language model can be prevented from producing ill-formed output by *constraining* its decoding to a formal structure. Grammar-constrained decoding @geng2023 @scholak2021 and efficient guided generation @willard2023 restrict the next-token distribution to a grammar; schema-constrained "structured output" restricts it to a typed object such as a JSON AST. The key limitation we encounter is that context-free grammar constraints (e.g. GBNF) cannot count indentation, so they cannot fully constrain an indentation-sensitive surface language like 0x; we therefore constrain a JSON-schema AST and render the surface syntax deterministically, sidestepping the indentation problem entirely (Section 6).
+
+== Where 0x sits among ways to produce framework code
+
+Table @tab-compare locates 0x among the alternatives a team has for getting from intent to running framework code. The distinguishing combination is *one compact source, several targets, and a verifying compiler in the loop* — the last being what this paper argues is decisive for LLM authorship.
+
+#figure(
+  table(
+    columns: (auto, 1fr, 1fr),
+    align: (left, left, left),
+    stroke: 0.4pt + luma(200), inset: 5pt,
+    table.header([*Approach*], [*Tokens / authoring*], [*Checkability*]),
+    [Hand-written framework code], [verbose; full boilerplate per target], [tests/types if the team writes them],
+    [LLM → framework code], [verbose output; familiar to the model], [syntactic transpile; behaviour unchecked],
+    [No-code / GUI builders], [no text; locked to one runtime], [closed; hard to diff or version],
+    [General DSL / templating], [compact for its domain], [varies; often syntactic only],
+    [*0x (this work)*], [*compact, multi-target source*], [*parse + semantic validation; structure-enforceable*],
+  ),
+  caption: [0x versus other paths from intent to framework code. Its combination of compactness, multi-target compilation, and a semantically validating compiler is what makes it a verifiable LLM target.],
+) <tab-compare>
 
 // ================= 3 LANGUAGE =================
 = The 0x language
@@ -142,6 +161,10 @@ page Counter:
 ```
 
 This compiles, with `0x build counter.ai --target react`, to a working component with `useState`, event handlers, and styling; the same source also targets Vue 3, Svelte 5, and React Native.
+
+== Compiler architecture
+
+The compiler is a conventional front-end feeding a set of target back-ends, and the separation matters for the verifiability argument. A *lexer* tokenizes the indentation-sensitive surface syntax — the source of two of the bugs fixed in Section 6, since whitespace and punctuation carry structural meaning. A *parser* builds an abstract syntax tree of pages, state, derived values, functions, and a typed view tree. A *semantic validation* pass then checks that the tree is coherent: that referenced state exists, that derived values are well-formed, that view bindings resolve. Only an AST that survives both passes reaches a back-end. This staging is why a "compile" in Study 2 is a strong signal — it certifies parse-plus-semantic validity, not mere well-formedness — and it is also why structure enforcement composes so cleanly: a schema-checked AST (Section 6) enters the pipeline *past* the lexer and parser, so the two stages most hostile to an unfamiliar surface syntax are bypassed by construction, leaving only semantic validation to satisfy.
 
 == Multi-target compilation
 
@@ -278,7 +301,32 @@ We report the 1/5 naive failure prominently rather than leading with the 5/5, be
 
 Structure enforcement guarantees syntax, not meaning. The residual failures (the eighth task; the gap below 5/5 before the compiler work) concentrate where the AST schema is weakest — notably in *function bodies*, which the schema models as strings rather than as fully typed expression trees. This locates the next frontier precisely: the more of a program's semantics the schema captures, the more of its correctness structure enforcement can guarantee, and the less is left to repair.
 
-// ================= 8 LIMITATIONS =================
+// ================= EPISTEMICS =================
+= Epistemics: tokens, familiarity, and verifiable generation
+
+Beyond the measurements, this work sharpens a few general claims about how language models should be given targets to write into. We state them plainly, because the lab's view is that the transferable lesson matters more than the artifact.
+
+== The economics of ceremony
+
+A token is a unit of cost — of latency, of money, of context. Framework code is dominated by *ceremony*: tokens that are fully determined by the framework and the component's structure, carrying no information specific to the developer's intent. That ceremony is, by construction, *derivable*, and spending model capacity to regenerate it on every component is a standing inefficiency. 0x is one expression of a simple principle: a generator should emit *intent*, and a compiler should derive *ceremony*. The 2.41× is the size of that derivable fraction for React; the deeper point is that the line between "what must be generated" and "what can be derived" is a design choice, and moving it toward derivation is almost free once a compiler exists.
+
+== Training-data gravity and the novelty tax
+
+The naive 1/5 result is, at root, about *distribution*. A language model writes most fluently in the languages it has seen most, and an unfamiliar notation — however elegant — sits in a low-density region of its training distribution. We call this *training-data gravity*: the model is pulled toward what it has seen, and a new language pays a *novelty tax* that no prompt fully refunds, because the missing competence is knowledge, not reasoning. This reframes a common intuition. The best LLM target is often assumed to be the smallest one; in fact, holding a model fixed, the path of least resistance is the *most familiar* one, and a compact-but-novel language is at a disadvantage until its structure is enforced. Familiarity and compactness pull in opposite directions, and the resolution is not to choose between them but to make familiarity unnecessary by constraining the surface form away from the model entirely.
+
+== From generating correct text to generating into a checkable structure
+
+The arc from 1/5 to 5/5 marks a shift in stance that we think is the most generalizable idea here. The naive loop *trusts the model to produce correct text* and corrects it after the fact; the constrained method *forbids the model from producing incorrect structure* in the first place, and renders the text deterministically. This is a move from *post-hoc verification* to *by-construction validity* for everything below the semantic level — the model is left to do only the part it is actually good at, choosing structure and content, while the parts it is bad at (an unfamiliar surface syntax, exact indentation) are removed from its hands. The general recipe is: identify the largest sub-problem that can be made correct by construction, take it away from the model, and reserve the model and the repair loop for the irreducibly semantic remainder.
+
+== The compiler as oracle
+
+What makes any of this trustworthy is that 0x's correctness signal is a *compiler*, not another model. A model-as-judge is fallible and can be gamed; a compiler's parse-and-validate is deterministic ground truth for the properties it checks. The asymmetry with the React baseline is instructive precisely here — a syntactic transpile is a weak oracle (a file can pass and be a broken app), while parse-plus-semantic validation is a stronger one, and the *strength of the oracle is the strength of the claim*. A compact target is only as valuable as the verifier that stands behind it; 0x's bet is that owning the compiler means owning a stronger oracle than the ecosystem default.
+
+== Reporting the 1/5
+
+Finally, a methodological commitment. It would have been easy to present only the 5/5 and the 2.41×, and the artifact would have looked stronger and taught less. The 1/5 is the finding — it locates the bottleneck (syntactic familiarity), and the error classification that proves the failures are all syntactic is what makes the fix obvious. A result that hides its negative is not just less honest; it is less *useful*, because the negative is where the mechanism lives. We keep it in front.
+
+// ================= LIMITATIONS =================
 = Limitations and threats to validity
 
 *Tokenizer is a proxy.* Token counts use a single BPE tokenizer as a cross-model stand-in; absolute counts differ by model, though the *ratios* are stable and the comparison is internally consistent.
@@ -348,3 +396,14 @@ Lines and characters (React, for reference), illustrating that the token savings
 
 #set text(9.5pt)
 A natural attempt at structure enforcement for a textual language is a context-free grammar in GBNF form, constraining the decoder to strings the grammar accepts. This fails for 0x because 0x is *indentation-sensitive*: block structure is carried by leading whitespace, and a context-free grammar cannot count indentation depth (the classic off-side-rule limitation). A GBNF constraint can therefore keep tokens locally legal while permitting globally mis-indented, uncompilable programs. Constraining a *JSON-schema AST* instead removes the problem at the root: the schema guarantees a well-typed tree, and a deterministic renderer emits canonically indented 0x from that tree, so indentation is correct by construction and never a degree of freedom the model can get wrong.
+
+= A worked example, end to end
+
+#set text(9.5pt)
+The "toggle one item in a list" task illustrates the whole arc of Sections 5–6 in miniature.
+
+*Naive generation (fails, syntactically).* Prompted with the spec and grammar, gpt-4o produced 0x whose intent was correct but whose surface form was not — e.g. emitting a list update as `items = [...items]` inside a malformed view line, which the lexer rejected because `[...` and the surrounding punctuation were mis-tokenized. The compiler's message was a *syntax* error (`Unexpected NEWLINE`, `Expected '['`), not a semantic one: the model had the right idea and the wrong notation.
+
+*Constrained generation (schema-valid AST).* Under structured output, the model instead emits a typed object — a page with state `items`, a function `toggle(id)`, and a view list — that is schema-valid by construction. No indentation or punctuation is left to the model.
+
+*Rendering and compiler support.* The renderer emits canonical 0x from the AST. The function body `items.map(i => i.id === id ? {...i, done: !i.done} : i)` then exercised two real compiler gaps: JavaScript object spread and strict equality. Desugaring `{...i, done: !i.done}` to `Object.assign({}, i, {done: !i.done})` in the parser, and normalizing `===` to `==` in the tokenizer, made the program compile — *in the compiler, with all 303 tests still passing*, not as a renderer rewrite. The task moved from a first-try syntax failure to a first-try compile, and the same two fixes generalized across the rest of the task set, which is the mechanism behind the 1/5 → 5/5 lift.
