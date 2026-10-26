@@ -14,7 +14,7 @@
   <a href="https://www.npmjs.com/package/0x-lang"><img src="https://img.shields.io/npm/v/0x-lang.svg?style=flat-square&color=00e5cc&label=npm" alt="npm" /></a>
   <a href="https://www.npmjs.com/package/0x-lang"><img src="https://img.shields.io/npm/dm/0x-lang.svg?style=flat-square&color=7c3aed&label=downloads" alt="downloads" /></a>
   <a href="https://opensource.org/licenses/ISC"><img src="https://img.shields.io/badge/license-ISC-blue.svg?style=flat-square" alt="License" /></a>
-  <a href="https://smithery.ai/server/0x"><img src="https://smithery.ai/badge/0x" alt="Smithery" /></a>
+  <a href="https://lightnow.ai/servers/io.github.hankimis/mcp-server"><img src="https://lightnow.ai/badge/io.github.hankimis/mcp-server" alt="LightNow capabilities" /></a>
   <a href="https://zenodo.org/badge/latestdoi/1154358537"><img src="https://zenodo.org/badge/1154358537.svg" alt="DOI" /></a>
 </p>
 
